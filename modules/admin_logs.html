@@ -1,0 +1,33 @@
+<div class="module-header">
+    <h2 style="font-family: 'Oswald'; color: var(--bnet-blue); margin-top: 0;">LOGS DEL SISTEMA</h2>
+    <p style="color: #888; font-size: 0.9rem;">Historial de acciones administrativas realizadas en la plataforma.</p>
+</div>
+
+<div class="admin-card" style="background: var(--bnet-card); padding: 20px; border-radius: 4px; border: 1px solid #2a2e35;">
+    <div id="log-container" style="font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; color: #aaa; max-height: 500px; overflow-y: auto; line-height: 1.6;">
+        <div style="color: #444;">Iniciando visor de eventos...</div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const logBox = document.getElementById('log-container');
+        // Usamos una referencia a 'logs' en Firebase. 
+        // Nota: Deberías hacer un push a esta ruta cada vez que un admin haga una acción.
+        db.ref('logs').limitToLast(50).on('value', snapshot => {
+            logBox.innerHTML = '';
+            if(!snapshot.exists()) {
+                logBox.innerHTML = '<div style="color:#555;">No hay registros recientes.</div>';
+                return;
+            }
+            snapshot.forEach(child => {
+                const log = child.val();
+                const div = document.createElement('div');
+                div.style.borderBottom = "1px solid #222";
+                div.style.padding = "5px 0";
+                div.innerHTML = `<span style="color: #666;">[${log.fecha}]</span> <span style="color: var(--bnet-blue);">${log.usuario}:</span> ${log.accion}`;
+                logBox.prepend(div);
+            });
+        });
+    })();
+</script>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --bnet-blue: #00aeff; --bnet-dark: #15171e; --bnet-card: #1a1d23;
+            --Warrior: #C79C6E; --Paladin: #F58CBA; --DeathKnight: #C41F3B; --Hunter: #ABD473;
+            --Rogue: #FFF569; --Priest: #FFFFFF; --Shaman: #0070DE; --Mage: #69CCF0;
+            --Warlock: #9482C9; --Druid: #FF7D0A;
+            --Tank-bg: rgba(196, 31, 59, 0.1); --Healer-bg: rgba(255, 255, 255, 0.05); --DPS-bg: rgba(0, 174, 255, 0.05);
+        }
+        body { background: var(--bnet-dark); color: white; font-family: 'Roboto', sans-serif; margin: 0; padding: 25px; }
+        
+        /* CALENDARIO SUPERIOR */
+        .timeline { display: flex; gap: 10px; margin-bottom: 25px; }
+        .day { 
+            flex: 1; background: #0a0b0d; padding: 15px; text-align: center; cursor: pointer; 
+            border: 1px solid #2a2e35; border-radius: 4px; transition: 0.3s;
+        }
+        .day.active { border-color: var(--bnet-blue); background: var(--bnet-card); box-shadow: 0 0 15px rgba(0,174,255,0.2); }
+        .day b { font-family: 'Oswald'; font-size: 1.3rem; display: block; }
+        .day span { font-size: 0.7rem; color: #666; text-transform: uppercase; }
+
+        /* HEADER DEL EVENTO CON IMAGEN */
+        .raid-header { 
+            height: 250px; background-size: cover; background-position: center;
+            border-radius: 8px 8px 0 0; position: relative; border: 1px solid #333;
+            display: flex; align-items: flex-end; overflow: hidden;
+        }
+        .raid-header-info { 
+            background: linear-gradient(transparent, rgba(0,0,0,0.9)); 
+            width: 100%; padding: 30px; display: flex; justify-content: space-between; align-items: flex-end;
+        }
+        .raid-header-info h2 { margin: 0; font-family: 'Oswald'; font-size: 2.5rem; text-transform: uppercase; }
+
+        /* GRID DE ROLES */
+        .roles-container { 
+            display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 15px; margin-top: 15px;
+        }
+        .role-column { background: var(--bnet-card); border-radius: 8px; border: 1px solid #2a2e35; overflow: hidden; }
+        .role-header { 
+            padding: 10px; text-align: center; font-family: 'Oswald'; font-weight: bold; 
+            letter-spacing: 1px; border-bottom: 1px solid #333;
+        }
+        .header-tank { background: #5a1212; }
+        .header-healer { background: #124d2d; }
+        .header-dps { background: #123e5a; }
+
+        .pj-list { padding: 10px; min-height: 100px; }
+        .pj-card { 
+            background: #0a0b0d; margin-bottom: 6px; padding: 10px; border-radius: 4px;
+            display: flex; justify-content: space-between; border-left: 4px solid; font-size: 0.85rem;
+        }
+
+        /* REGISTRO LATERAL */
+        .main-layout { display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
+        .panel-right { background: var(--bnet-card); padding: 20px; border-radius: 8px; border: 1px solid #2a2e35; height: fit-content; }
+
+        .btn-char { 
+            width: 100%; padding: 12px; margin-bottom: 8px; background: #000; border: 1px solid #333; 
+            color: white; text-align: left; cursor: pointer; border-radius: 4px; transition: 0.2s;
+        }
+        .btn-char:hover { border-color: var(--bnet-blue); background: #111; }
+        .btn-cancel { background: #551111; color: white; border: none; padding: 15px; width: 100%; border-radius: 4px; cursor: pointer; font-family: 'Oswald'; }
+    </style>
+</head>
+<body>
+
+    <div class="timeline" id="timeline"></div>
+
+    <div id="raid-content" class="main-layout">
+        <div style="text-align:center; padding:50px; opacity:0.5;">Selecciona un día del calendario.</div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-database-compat.js"></script>
+    <script>
+        const firebaseConfig = { apiKey: "AIzaSyDGELmVvBZZywbJOf6kuVKQJjKaRt6Q9ws", authDomain: "eternalreapersweb.firebaseapp.com", databaseURL: "https://eternalreapersweb-default-rtdb.firebaseio.com", projectId: "eternalreapersweb" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database(), auth = firebase.auth();
+
+        let raidActualId = null;
+
+        function loadTimeline() {
+            const container = document.getElementById('timeline');
+            const today = new Date();
+            for(let i=0; i<7; i++) {
+                let d = new Date(); d.setDate(today.getDate() + i);
+                let dateStr = d.toISOString().split('T')[0];
+                container.innerHTML += `<div class="day" id="day-${dateStr}" onclick="verRaid('${dateStr}')"><b>${d.getDate()}</b><span>${dateStr}</span></div>`;
+            }
+        }
+
+        function verRaid(fecha) {
+            document.querySelectorAll('.day').forEach(d => d.classList.remove('active'));
+            document.getElementById('day-'+fecha).classList.add('active');
+
+            db.ref('raids').orderByChild('fecha').equalTo(fecha).on('value', s => {
+                const container = document.getElementById('raid-content');
+                if(!s.exists()) { container.innerHTML = '<div class="card"><h2>NO HAY RAIDS PROGRAMADAS</h2></div>'; return; }
+                
+                s.forEach(ch => {
+                    raidActualId = ch.key;
+                    const r = ch.val();
+                    // Imagen referencial según nombre (ejemplo)
+                    let img = "https://worldofwarcraft.blizzard.com/static/images/art/raid-backgrounds/icecrown-citadel.jpg";
+                    if(r.nombre.includes("Sagrario")) img = "https://worldofwarcraft.blizzard.com/static/images/art/raid-backgrounds/the-ruby-sanctum.jpg";
+
+                    container.innerHTML = `
+                        <div>
+                            <div class="raid-header" style="background-image: url('${img}')">
+                                <div class="raid-header-info">
+                                    <div><h2>${r.nombre}</h2><span>🕒 ${r.hora || '22:00'} ST | Requisito: ${r.gs} GS</span></div>
+                                </div>
+                            </div>
+                            <div class="roles-container">
+                                <div class="role-column"><div class="role-header header-tank">TANQUES</div><div id="list-Tank" class="pj-list"></div></div>
+                                <div class="role-column"><div class="role-header header-healer">HEALERS</div><div id="list-Healer" class="pj-list"></div></div>
+                                <div class="role-column"><div class="role-header header-dps">DPS</div><div id="list-DPS" class="pj-list"></div></div>
+                            </div>
+                        </div>
+                        <div class="panel-right" id="registro-pjs">
+                            <h3 style="font-family:'Oswald'">TU REGISTRO</h3>
+                            <div id="opciones-registro">Cargando...</div>
+                        </div>`;
+                    actualizarAsistentes();
+                });
+            });
+        }
+
+        function actualizarAsistentes() {
+            db.ref('raids/'+raidActualId+'/asistentes').on('value', s => {
+                const roles = { Tank: [], Healer: [], DPS: [] };
+                let miPjKey = null;
+
+                s.forEach(ch => {
+                    const p = ch.val();
+                    if(auth.currentUser && p.uid === auth.currentUser.uid) miPjKey = ch.key;
+                    if(roles[p.rol]) roles[p.rol].push(p);
+                });
+
+                ['Tank', 'Healer', 'DPS'].forEach(role => {
+                    const box = document.getElementById('list-'+role);
+                    box.innerHTML = roles[role].map(p => `
+                        <div class="pj-card" style="border-color:var(--${p.clase})">
+                            <b>${p.nombre}</b><span>${p.gs}</span>
+                        </div>`).join('') || '<p style="text-align:center; opacity:0.3; font-size:0.8rem;">Vacio</p>';
+                });
+
+                const panel = document.getElementById('opciones-registro');
+                if(miPjKey) {
+                    panel.innerHTML = `<div style="text-align:center;"><p style="color:var(--bnet-blue)">Estás anotado.</p><button class="btn-cancel" onclick="retirarse('${miPjKey}')">RETIRARSE / CAMBIAR</button></div>`;
+                } else {
+                    cargarMisPjsParaRegistro();
+                }
+            });
+        }
+
+        function cargarMisPjsParaRegistro() {
+            db.ref('usuarios/'+auth.currentUser.uid+'/personajes').once('value', s => {
+                const panel = document.getElementById('opciones-registro');
+                panel.innerHTML = '<p style="font-size:0.8rem; color:#888;">Elige un PJ para esta raid:</p>';
+                s.forEach(ch => {
+                    const p = ch.val();
+                    panel.innerHTML += `<button class="btn-char" onclick="anotarse('${p.nombre}','${p.clase}','${p.spec}','${p.role}','${p.gs}')"><b>${p.nombre}</b><br><small>${p.spec} (${p.gs} GS)</small></button>`;
+                });
+            });
+        }
+
+        function anotarse(n, c, s, r, g) {
+            db.ref('raids/'+raidActualId+'/asistentes').push({ nombre: n, clase: c, spec: s, rol: r, gs: g, uid: auth.currentUser.uid });
+        }
+
+        function retirarse(key) {
+            if(confirm("¿Retirar personaje?")) db.ref('raids/'+raidActualId+'/asistentes/'+key).remove();
+        }
+
+        loadTimeline();
+        auth.onAuthStateChanged(u => { if(u && raidActualId) actualizarAsistentes(); });
+    </script>
+</body>
+</html>

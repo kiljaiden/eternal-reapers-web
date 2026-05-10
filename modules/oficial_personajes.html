@@ -1,0 +1,38 @@
+<div class="module-header">
+    <h2 style="font-family: 'Oswald'; color: #28a745; margin-top: 0;">DIRECTORIO DE MIEMBROS</h2>
+    <p style="color: #888; font-size: 0.9rem;">Consulta los personajes y el equipo (GS) de todos los integrantes.</p>
+</div>
+
+<div id="miembros-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">
+    </div>
+
+<script>
+    (function() {
+        const grid = document.getElementById('miembros-grid');
+        db.ref('usuarios').on('value', snapshot => {
+            grid.innerHTML = '';
+            snapshot.forEach(uChild => {
+                const user = uChild.val();
+                const userCard = document.createElement('div');
+                userCard.style.cssText = "background: var(--bnet-card); border: 1px solid #2a2e35; padding: 15px; border-radius: 4px;";
+                
+                let pjsHtml = '';
+                if(user.personajes) {
+                    Object.values(user.personajes).forEach(p => {
+                        pjsHtml += `<div style="font-size: 0.8rem; color: #ccc; border-bottom: 1px solid #222; padding: 3px 0;">
+                            <b>${p.nombre}</b> - ${p.spec} (${p.gs} GS)
+                        </div>`;
+                    });
+                } else {
+                    pjsHtml = '<div style="font-size: 0.75rem; color: #555;">Sin personajes registrados.</div>';
+                }
+
+                userCard.innerHTML = `
+                    <div style="color: #28a745; font-weight: bold; margin-bottom: 10px;">${user.nombre}</div>
+                    ${pjsHtml}
+                `;
+                grid.appendChild(userCard);
+            });
+        });
+    })();
+</script>

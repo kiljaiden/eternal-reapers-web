@@ -2,14 +2,14 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Comandancia - Eternal Reapers</title>
+    <title>Oficialía - Eternal Reapers</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         :root {
-            --accent-color: #00aeff;
+            --accent-color: #28a745; /* Verde Oficial */
             --bnet-sidebar: rgba(10, 11, 13, 0.95);
             --bnet-dark: #15171e;
             --bnet-text: #f0f0f0;
@@ -28,17 +28,17 @@
             border-right: 1px solid rgba(255,255,255,0.05); display: flex; 
             flex-direction: column; backdrop-filter: blur(15px); z-index: 10;
         }
-        .logo-box { padding: 30px; font-family: 'Oswald'; color: var(--accent-color); font-size: 1.4rem; text-align: center; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+        .logo-box { padding: 30px; font-family: 'Oswald'; color: var(--accent-color); font-size: 1.4rem; text-align: center; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
         
         .nav-menu { flex-grow: 1; padding: 10px 0; overflow-y: auto; }
         .nav-item { 
             padding: 12px 25px; color: #777; cursor: pointer; transition: 0.3s; 
             display: flex; align-items: center; font-family: 'Oswald'; font-size: 0.9rem; text-transform: uppercase;
         }
-        .nav-item:hover { background: rgba(0, 174, 255, 0.05); color: #fff; }
+        .nav-item:hover { background: rgba(40, 167, 69, 0.05); color: #fff; }
         .nav-item.active { 
             color: var(--accent-color); border-left: 3px solid var(--accent-color); 
-            background: linear-gradient(90deg, rgba(0,174,255,0.1) 0%, transparent 100%); 
+            background: linear-gradient(90deg, rgba(40, 167, 69, 0.1) 0%, transparent 100%); 
         }
 
         /* CONTENEDOR CENTRAL: Módulos */
@@ -61,7 +61,7 @@
         .user-online .rango { font-size: 0.7rem; color: #555; text-transform: uppercase; }
 
         .bnet-btn-main {
-            background: var(--accent-color); color: #000; border: none; padding: 10px 25px;
+            background: var(--accent-color); color: #fff; border: none; padding: 10px 25px;
             font-family: 'Oswald'; font-weight: 700; font-size: 1rem; border-radius: 4px;
             cursor: pointer; text-transform: uppercase; transition: 0.2s;
         }
@@ -69,22 +69,20 @@
 </head>
 <body>
     <div class="sidebar-left">
-        <div class="logo-box">COMANDANCIA</div>
+        <div class="logo-box">OFICIALÍA</div>
         <nav class="nav-menu">
-            <div class="nav-item active" onclick="loadModule('admin_usuarios.html', this)">Gobernanza</div>
-            <div class="nav-item" onclick="loadModule('oficial_solicitudes.html', this)">Aspirantes</div>
-            <div class="nav-item" onclick="loadModule('admin_noticias.html', this)">Anuncios</div>
-            <div class="nav-item" onclick="loadModule('admin_reglas.html', this)">Decretos</div>
+            <div class="nav-item active" onclick="loadModule('oficial_solicitudes.html', this)">Aspirantes</div>
             <div class="nav-item" onclick="loadModule('oficial_raids.html', this)">Bandas</div>
             <div class="nav-item" onclick="loadModule('oficial_personajes.html', this)">Miembros</div>
-            <div class="nav-item" onclick="loadModule('admin_logs.html', this)">Registros</div>
+            <div class="nav-item" onclick="loadModule('admin_noticias.html', this)">Anuncios</div>
+            <div class="nav-item" onclick="loadModule('admin_reglas.html', this)">Decretos</div>
             <div class="nav-item" onclick="loadModule('config.html', this)">Mi Perfil</div>
         </nav>
     </div>
 
     <div class="main-view">
         <div class="top-header">
-            <div id="status-title" style="font-family:'Oswald'; color:#fff; letter-spacing: 1px;">SISTEMA CENTRAL</div>
+            <div id="status-title" style="font-family:'Oswald'; color:#fff; letter-spacing: 1px;">PANEL DE CONTROL</div>
             <button class="bnet-btn-main" onclick="location.href='index.html'">REGRESAR</button>
         </div>
         <div id="module-container"></div>
@@ -93,6 +91,9 @@
     <div class="sidebar-right">
         <div class="social-header">Usuarios Online</div>
         <div id="friends-list"></div>
+        <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.05);">
+            <button onclick="logout()" style="background:none; border:none; color:#444; cursor:pointer; font-family:'Oswald'; font-size: 0.7rem; text-transform: uppercase;">Cerrar Sesión</button>
+        </div>
     </div>
 
     <script>
@@ -100,19 +101,17 @@
         const db = firebase.database();
 
         function loadModule(file, element) {
-            // Cambiar clase activa en el menú
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             if(element) element.classList.add('active');
             
             const container = document.getElementById('module-container');
-            container.innerHTML = '<div style="color:var(--accent-color); font-family:Oswald;">CARGANDO MÓDULO...</div>';
+            container.innerHTML = '<div style="color:var(--accent-color); font-family:Oswald;">ACCEDIENDO AL ARCHIVO...</div>';
 
             fetch(`modules/${file}`).then(res => {
-                if(!res.ok) throw new Error("No se encontró el archivo: " + file);
+                if(!res.ok) throw new Error("Módulo no disponible: " + file);
                 return res.text();
             }).then(html => {
                 container.innerHTML = html;
-                // Ejecutar scripts internos del módulo si los hay
                 const scripts = container.querySelectorAll("script");
                 scripts.forEach(s => {
                     const newS = document.createElement("script");
@@ -120,25 +119,27 @@
                     document.body.appendChild(newS).parentNode.removeChild(newS);
                 });
             }).catch(err => {
-                container.innerHTML = `<p style="color:red; font-family:Oswald;">ERROR: ${err.message}</p>`;
+                container.innerHTML = `<p style="color:red; font-family:Oswald;">ERROR DE CARGA: ${err.message}</p>`;
             });
         }
 
         auth.onAuthStateChanged(user => {
             if (user) {
-                // Presencia
+                // Estado de presencia
                 db.ref('usuarios/' + user.uid + '/estado').set('online');
                 db.ref('usuarios/' + user.uid + '/estado').onDisconnect().set('offline');
 
                 db.ref('usuarios/' + user.uid).once('value', s => {
                     const u = s.val();
-                    if(u && u.rango === 'admin') {
-                        // Cargar el primer módulo por defecto
-                        loadModule('admin_usuarios.html', document.querySelector('.nav-item.active'));
-                    } else { window.location.href = 'index.html'; }
+                    // Verificación de rango (Oficial o Admin pueden entrar aquí)
+                    if(u && (u.rango === 'oficial' || u.rango === 'admin')) {
+                        loadModule('oficial_solicitudes.html', document.querySelector('.nav-item.active'));
+                    } else { 
+                        window.location.href = 'index.html'; 
+                    }
                 });
 
-                // Lista Social
+                // Lista de amigos/hermandad online
                 db.ref('usuarios').on('value', snapshot => {
                     const list = document.getElementById('friends-list');
                     list.innerHTML = '';
@@ -156,7 +157,9 @@
                         }
                     });
                 });
-            } else { window.location.href = 'index.html'; }
+            } else { 
+                window.location.href = 'index.html'; 
+            }
         });
 
         function logout() {

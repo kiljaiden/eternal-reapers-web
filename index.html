@@ -4,50 +4,159 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eternal Reapers - Launcher</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
-</head>
-<body class="bnet-layout">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bnet-blue: #00aeff; --bnet-dark: #15171e; --bnet-sidebar: #0a0b0d;
+            --bnet-card: #1a1d23; --bnet-text: #f0f0f0;
+        }
+        body { margin: 0; padding: 0; background: var(--bnet-dark); color: var(--bnet-text); font-family: 'Roboto', sans-serif; height: 100vh; overflow: hidden; display: flex; }
 
-    <aside class="sidebar-games">
-        <div class="game-icon active">ER</div>
-        <div class="divider"></div>
-        <a href="#noticias" class="nav-item">Noticias</a>
-        <a href="#calendario" class="nav-item">Calendario</a>
-        <a href="#apply" class="nav-item">Reclutar</a>
+        /* SIDEBAR DINÁMICO */
+        .sidebar { width: 240px; background: var(--bnet-sidebar); height: 100vh; border-right: 1px solid #2a2e35; display: flex; flex-direction: column; transition: 0.3s; }
+        .logo-container { padding: 30px; text-align: center; border-bottom: 1px solid #222; }
+        .logo-box { color: var(--bnet-blue); font-family: 'Oswald'; font-size: 1.8rem; border: 2px solid; padding: 5px 10px; display: inline-block; }
+
+        .nav-menu { flex: 1; padding-top: 20px; }
+        .nav-item { display: flex; align-items: center; padding: 15px 25px; cursor: pointer; transition: 0.3s; opacity: 0.7; font-weight: bold; }
+        .nav-item:hover, .nav-item.active { opacity: 1; background: #1a1d23; color: var(--bnet-blue); border-left: 4px solid var(--bnet-blue); }
+        .nav-item span { margin-left: 15px; font-family: 'Oswald'; letter-spacing: 1px; }
+
+        /* CONTENIDO Y HEADER */
+        .main-container { flex: 1; display: flex; flex-direction: column; }
+        .main-header { height: 80px; background: var(--bnet-sidebar); display: flex; justify-content: space-between; align-items: center; padding: 0 40px; border-bottom: 1px solid #2a2e35; }
+        .main-header h1 { font-family: 'Oswald'; font-size: 1.8rem; margin: 0; letter-spacing: 2px; }
+
+        .auth-controls { display: flex; align-items: center; gap: 10px; }
+        button { padding: 10px 20px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; font-family: 'Oswald'; transition: 0.3s; }
+        .btn-blue { background: var(--bnet-blue); color: white; }
+        .btn-green { background: #28a745; color: white; }
+        .btn-red { background: #551111; color: white; }
+        .btn-outline { background: transparent; color: white; border: 1px solid #444; }
+
+        .iframe-container { flex: 1; position: relative; }
+        iframe { width: 100%; height: 100%; border: none; }
+
+        /* MODALES */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+        .modal-content { background: #1a1d23; padding: 40px; border-radius: 12px; width: 400px; border: 1px solid #333; position: relative; }
+        .close { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #333; color: white; border-radius: 4px; box-sizing: border-box; }
+        
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="logo-container"><div class="logo-box">ER</div></div>
+        <nav class="nav-menu">
+            <div class="nav-item active" onclick="cargarModulo('noticias.html', this)"><span>📰 NOTICIAS</span></div>
+            <div class="nav-item" onclick="cargarModulo('calendario.html', this)"><span>📅 CALENDARIO</span></div>
+            <div class="nav-item" onclick="cargarModulo('reglas.html', this)"><span>📜 REGLAMENTO</span></div>
+            <div class="nav-item" onclick="cargarModulo('apply.html', this)"><span>⚔️ UNIRSE</span></div>
+            <div class="nav-item" id="nav-config" style="display:none;" onclick="cargarModulo('config.html', this)"><span>⚙️ AJUSTES</span></div>
+        </nav>
     </aside>
 
-    <main class="main-content">
-        <header class="content-header">
-            <div class="header-info">
-                <h1>ETERNAL REAPERS</h1>
-                <p>Estado del Reino: <span class="status-online">En línea</span></p>
+    <main class="main-container">
+        <header class="main-header">
+            <h1 id="view-title">NOTICIAS</h1>
+            <div class="auth-controls">
+                <div id="auth-out">
+                    <button class="btn-blue" onclick="abrirModal('modal-login')">LOGIN</button>
+                    <button class="btn-outline" onclick="abrirModal('modal-register')">REGISTRO</button>
+                </div>
+                <div id="auth-in" class="hidden">
+                    <span id="user-display" style="margin-right:15px; font-weight:bold; color:var(--bnet-blue);"></span>
+                    <button id="btn-panel" class="btn-green hidden" onclick="entrarAlPanel()">PANEL DE CONTROL</button>
+                    <button class="btn-red" onclick="cerrarSesion()">SALIR</button>
+                </div>
             </div>
-            <button class="play-btn" onclick="document.getElementById('apply').scrollIntoView()">UNIRSE AHORA</button>
         </header>
 
-        <section id="noticias" class="noticias-grid">
-            </section>
-
-        <section id="calendario" class="calendar-section">
-            <h2>Próximas Incursiones</h2>
-            <div id="calendar-container"></div>
-        </section>
+        <div class="iframe-container">
+            <iframe src="noticias.html" id="content-frame"></iframe>
+        </div>
     </main>
 
-    <aside class="sidebar-social">
-        <div class="social-header">MIEMBROS DE ÉLITE</div>
-        <div id="roster-list" class="roster-list">
-            </div>
-        <div class="discord-widget">
-            </div>
-        <div class="visitor-box">
-            Visitas: <span id="visit-count">0</span>
+    <div id="modal-login" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal('modal-login')">×</span>
+            <h2 style="font-family:'Oswald'">INICIAR SESIÓN</h2>
+            <input type="email" id="email-log" placeholder="Email">
+            <input type="password" id="pass-log" placeholder="Password">
+            <button class="btn-blue" style="width:100%" onclick="login()">CONECTAR</button>
         </div>
-    </aside>
+    </div>
+
+    <div id="modal-register" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal('modal-register')">×</span>
+            <h2 style="font-family:'Oswald'">CREAR CUENTA</h2>
+            <input type="text" id="user-reg" placeholder="Nombre de Usuario">
+            <input type="email" id="email-reg" placeholder="Email">
+            <input type="password" id="pass-reg" placeholder="Contraseña">
+            <button class="btn-blue" style="width:100%" onclick="registro()">REGISTRARME</button>
+        </div>
+    </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-database-compat.js"></script>
-    <script src="script.js"></script>
+
+    <script>
+        const firebaseConfig = { apiKey: "AIzaSyDGELmVvBZZywbJOf6kuVKQJjKaRt6Q9ws", authDomain: "eternalreapersweb.firebaseapp.com", databaseURL: "https://eternalreapersweb-default-rtdb.firebaseio.com", projectId: "eternalreapersweb" };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth(), db = firebase.database();
+
+        function cargarModulo(url, el) {
+            document.getElementById('content-frame').src = url;
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('view-title').innerText = el.innerText.split(' ').slice(1).join(' ');
+        }
+
+        function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        // AUTH LOGIC
+        auth.onAuthStateChanged(user => {
+            if(user) {
+                document.getElementById('auth-out').classList.add('hidden');
+                document.getElementById('auth-in').classList.remove('hidden');
+                document.getElementById('nav-config').style.display = 'flex';
+                db.ref('usuarios/'+user.uid).on('value', snap => {
+                    const u = snap.val();
+                    if(u) {
+                        document.getElementById('user-display').innerText = u.nombre.toUpperCase();
+                        if(u.rango === 'admin' || u.rango === 'oficial') {
+                            document.getElementById('btn-panel').classList.remove('hidden');
+                            document.getElementById('btn-panel').innerText = u.rango === 'admin' ? "COMANDANCIA" : "OFICIALÍA";
+                        }
+                    }
+                });
+            } else {
+                document.getElementById('auth-out').classList.remove('hidden');
+                document.getElementById('auth-in').classList.add('hidden');
+                document.getElementById('nav-config').style.display = 'none';
+            }
+        });
+
+        function login() { auth.signInWithEmailAndPassword(document.getElementById('email-log').value, document.getElementById('pass-log').value).then(() => location.reload()); }
+        function registro() {
+            const e = document.getElementById('email-reg').value, p = document.getElementById('pass-reg').value, n = document.getElementById('user-reg').value;
+            auth.createUserWithEmailAndPassword(e,p).then(u => {
+                db.ref('usuarios/'+u.user.uid).set({ nombre: n, email: e, rango: 'aspirante' });
+                location.reload();
+            });
+        }
+        function cerrarSesion() { auth.signOut().then(() => location.reload()); }
+        function entrarAlPanel() {
+            db.ref('usuarios/'+auth.currentUser.uid+'/rango').once('value', s => {
+                window.location.href = s.val() === 'admin' ? 'admin.html' : 'mainpanel.html';
+            });
+        }
+    </script>
 </body>
 </html>

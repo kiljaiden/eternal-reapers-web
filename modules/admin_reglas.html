@@ -1,0 +1,64 @@
+<div class="module-header">
+    <h2 style="font-family: 'Oswald'; color: var(--bnet-blue); margin-top: 0;">GESTIÓN DE REGLAMENTO</h2>
+    <p style="color: #888; font-size: 0.9rem;">Añade o modifica las reglas de convivencia y de loot.</p>
+</div>
+
+<div class="admin-card" style="background: var(--bnet-card); padding: 20px; border-radius: 4px; border: 1px solid #2a2e35; margin-bottom: 25px;">
+    <h4 style="margin-top: 0; color: var(--bnet-blue);">NUEVA REGLA</h4>
+    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+        <input type="text" id="regla-titulo" placeholder="Título de la regla (Ej: Regla 1: Loot)" style="flex: 1; background: #0e1014; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 4px;">
+    </div>
+    <textarea id="regla-cuerpo" rows="4" placeholder="Contenido de la regla (Puedes usar nombres de ítems para Wowhead)..." style="width: 100%; background: #0e1014; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 4px; box-sizing: border-box; margin-bottom: 10px;"></textarea>
+    <button onclick="guardarRegla()" style="background: #fff; border: none; color: #000; padding: 10px 20px; font-weight: bold; cursor: pointer; border-radius: 4px;">AÑADIR REGLA</button>
+</div>
+
+<div id="lista-reglas-admin">
+    </div>
+
+<script>
+    (function() {
+        const container = document.getElementById('lista-reglas-admin');
+
+        db.ref('reglas_db').on('value', snapshot => {
+            container.innerHTML = '<h4 style="color: #666; border-bottom: 1px solid #222; padding-bottom: 10px;">REGLAS ACTUALES</h4>';
+            snapshot.forEach(child => {
+                const r = child.val();
+                const key = child.key;
+
+                const item = document.createElement('div');
+                item.style.cssText = "background: rgba(255,255,255,0.02); padding: 15px; border-left: 3px solid #444; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;";
+                item.innerHTML = `
+                    <div>
+                        <div style="font-weight: bold; color: #eee;">${r.titulo}</div>
+                        <div style="font-size: 0.8rem; color: #666;">${r.cuerpo.substring(0, 80)}...</div>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="eliminarRegla('${key}')" style="background: transparent; border: 1px solid #ff4444; color: #ff4444; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.7rem;">BORRAR</button>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        });
+
+        window.guardarRegla = function() {
+            const t = document.getElementById('regla-titulo').value;
+            const c = document.getElementById('regla-cuerpo').value;
+
+            if(!t || !c) return alert("Rellena todos los campos");
+
+            db.ref('reglas_db').push({
+                titulo: t,
+                cuerpo: c
+            }).then(() => {
+                document.getElementById('regla-titulo').value = "";
+                document.getElementById('regla-cuerpo').value = "";
+            });
+        };
+
+        window.eliminarRegla = function(key) {
+            if(confirm("¿Eliminar esta regla permanentemente?")) {
+                db.ref('reglas_db/' + key).remove();
+            }
+        };
+    })();
+</script>

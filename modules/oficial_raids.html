@@ -1,0 +1,49 @@
+<div class="module-header">
+    <h2 style="font-family: 'Oswald'; color: #28a745; margin-top: 0;">GESTIÓN DE RAIDS</h2>
+    <p style="color: #888; font-size: 0.9rem;">Programa nuevas bandas y gestiona las existentes.</p>
+</div>
+
+<div class="admin-card" style="background: var(--bnet-card); padding: 20px; border-radius: 4px; border: 1px solid #2a2e35; margin-bottom: 20px;">
+    <h4 style="color: #28a745; margin-top: 0;">PROGRAMAR NUEVA RAID</h4>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <input type="text" id="raid-name" placeholder="Ej: ICC 25H - Directo" style="background: #0e1014; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 4px;">
+        <input type="datetime-local" id="raid-date" style="background: #0e1014; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 4px;">
+    </div>
+    <button onclick="crearRaid()" style="width: 100%; margin-top: 10px; background: #28a745; border: none; color: #fff; padding: 10px; font-weight: bold; cursor: pointer; border-radius: 4px;">PUBLICAR EN CALENDARIO</button>
+</div>
+
+<div id="lista-raids-activas">
+    </div>
+
+<script>
+    (function() {
+        window.crearRaid = function() {
+            const nombre = document.getElementById('raid-name').value;
+            const fecha = document.getElementById('raid-date').value;
+            if(!nombre || !fecha) return alert("Faltan datos");
+
+            db.ref('raids').push({
+                titulo: nombre,
+                fecha: fecha,
+                creador: auth.currentUser.email,
+                estado: 'abierta'
+            }).then(() => {
+                alert("Raid creada");
+                document.getElementById('raid-name').value = "";
+            });
+        };
+
+        db.ref('raids').on('value', s => {
+            const cont = document.getElementById('lista-raids-activas');
+            cont.innerHTML = '<h4 style="color: #555;">RAIDS ACTIVAS</h4>';
+            s.forEach(ch => {
+                const r = ch.val();
+                cont.innerHTML += `
+                    <div style="background: rgba(255,255,255,0.02); padding: 10px; border-radius: 4px; margin-bottom: 5px; display: flex; justify-content: space-between;">
+                        <span><b>${r.titulo}</b> - ${new Date(r.fecha).toLocaleString()}</span>
+                        <button onclick="db.ref('raids/${ch.key}').remove()" style="color: #ff4444; background: none; border: none; cursor: pointer;">[BORRAR]</button>
+                    </div>`;
+            });
+        });
+    })();
+</script>

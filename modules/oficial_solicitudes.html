@@ -1,0 +1,125 @@
+<div class="module-header" style="margin-bottom: 30px;">
+    <h2 style="font-family: 'Oswald'; color: var(--accent-color); margin-top: 0; text-transform: uppercase; letter-spacing: 2px; font-weight: 700;">
+        Revisión de Aspirantes
+    </h2>
+    <p style="color: #666; font-size: 0.9rem; font-family: 'Roboto';">
+        Gestiona las solicitudes de ingreso y asignación a las Cores de la hermandad.
+    </p>
+</div>
+
+<div id="contenedor-solicitudes" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+    <div style="color: #444; font-family: 'Oswald';">BUSCANDO NUEVOS RECLUTAS...</div>
+</div>
+
+<script>
+    (function() {
+        const container = document.getElementById('contenedor-solicitudes');
+        // Usamos la referencia global de db definida en el archivo padre (admin.html o mainpanel.html)
+        
+        // Mapeo de colores oficiales de clase de WoW
+        const classColors = {
+            'Guerrero': '#C79C6E', 'Paladín': '#F58CBA', 'Cazador': '#ABD473',
+            'Pícaro': '#FFF569', 'Sacerdote': '#FFFFFF', 'Chamán': '#0070DE',
+            'Mago': '#69CCF0', 'Brujo': '#9482C9', 'Druida': '#FF7D0A', 
+            'Caballero de la Muerte': '#C41F3B'
+        };
+
+        db.ref('solicitudes').on('value', snapshot => {
+            container.innerHTML = '';
+            
+            if(!snapshot.exists()) {
+                container.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 60px; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px dashed #222;">
+                        <p style="color:#444; font-family:'Oswald'; font-size: 1.2rem; letter-spacing:1px;">NO HAY SOLICITUDES PENDIENTES</p>
+                    </div>`;
+                return;
+            }
+
+            snapshot.forEach(child => {
+                const s = child.val();
+                const key = child.key;
+                const color = classColors[s.clase] || '#fff';
+
+                const card = document.createElement('div');
+                card.style.cssText = `
+                    background: rgba(26, 29, 35, 0.8); 
+                    border: 1px solid rgba(255,255,255,0.05); 
+                    border-radius: 4px; 
+                    padding: 20px; 
+                    position: relative; 
+                    transition: 0.3s ease;
+                `;
+                
+                // Estructura de la tarjeta sincronizada con apply.html
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; margin-bottom: 15px;">
+                        <div>
+                            <div style="color: ${color}; font-family: 'Oswald'; font-size: 1.3rem; font-weight: bold; text-transform: uppercase; line-height: 1;">${s.nombre}</div>
+                            <div style="font-size: 0.75rem; color: #555; margin-top: 4px;">${s.clase}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 0.65rem; color: #444; font-family: 'Roboto';">${s.fecha}</div>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                        <div style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; border-left: 2px solid ${color};">
+                            <div style="font-size: 0.6rem; color: #666; text-transform: uppercase; font-weight: bold;">Main Spec</div>
+                            <div style="font-size: 0.85rem; color: #eee;">${s.main_spec}</div>
+                            <div style="font-size: 0.85rem; color: var(--accent-color); font-weight: bold;">${s.main_gs} GS</div>
+                        </div>
+                        <div style="background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px; border-left: 2px solid #444;">
+                            <div style="font-size: 0.6rem; color: #666; text-transform: uppercase; font-weight: bold;">Dual Spec</div>
+                            <div style="font-size: 0.85rem; color: #eee;">${s.dual_spec || 'N/A'}</div>
+                            <div style="font-size: 0.85rem; color: #777;">${s.dual_gs ? s.dual_gs + ' GS' : '--'}</div>
+                        </div>
+                    </div>
+
+                    <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 4px; margin-bottom: 20px; min-height: 60px;">
+                        <div style="font-size: 0.6rem; color: #444; text-transform: uppercase; margin-bottom: 5px; font-weight: bold;">Mensaje/Experiencia:</div>
+                        <div style="font-size: 0.85rem; color: #999; font-style: italic; line-height: 1.4;">
+                            "${s.mensaje || 'Sin mensaje adicional.'}"
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="gestionarSolicitud('${key}', 'aceptar', '${s.nombre}')" style="flex: 1; background: #28a745; border: none; color: #fff; padding: 10px; cursor: pointer; border-radius: 4px; font-family: 'Oswald'; font-size: 0.85rem; font-weight: bold; text-transform: uppercase; transition: 0.2s;">
+                            Aceptar
+                        </button>
+                        <button onclick="gestionarSolicitud('${key}', 'rechazar', '${s.nombre}')" style="flex: 1; background: transparent; border: 1px solid #dc3545; color: #dc3545; padding: 10px; cursor: pointer; border-radius: 4px; font-family: 'Oswald'; font-size: 0.85rem; font-weight: bold; text-transform: uppercase; transition: 0.2s;">
+                            Rechazar
+                        </button>
+                    </div>
+                `;
+
+                // Hover animado
+                card.onmouseover = () => {
+                    card.style.transform = "translateY(-3px)";
+                    card.style.border = `1px solid ${color}44`;
+                    card.style.boxShadow = `0 10px 20px rgba(0,0,0,0.4)`;
+                };
+                card.onmouseout = () => {
+                    card.style.transform = "translateY(0)";
+                    card.style.border = "1px solid rgba(255,255,255,0.05)";
+                    card.style.boxShadow = "none";
+                };
+
+                container.appendChild(card);
+            });
+        });
+
+        window.gestionarSolicitud = function(key, accion, nombre) {
+            if(accion === 'aceptar') {
+                if(confirm(`¿Confirmar ingreso de ${nombre}?`)) {
+                    // Aquí puedes añadir lógica para enviar una notificación al usuario
+                    db.ref('solicitudes/' + key).remove()
+                        .then(() => alert(`Solicitud de ${nombre} aceptada.`));
+                }
+            } else {
+                if(confirm(`¿Rechazar definitivamente la solicitud de ${nombre}?`)) {
+                    db.ref('solicitudes/' + key).remove();
+                }
+            }
+        };
+    })();
+</script>

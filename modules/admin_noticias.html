@@ -1,0 +1,60 @@
+<div class="module-header">
+    <h2 style="font-family: 'Oswald'; color: var(--bnet-blue); margin-top: 0;">PUBLICAR NOTICIAS</h2>
+    <p style="color: #888; font-size: 0.9rem;">Crea anuncios que aparecerán en el Launcher y en la sección de noticias.</p>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+    <div class="admin-card" style="background: var(--bnet-card); padding: 20px; border-radius: 4px; border: 1px solid #2a2e35;">
+        <div style="margin-bottom: 15px;">
+            <label style="display:block; font-size: 0.8rem; color: var(--bnet-blue); margin-bottom: 5px;">TÍTULO DE LA NOTICIA</label>
+            <input type="text" id="news-title" placeholder="Ej: ¡Derrotamos a Arthas!" style="width: 100%; background: #0e1014; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 4px; box-sizing: border-box;">
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+            <label style="display:block; font-size: 0.8rem; color: var(--bnet-blue); margin-bottom: 5px;">CUERPO DEL ANUNCIO</label>
+            <textarea id="news-body" rows="8" placeholder="Escribe aquí el contenido..." style="width: 100%; background: #0e1014; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 4px; box-sizing: border-box; resize: none;"></textarea>
+        </div>
+
+        <button onclick="publicarNoticia()" style="width: 100%; background: var(--bnet-blue); border: none; color: #000; padding: 12px; font-weight: bold; cursor: pointer; border-radius: 4px; font-family: 'Oswald';">PUBLICAR AHORA</button>
+    </div>
+
+    <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 4px; border: 1px dashed #444;">
+        <span style="font-size: 0.7rem; color: #666; text-transform: uppercase;">Vista Previa del Cuadro</span>
+        <div id="preview-card" style="margin-top: 20px; background: #1a1d23; border: 1px solid #333; border-radius: 4px; overflow: hidden;">
+            <div style="height: 120px; background: #222; display: flex; align-items: center; justify-content: center; color: #444;">IMAGEN POR DEFECTO</div>
+            <div style="padding: 15px;">
+                <span style="font-size: 0.7rem; color: var(--bnet-blue);">HOY | DESTACADO</span>
+                <h3 id="prev-title" style="margin: 5px 0; color: #fff;">Título de ejemplo</h3>
+                <p id="prev-body" style="font-size: 0.8rem; color: #aaa;">El contenido se verá así en el sitio web...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const tIn = document.getElementById('news-title');
+        const bIn = document.getElementById('news-body');
+        
+        // Actualizar vista previa en tiempo real
+        tIn.addEventListener('input', () => document.getElementById('prev-title').innerText = tIn.value || "Título de ejemplo");
+        bIn.addEventListener('input', () => document.getElementById('prev-body').innerText = bIn.value.substring(0, 100) + "...");
+
+        window.publicarNoticia = function() {
+            const titulo = tIn.value;
+            const cuerpo = bIn.value;
+
+            if(!titulo || !cuerpo) return alert("Completa todos los campos");
+
+            db.ref('noticias').push({
+                titulo: titulo,
+                cuerpo: cuerpo,
+                fecha: new Date().toISOString()
+            }).then(() => {
+                alert("¡Noticia publicada con éxito!");
+                tIn.value = "";
+                bIn.value = "";
+            });
+        };
+    })();
+</script>

@@ -1,0 +1,64 @@
+<div class="module-header">
+    <h2 style="font-family: 'Oswald'; color: var(--bnet-blue); margin-top: 0;">GESTIÓN DE USUARIOS</h2>
+    <p style="color: #888; font-size: 0.9rem;">Administra los rangos y accesos de los miembros de Eternal Reapers.</p>
+</div>
+
+<div class="admin-card" style="background: var(--bnet-card); padding: 20px; border-radius: 4px; border: 1px solid #2a2e35;">
+    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+        <thead>
+            <tr style="border-bottom: 2px solid #222; color: var(--bnet-blue); text-transform: uppercase; font-size: 0.8rem;">
+                <th style="padding: 10px;">Nombre / Email</th>
+                <th style="padding: 10px;">Rango Actual</th>
+                <th style="padding: 10px;">Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="lista-usuarios-tabla">
+            </tbody>
+    </table>
+</div>
+
+<script>
+    (function() {
+        const tableBody = document.getElementById('lista-usuarios-tabla');
+        
+        // Escuchar cambios en la base de datos de usuarios
+        db.ref('usuarios').on('value', snapshot => {
+            tableBody.innerHTML = '';
+            snapshot.forEach(child => {
+                const user = child.val();
+                const uid = child.key;
+                
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = "1px solid #222";
+                tr.innerHTML = `
+                    <td style="padding: 12px;">
+                        <div style="font-weight: bold;">${user.nombre || 'Sin nombre'}</div>
+                        <div style="font-size: 0.75rem; color: #666;">${user.email}</div>
+                    </td>
+                    <td style="padding: 12px;">
+                        <select onchange="cambiarRango('${uid}', this.value)" style="background: #0e1014; color: #fff; border: 1px solid #444; padding: 4px; border-radius: 4px;">
+                            <option value="aspirante" ${user.rango === 'aspirante' ? 'selected' : ''}>Aspirante</option>
+                            <option value="oficial" ${user.rango === 'oficial' ? 'selected' : ''}>Oficial</option>
+                            <option value="admin" ${user.rango === 'admin' ? 'selected' : ''}>Admin</option>
+                        </select>
+                    </td>
+                    <td style="padding: 12px;">
+                        <button onclick="eliminarUsuario('${uid}')" style="background: transparent; border: 1px solid #ff4444; color: #ff4444; padding: 4px 10px; cursor: pointer; border-radius: 4px; font-size: 0.7rem;">ELIMINAR</button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        });
+
+        window.cambiarRango = function(uid, nuevoRango) {
+            db.ref('usuarios/' + uid).update({ rango: nuevoRango })
+              .then(() => console.log("Rango actualizado"));
+        };
+
+        window.eliminarUsuario = function(uid) {
+            if(confirm("¿Estás seguro de eliminar a este usuario? Esta acción no se puede deshacer.")) {
+                db.ref('usuarios/' + uid).remove();
+            }
+        };
+    })();
+</script>
