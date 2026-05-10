@@ -1,7 +1,9 @@
 <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
     <style>
         :root { 
@@ -24,150 +26,137 @@
         .featured-slice {
             width: 100%;
             height: 350px;
-            background: linear-gradient(to bottom, rgba(21, 23, 30, 0) 0%, rgba(21, 23, 30, 1) 100%), url('https://images.blz-contentstack.com/v3/assets/blt3452e3b114fab0cd/blt7695c026938a9561/6169d300062a4d6501729c69/wrath-classic-bg.jpg');
+            background: linear-gradient(to bottom, rgba(21, 23, 30, 0) 0%, rgba(21, 23, 30, 1) 100%), 
+                        url('https://images.blz-contentstack.com/v3/assets/blt3452e3b114fab0cd/blt7695c02693751876/613666d999099949603097b6/king-of-the-hill.jpg'); /* Imagen de respaldo */
             background-size: cover;
             background-position: center;
             display: flex;
             align-items: flex-end;
-            padding: 40px;
-            box-sizing: border-box;
-            border-bottom: 1px solid #333;
-            margin-bottom: 30px;
+            cursor: pointer;
+            transition: 0.3s;
         }
 
+        .featured-slice:hover { filter: brightness(1.1); }
+
         .featured-content {
+            padding: 40px;
             max-width: 800px;
         }
 
-        .featured-content h2 {
-            font-family: 'Oswald', sans-serif;
-            font-size: 2.5rem;
-            margin: 0;
+        .featured-content .news-date {
+            color: var(--bnet-blue);
+            font-size: 0.8rem;
             text-transform: uppercase;
-            color: white;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .featured-content h2 {
+            font-family: 'Oswald';
+            font-size: 2.5rem;
+            margin: 10px 0;
+            text-transform: uppercase;
             text-shadow: 0 2px 10px rgba(0,0,0,0.8);
         }
 
         /* --- GRID DE NOTICIAS --- */
-        .news-container { padding: 0 40px 40px 40px; }
-        
-        .grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
-            gap: 25px; 
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 40px;
         }
 
-        .card { 
-            background: var(--bnet-card); 
+        .card {
+            background: var(--bnet-card);
             border: 1px solid #2a2e35;
             border-radius: 4px;
-            cursor: pointer; 
-            transition: all 0.2s ease-in-out;
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            transition: 0.2s;
+            cursor: pointer;
         }
 
-        .card:hover { 
-            border-color: var(--bnet-blue);
+        .card:hover {
             transform: translateY(-5px);
-            background: var(--bnet-hover);
+            border-color: var(--bnet-blue);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
         }
 
         .card-img {
-            height: 180px;
-            background: #000 url('https://images.blz-contentstack.com/v3/assets/blt3452e3b114fab0cd/blt87463f683e95964a/627c244b7d59104b281f6233/world-of-warcraft-bg.jpg');
-            background-size: cover;
-            background-position: center;
+            width: 100%;
+            height: 160px;
+            background: #0e1014;
+            background-image: linear-gradient(45deg, #1a1d23, #000);
         }
 
         .card-info { padding: 20px; }
 
-        .news-date { 
-            font-size: 0.75rem; 
-            color: var(--bnet-blue); 
-            text-transform: uppercase;
-            font-weight: bold;
-            letter-spacing: 1px;
-            margin-bottom: 10px; 
-            display: block; 
+        .card-info .news-date {
+            font-size: 0.7rem;
+            color: #888;
+            display: block;
+            margin-bottom: 5px;
         }
 
-        h3 { 
-            margin: 0 0 10px 0; 
-            font-family: 'Oswald', sans-serif;
-            font-size: 1.3rem;
-            line-height: 1.2;
+        .card-info h3 {
+            margin: 0 0 10px 0;
+            font-family: 'Oswald';
+            font-size: 1.2rem;
+            color: #fff;
         }
 
         .card-info p {
             font-size: 0.9rem;
             color: #aaa;
-            line-height: 1.5;
-            margin: 0;
+            line-height: 1.4;
+            height: 60px;
+            overflow: hidden;
         }
 
-        /* --- MODAL DE NOTICIA AMPLIADA --- */
-        .modal { 
-            display: none; 
-            position: fixed; 
-            top: 0; left: 0; 
-            width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.95); 
-            align-items: center; 
-            justify-content: center; 
-            z-index: 1000; 
-            backdrop-filter: blur(10px);
+        /* --- MODAL DE NOTICIA --- */
+        .pop-news {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
         }
 
-        .modal-content { 
-            background: var(--bnet-bg); 
-            width: 90%; 
-            max-width: 900px; 
-            max-height: 85vh;
-            border-radius: 8px;
-            border: 1px solid #333; 
-            position: relative; 
-            overflow-y: auto;
-            animation: openIn 0.3s ease-out;
-        }
-
-        @keyframes openIn {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        .modal-header-img {
+        .pop-content {
+            background: var(--bnet-card);
             width: 100%;
-            height: 300px;
+            max-width: 700px;
+            max-height: 90vh;
+            border-radius: 4px;
+            position: relative;
+            overflow-y: auto;
+            border: 1px solid #333;
+        }
+
+        .pop-header {
+            height: 250px;
+            background: var(--bnet-bg);
             background-size: cover;
             background-position: center;
         }
 
-        .modal-body { padding: 40px; }
+        .pop-body { padding: 30px; }
 
-        .close { 
-            position: fixed; 
-            top: 20px; right: 30px; 
-            cursor: pointer; 
-            font-size: 2.5rem; 
-            color: white;
-            z-index: 1100;
+        .pop-body h2 { font-family: 'Oswald'; font-size: 2rem; margin-top: 0; color: var(--bnet-blue); }
+        .pop-body p { line-height: 1.6; color: #ccc; white-space: pre-line; }
+
+        .close-btn {
+            position: absolute;
+            top: 15px; right: 20px;
+            font-size: 2rem; color: #fff;
+            cursor: pointer; z-index: 10;
         }
 
-        .modal-body h2 {
-            font-family: 'Oswald', sans-serif;
-            font-size: 2.5rem;
-            margin: 0 0 20px 0;
-            color: var(--bnet-blue);
-        }
+        .close-btn:hover { color: var(--bnet-blue); }
 
-        .modal-text {
-            font-size: 1.1rem;
-            line-height: 1.8;
-            color: #ddd;
-            white-space: pre-wrap;
-        }
     </style>
 </head>
 <body>
@@ -175,86 +164,80 @@
     <div class="featured-slice" id="featured-slice">
         <div class="featured-content">
             <span class="news-date" id="feat-date">CARGANDO...</span>
-            <h2 id="feat-title">BIENVENIDO A ETERNAL REAPERS</h2>
+            <h2 id="feat-title">ÚLTIMAS NOVEDADES</h2>
         </div>
     </div>
 
-    <div class="news-container">
-        <div id="news-grid" class="grid">Cargando noticias...</div>
-    </div>
+    <div class="news-grid" id="news-grid">
+        </div>
 
-    <div id="pop-news" class="modal">
-        <span class="close" onclick="cerrar()">×</span>
-        <div class="modal-content">
-            <div class="modal-header-img" id="pop-img"></div>
-            <div class="modal-body">
-                <span id="pop-date" class="news-date"></span>
+    <div class="pop-news" id="pop-news">
+        <div class="pop-content">
+            <span class="close-btn" onclick="cerrar()">&times;</span>
+            <div class="pop-header" id="pop-header"></div>
+            <div class="pop-body">
+                <span id="pop-date" style="color:var(--bnet-blue); font-size:0.8rem; font-weight:bold;"></span>
                 <h2 id="pop-title"></h2>
-                <div id="pop-body" class="modal-text"></div>
+                <p id="pop-body"></p>
             </div>
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-database-compat.js"></script>
     <script>
-        const firebaseConfig = { databaseURL: "https://eternalreapersweb-default-rtdb.firebaseio.com" };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        // La referencia 'db' debe estar inicializada en el index.html principal
+        // o cargada aquí si se usa de forma independiente.
+        
+        const grid = document.getElementById('news-grid');
 
-        // Escuchar los cambios en la rama 'noticias'
-db.ref('noticias').on('value', snapshot => {
-    const grid = document.getElementById('news-grid'); // Asegúrate de que este ID exista en tu HTML
-    grid.innerHTML = ''; // Limpiar el grid para recargar las noticias
-    
-    let noticiasArray = [];
-    snapshot.forEach(child => {
-        noticiasArray.push(child.val());
-    });
-
-    // Ordenar por fecha (más reciente primero)
-    noticiasArray.reverse();
-
-    noticiasArray.forEach((n, index) => {
-        const fechaObj = new Date(n.fecha);
-        const fechaFormateada = fechaObj.toLocaleDateString();
-
-        // Lógica para la noticia destacada (la primera del array)
-        if(index === 0) {
-            const featTitle = document.getElementById('feat-title');
-            const featDate = document.getElementById('feat-date');
-            const featSlice = document.getElementById('featured-slice');
+        db.ref('noticias').orderByChild('fecha').on('value', snapshot => {
+            grid.innerHTML = '';
+            let count = 0;
+            const noticias = [];
             
-            if(featTitle) featTitle.innerText = n.titulo;
-            if(featDate) featDate.innerText = "DESTACADO | " + fechaFormateada;
-            if(featSlice) featSlice.onclick = () => abrir(n.titulo, n.cuerpo, fechaFormateada);
-        }
+            // Invertir para mostrar las más recientes primero
+            snapshot.forEach(child => {
+                noticias.unshift({ key: child.key, ...child.val() });
+            });
 
-        // Renderizar en el grid general
-        grid.innerHTML += `
-            <div class="card" onclick="abrir('${n.titulo.replace(/'/g, "\\'")}', '${n.cuerpo.replace(/'/g, "\\'").replace(/\n/g, "<br>")}', '${fechaFormateada}')">
-                <div class="card-img"></div>
-                <div class="card-info">
-                    <span class="news-date">${fechaFormateada}</span>
-                    <h3>${n.titulo}</h3>
-                    <p>${n.cuerpo.substring(0, 100)}...</p>
-                </div>
-            </div>`;
-    });
-});
+            noticias.forEach(n => {
+                const d = new Date(n.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+
+                // La primera noticia se pone en el Slice destacado
+                if(count === 0) {
+                    document.getElementById('feat-title').innerText = n.titulo;
+                    document.getElementById('feat-date').innerText = "DESTACADO | " + d;
+                    document.getElementById('featured-slice').onclick = () => abrir(n.titulo, n.cuerpo, d);
+                }
+
+                grid.innerHTML += `
+                    <div class="card" onclick="abrir('${n.titulo.replace(/'/g, "\\'")}', '${n.cuerpo.replace(/'/g, "\\'").replace(/\n/g, "\\n")}', '${d}')">
+                        <div class="card-img"></div>
+                        <div class="card-info">
+                            <span class="news-date">${d}</span>
+                            <h3>${n.titulo}</h3>
+                            <p>${n.cuerpo.substring(0, 120)}...</p>
+                        </div>
+                    </div>`;
+                count++;
+            });
+        });
 
         function abrir(t, b, d) {
             document.getElementById('pop-title').innerText = t;
             document.getElementById('pop-body').innerText = b;
             document.getElementById('pop-date').innerText = d;
             document.getElementById('pop-news').style.display = 'flex';
-            // Prevenir scroll del fondo
-            document.body.style.overflow = 'hidden';
+            document.body.style.overflow = 'hidden'; // Prevenir scroll del fondo
         }
 
         function cerrar() { 
             document.getElementById('pop-news').style.display = 'none'; 
             document.body.style.overflow = 'auto';
+        }
+
+        // Cerrar modal al hacer click fuera del contenido
+        window.onclick = (event) => {
+            if (event.target == document.getElementById('pop-news')) cerrar();
         }
     </script>
 </body>

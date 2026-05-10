@@ -11,19 +11,11 @@
             style="width: 100%; background: #050505; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 4px; margin-bottom: 15px; font-family: 'Oswald'; font-size: 1.1rem; box-sizing: border-box;">
 
         <div style="background: #111; border: 1px solid #333; padding: 8px; border-radius: 4px 4px 0 0; display: flex; gap: 8px; flex-wrap: wrap;">
-            <button onclick="execCmd('bold')" title="Negrita" style="background:#222; color:#fff; border:1px solid #444; padding:5px 10px; cursor:pointer;"><b>B</b></button>
-            <select onchange="execCmd('fontSize', this.value)" style="background:#222; color:#fff; border:1px solid #444; padding:5px;">
-                <option value="3">Tamaño</option>
-                <option value="1">Pequeño</option>
-                <option value="3">Normal</option>
-                <option value="5">Grande</option>
-                <option value="7">Extra</option>
-            </select>
-            <input type="color" onchange="execCmd('foreColor', this.value)" title="Color de fuente" style="height:30px; width:30px; background:none; border:none; cursor:pointer;">
-            <button onclick="execCmd('createLink', prompt('URL del enlace:'))" title="Insertar Link" style="background:#222; color:#fff; border:1px solid #444; padding:5px 10px; cursor:pointer;">🔗</button>
-            
+            <button onclick="execCmd('bold')" style="background:#222; color:#fff; border:1px solid #444; padding:5px 10px; cursor:pointer;"><b>B</b></button>
+            <input type="color" onchange="execCmd('foreColor', this.value)" style="height:30px; width:30px; background:none; border:none; cursor:pointer;">
+            <button onclick="execCmd('createLink', prompt('URL del enlace:'))" style="background:#222; color:#fff; border:1px solid #444; padding:5px 10px; cursor:pointer;">🔗</button>
             <label style="background:var(--accent-color); color:#000; padding:5px 10px; cursor:pointer; font-size:0.8rem; font-weight:bold; border-radius:2px;">
-                📷 IMAGEN / 🎬 WEBM
+                Cargar Multimedia
                 <input type="file" id="media-upload" accept="image/*,video/webm" style="display:none" onchange="handleMedia(this)">
             </label>
         </div>
@@ -32,99 +24,89 @@
             style="min-height: 250px; background: #050505; border: 1px solid #333; border-top:none; color: #ccc; padding: 15px; border-radius: 0 0 4px 4px; overflow-y: auto; font-family: 'Roboto'; line-height: 1.6; outline: none;">
         </div>
 
-        <button onclick="publicarNoticia()" style="width: 100%; background: var(--accent-color); color: #000; border: none; padding: 15px; font-family: 'Oswald'; font-weight: bold; cursor: pointer; border-radius: 4px; margin-top: 20px; text-transform: uppercase; letter-spacing: 1px;">
-            Publicar en el sitio
+        <button onclick="publicarNoticia()" style="width: 100%; background: var(--accent-color); color: #000; border: none; padding: 15px; font-family: 'Oswald'; font-weight: bold; cursor: pointer; border-radius: 4px; margin-top: 20px; text-transform: uppercase;">
+            Publicar Ahora
         </button>
     </div>
 
     <div>
-        <h3 style="font-family: 'Oswald'; color: #555; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 15px;">Vista Previa</h3>
-        <div id="preview-card" style="background: #1a1d23; border: 1px solid #333; border-radius: 4px; overflow: hidden; margin-bottom: 30px;">
-            <div id="preview-media" style="width: 100%; height: 180px; background: #000; display: flex; align-items: center; justify-content: center; color: #222;">
-                <span style="font-family: 'Oswald';">MULTIMEDIA</span>
-            </div>
-            <div style="padding: 15px;">
-                <div id="prev-title" style="font-family: 'Oswald'; color: #fff; font-size: 1.2rem; margin-bottom: 10px;">Título de ejemplo</div>
-                <div id="prev-body" style="font-size: 0.8rem; color: #888; max-height: 100px; overflow: hidden;">El contenido aparecerá aquí...</div>
-            </div>
-        </div>
-
-        <h3 style="font-family: 'Oswald'; color: #555; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 15px;">Noticias Recientes</h3>
-        <div id="lista-noticias-admin" style="max-height: 400px; overflow-y: auto; padding-right: 5px;">
+        <h3 style="font-family: 'Oswald'; color: #555; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 15px;">Noticias Publicadas</h3>
+        <div id="lista-noticias-admin" style="max-height: 500px; overflow-y: auto;">
             </div>
     </div>
 </div>
 
 <script>
     (function() {
+        // IMPORTANTE: Aseguramos que use la base de datos del archivo padre
+        const database = window.db || firebase.database();
         const editor = document.getElementById('editor');
         const tIn = document.getElementById('news-title');
-        const prevTitle = document.getElementById('prev-title');
-        const prevBody = document.getElementById('prev-body');
-        const prevMedia = document.getElementById('preview-media');
 
-        // Función para ejecutar comandos de formato
         window.execCmd = (cmd, val = null) => {
             document.execCommand(cmd, false, val);
             editor.focus();
         };
 
-        // Sincronizar Vista Previa
-        tIn.addEventListener('input', () => prevTitle.innerText = tIn.value || "Título de ejemplo");
-        editor.addEventListener('input', () => prevBody.innerHTML = editor.innerHTML);
-
-        // Manejo de Imágenes y Videos
         window.handleMedia = function(input) {
             const file = input.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             reader.onload = function(e) {
                 const data = e.target.result;
-                let htmlTag = '';
-
-                if (file.type.includes('video')) {
-                    htmlTag = `<video src="${data}" controls style="max-width:100%; border-radius:4px; margin: 10px 0;"></video>`;
-                    prevMedia.innerHTML = `<video src="${data}" style="width:100%; height:100%; object-fit:cover;"></video>`;
-                } else {
-                    htmlTag = `<img src="${data}" style="max-width:100%; border-radius:4px; margin: 10px 0;">`;
-                    prevMedia.innerHTML = `<img src="${data}" style="width:100%; height:100%; object-fit:cover;">`;
-                }
-                
+                let htmlTag = file.type.includes('video') 
+                    ? `<video src="${data}" controls style="max-width:100%; border-radius:4px;"></video>` 
+                    : `<img src="${data}" style="max-width:100%; border-radius:4px;">`;
                 document.execCommand('insertHTML', false, htmlTag + '<br>');
             };
             reader.readAsDataURL(file);
         };
 
-        // Publicar
         window.publicarNoticia = function() {
-    const tIn = document.getElementById('news-title');
-    const bIn = document.getElementById('news-body');
-    const titulo = tIn.value;
-    const cuerpo = bIn.value;
+            const titulo = tIn.value;
+            const cuerpo = editor.innerHTML;
 
-    if(!titulo || !cuerpo) return alert("Completa todos los campos");
+            if(!titulo || editor.innerText.trim().length < 5) {
+                alert("Por favor, rellena el título y el contenido.");
+                return;
+            }
 
-    // Referencia a 'noticias' en la base de datos
-    db.ref('noticias').push({
-        titulo: titulo,
-        cuerpo: cuerpo,
-        fecha: new Date().toISOString() // Formato ISO para facilitar el ordenamiento
-    }).then(() => {
-        alert("¡Noticia publicada con éxito!");
-        tIn.value = "";
-        bIn.value = "";
-        // Actualizar vista previa a valores por defecto
-        document.getElementById('prev-title').innerText = "Título de ejemplo";
-        document.getElementById('prev-body').innerText = "El contenido se verá así...";
-    }).catch(error => {
-        console.error("Error al publicar:", error);
-        alert("Error al conectar con la base de datos.");
-    });
-};
+            // Publicamos en la rama 'noticias' que es la que lee noticias.html
+            database.ref('noticias').push({
+                titulo: titulo,
+                cuerpo: cuerpo,
+                fecha: new Date().toISOString()
+            }).then(() => {
+                alert("Noticia subida correctamente.");
+                tIn.value = "";
+                editor.innerHTML = "";
+                
+                // Registro opcional en logs
+                database.ref('logs').push({
+                    usuario: firebase.auth().currentUser.email,
+                    accion: "publicó la noticia: " + titulo,
+                    tipo: "Noticia",
+                    fecha: new Date().toISOString()
+                });
+            }).catch(err => alert("Error de Firebase: " + err.message));
+        };
+
+        // Cargar lista para poder borrar
+        database.ref('noticias').on('value', s => {
+            const list = document.getElementById('lista-noticias-admin');
+            list.innerHTML = '';
+            s.forEach(ch => {
+                const n = ch.val();
+                list.innerHTML += `
+                    <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:4px; margin-bottom:10px; display:flex; justify-content:space-between;">
+                        <span style="font-family:'Oswald'; font-size:0.8rem; color:#fff;">${n.titulo}</span>
+                        <button onclick="eliminarNoticia('${ch.key}')" style="background:none; border:none; color:red; cursor:pointer;">&times;</button>
+                    </div>`;
+            });
+        });
 
         window.eliminarNoticia = (key) => {
-            if(confirm("¿Eliminar esta noticia permanentemente?")) db.ref('noticias/' + key).remove();
+            if(confirm("¿Borrar noticia?")) database.ref('noticias/' + key).remove();
         };
     })();
 </script>
