@@ -103,3 +103,52 @@ database.ref('solicitudes').limitToLast(5).on('value', (snapshot) => {
         container.prepend(item); // Mostrar el más reciente arriba
     });
 });
+function generateCalendar() {
+    const calendarDays = document.getElementById('calendar-days');
+    const now = new Date();
+    const year = 2026;
+    const month = 4; // Mayo (JS cuenta desde 0)
+
+    // Eventos de ejemplo (Podrías cargarlos de Firebase)
+    const eventos = {
+        14: "ICC 25H - 21:00",
+        15: "ICC 25H - 21:00",
+        16: "Sagrario Rubí - 18:00",
+        21: "ICC 25H - 21:00",
+        22: "ICC 25H - 21:00",
+        23: "Sagrario Rubí - 18:00"
+    };
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    // Ajuste para que empiece en Lunes (Opcional según tu gusto)
+    let startOffset = firstDay === 0 ? 6 : firstDay - 1;
+
+    calendarDays.innerHTML = '';
+
+    // Espacios vacíos para el inicio del mes
+    for (let i = 0; i < startOffset; i++) {
+        calendarDays.innerHTML += `<div class="day empty"></div>`;
+    }
+
+    // Generar los días
+    for (let d = 1; d <= daysInMonth; d++) {
+        const isToday = (d === now.getDate() && month === now.getMonth()) ? 'today' : '';
+        const eventText = eventos[d] ? `<div class="event">${eventos[d]}</div>` : '';
+        const raidClass = eventos[d] ? 'raid-day' : '';
+
+        calendarDays.innerHTML += `
+            <div class="day ${isToday} ${raidClass}">
+                <span class="day-number">${d}</span>
+                ${eventText}
+            </div>
+        `;
+    }
+}
+
+// Llama a la función al cargar la página
+document.addEventListener('DOMContentLoaded', () => {
+    generateCalendar();
+    // ... tus otras funciones de Firebase y XML
+});
