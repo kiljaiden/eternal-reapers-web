@@ -1,49 +1,175 @@
-<div class="module-header">
-    <h2 style="font-family: 'Oswald'; color: #28a745; margin-top: 0;">GESTIÓN DE RAIDS</h2>
-    <p style="color: #888; font-size: 0.9rem;">Programa nuevas bandas y gestiona las existentes.</p>
+<div class="module-header" style="margin-bottom: 25px;">
+    <h2 style="font-family: 'Oswald'; color: var(--accent-color); margin-top: 0; text-transform: uppercase; letter-spacing: 2px;">Gestión de Calendario / Raids</h2>
+    <p style="color: #666; font-size: 0.9rem;">Programa las bandas semanales y gestiona los asistentes registrados.</p>
 </div>
 
-<div class="admin-card" style="background: var(--bnet-card); padding: 20px; border-radius: 4px; border: 1px solid #2a2e35; margin-bottom: 20px;">
-    <h4 style="color: #28a745; margin-top: 0;">PROGRAMAR NUEVA RAID</h4>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <input type="text" id="raid-name" placeholder="Ej: ICC 25H - Directo" style="background: #0e1014; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 4px;">
-        <input type="datetime-local" id="raid-date" style="background: #0e1014; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 4px;">
-    </div>
-    <button onclick="crearRaid()" style="width: 100%; margin-top: 10px; background: #28a745; border: none; color: #fff; padding: 10px; font-weight: bold; cursor: pointer; border-radius: 4px;">PUBLICAR EN CALENDARIO</button>
-</div>
+<div style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 25px;">
+    
+    <div style="background: rgba(26, 29, 35, 0.8); border: 1px solid rgba(255,255,255,0.05); padding: 20px; border-radius: 4px;">
+        <h3 id="form-title" style="font-family: 'Oswald'; color: #fff; font-size: 1rem; margin-top: 0; text-transform: uppercase;">Programar Nueva Raid</h3>
+        
+        <input type="hidden" id="edit-raid-key">
 
-<div id="lista-raids-activas">
+        <div style="margin-bottom: 15px;">
+            <label style="display:block; font-size: 0.7rem; color: var(--accent-color); font-weight: bold; margin-bottom: 5px;">NOMBRE DE LA BANDA</label>
+            <input type="text" id="raid-name" placeholder="Ej: Ciudadela de la Corona de Hielo 25H" 
+                style="width: 100%; background: #050505; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 4px; font-family: 'Oswald'; box-sizing: border-box;">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+            <div>
+                <label style="display:block; font-size: 0.7rem; color: var(--accent-color); font-weight: bold; margin-bottom: 5px;">FECHA Y HORA</label>
+                <input type="datetime-local" id="raid-date" 
+                    style="width: 100%; background: #050505; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 4px; font-family: 'Roboto'; box-sizing: border-box;">
+            </div>
+            <div>
+                <label style="display:block; font-size: 0.7rem; color: var(--accent-color); font-weight: bold; margin-bottom: 5px;">IMAGEN DE CABECERA</label>
+                <label style="display: block; background: #222; border: 1px dashed #444; color: #888; padding: 10px; text-align: center; cursor: pointer; border-radius: 4px; font-size: 0.8rem;">
+                    SELECCIONAR JPG/PNG
+                    <input type="file" id="raid-img" accept="image/*" style="display:none" onchange="handleRaidImg(this)">
+                </label>
+            </div>
+        </div>
+
+        <div id="raid-img-preview" style="width: 100%; height: 100px; background: #000; border-radius: 4px; margin-bottom: 15px; display: none; overflow: hidden;">
+            <img id="img-render" src="" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label style="display:block; font-size: 0.7rem; color: var(--accent-color); font-weight: bold; margin-bottom: 5px;">NOTAS ADICIONALES (REQUISITOS)</label>
+            <textarea id="raid-notes" placeholder="Ej: Frascos obligatorios, mínimo 6.2k GS..." 
+                style="width: 100%; background: #050505; border: 1px solid #333; color: #ccc; padding: 10px; border-radius: 4px; font-family: 'Roboto'; resize: none;" rows="3"></textarea>
+        </div>
+
+        <button id="btn-save-raid" onclick="guardarRaid()" style="width: 100%; background: var(--accent-color); color: #000; border: none; padding: 15px; font-family: 'Oswald'; font-weight: bold; cursor: pointer; border-radius: 4px; text-transform: uppercase; letter-spacing: 1px;">
+            Publicar en Calendario
+        </button>
+        
+        <button id="btn-cancel-raid" onclick="resetRaidForm()" style="display:none; width: 100%; background: transparent; color: #666; border: 1px solid #333; padding: 10px; font-family: 'Oswald'; cursor: pointer; border-radius: 4px; margin-top: 10px; text-transform: uppercase;">
+            Cancelar Edición
+        </button>
     </div>
+
+    <div>
+        <h3 style="font-family: 'Oswald'; color: #555; font-size: 0.8rem; text-transform: uppercase; margin-bottom: 15px; letter-spacing: 1px;">Próximos Eventos</h3>
+        <div id="lista-raids-admin" style="max-height: 550px; overflow-y: auto;">
+            </div>
+    </div>
+</div>
 
 <script>
     (function() {
-        window.crearRaid = function() {
+        let base64Img = "";
+
+        // Previsualizar Imagen
+        window.handleRaidImg = function(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                base64Img = e.target.result;
+                document.getElementById('raid-img-preview').style.display = "block";
+                document.getElementById('img-render').src = base64Img;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        // Guardar o Actualizar
+        window.guardarRaid = function() {
             const nombre = document.getElementById('raid-name').value;
             const fecha = document.getElementById('raid-date').value;
-            if(!nombre || !fecha) return alert("Faltan datos");
+            const notas = document.getElementById('raid-notes').value;
+            const key = document.getElementById('edit-raid-key').value;
 
-            db.ref('raids').push({
+            if(!nombre || !fecha) return alert("El nombre y la fecha son obligatorios.");
+
+            const raidData = {
                 titulo: nombre,
                 fecha: fecha,
-                creador: auth.currentUser.email,
-                estado: 'abierta'
-            }).then(() => {
-                alert("Raid creada");
-                document.getElementById('raid-name').value = "";
+                notas: notas,
+                imagen: base64Img,
+                estado: 'abierta',
+                creador: auth.currentUser.email
+            };
+
+            if(key) {
+                db.ref('raids/' + key).update(raidData).then(() => {
+                    alert("Raid actualizada con éxito.");
+                    resetRaidForm();
+                });
+            } else {
+                db.ref('raids').push(raidData).then(() => {
+                    alert("Raid publicada en el calendario.");
+                    resetRaidForm();
+                });
+            }
+        };
+
+        // Escuchar Raids Activas
+        db.ref('raids').orderByChild('fecha').on('value', s => {
+            const list = document.getElementById('lista-raids-admin');
+            list.innerHTML = '';
+            
+            s.forEach(ch => {
+                const r = ch.val();
+                const k = ch.key;
+                const item = document.createElement('div');
+                item.style.cssText = "background: rgba(0,0,0,0.3); border: 1px solid #222; padding: 12px; border-radius: 4px; margin-bottom: 10px; border-left: 3px solid var(--accent-color);";
+                
+                item.innerHTML = `
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        ${r.imagen ? `<img src="${r.imagen}" style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover;">` : ''}
+                        <div style="flex: 1;">
+                            <div style="font-family: 'Oswald'; color: #fff; font-size: 0.9rem;">${r.titulo}</div>
+                            <div style="font-size: 0.7rem; color: #555;">${new Date(r.fecha).toLocaleString()}</div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 5px;">
+                            <button onclick="prepararEdicionRaid('${k}')" style="background:none; border:none; color:var(--accent-color); cursor:pointer; font-size:0.65rem; font-weight:bold; text-transform:uppercase;">Editar</button>
+                            <button onclick="eliminarRaid('${k}')" style="background:none; border:none; color:#dc3545; cursor:pointer; font-size:0.65rem; font-weight:bold; text-transform:uppercase;">Borrar</button>
+                        </div>
+                    </div>
+                `;
+                list.prepend(item);
+            });
+        });
+
+        window.prepararEdicionRaid = (k) => {
+            db.ref('raids/' + k).once('value', s => {
+                const r = s.val();
+                document.getElementById('raid-name').value = r.titulo;
+                document.getElementById('raid-date').value = r.fecha;
+                document.getElementById('raid-notes').value = r.notas || "";
+                document.getElementById('edit-raid-key').value = k;
+                base64Img = r.imagen || "";
+                
+                if(base64Img) {
+                    document.getElementById('raid-img-preview').style.display = "block";
+                    document.getElementById('img-render').src = base64Img;
+                }
+
+                document.getElementById('form-title').innerText = "Editando Raid";
+                document.getElementById('btn-save-raid').innerText = "Guardar Cambios";
+                document.getElementById('btn-cancel-raid').style.display = "block";
             });
         };
 
-        db.ref('raids').on('value', s => {
-            const cont = document.getElementById('lista-raids-activas');
-            cont.innerHTML = '<h4 style="color: #555;">RAIDS ACTIVAS</h4>';
-            s.forEach(ch => {
-                const r = ch.val();
-                cont.innerHTML += `
-                    <div style="background: rgba(255,255,255,0.02); padding: 10px; border-radius: 4px; margin-bottom: 5px; display: flex; justify-content: space-between;">
-                        <span><b>${r.titulo}</b> - ${new Date(r.fecha).toLocaleString()}</span>
-                        <button onclick="db.ref('raids/${ch.key}').remove()" style="color: #ff4444; background: none; border: none; cursor: pointer;">[BORRAR]</button>
-                    </div>`;
-            });
-        });
+        window.resetRaidForm = () => {
+            document.getElementById('raid-name').value = "";
+            document.getElementById('raid-date').value = "";
+            document.getElementById('raid-notes').value = "";
+            document.getElementById('edit-raid-key').value = "";
+            document.getElementById('raid-img-preview').style.display = "none";
+            document.getElementById('img-render').src = "";
+            base64Img = "";
+            document.getElementById('form-title').innerText = "Programar Nueva Raid";
+            document.getElementById('btn-save-raid').innerText = "Publicar en Calendario";
+            document.getElementById('btn-cancel-raid').style.display = "none";
+        };
+
+        window.eliminarRaid = (k) => {
+            if(confirm("¿Eliminar esta raid? Se borrarán también todos los anotados.")) {
+                db.ref('raids/' + k).remove();
+            }
+        };
     })();
 </script>
