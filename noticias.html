@@ -202,34 +202,46 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        db.ref('blog').on('value', s => {
-            const grid = document.getElementById('news-grid'); 
-            grid.innerHTML = '';
-            let count = 0;
+        // Escuchar los cambios en la rama 'noticias'
+db.ref('noticias').on('value', snapshot => {
+    const grid = document.getElementById('news-grid'); // Asegúrate de que este ID exista en tu HTML
+    grid.innerHTML = ''; // Limpiar el grid para recargar las noticias
+    
+    let noticiasArray = [];
+    snapshot.forEach(child => {
+        noticiasArray.push(child.val());
+    });
 
-            s.forEach(ch => {
-                const n = ch.val();
-                const d = n.fecha + " " + (n.hora || "");
+    // Ordenar por fecha (más reciente primero)
+    noticiasArray.reverse();
 
-                // La primera noticia se pone en el Slice destacado
-                if(count === 0) {
-                    document.getElementById('feat-title').innerText = n.titulo;
-                    document.getElementById('feat-date').innerText = "DESTACADO | " + d;
-                    document.getElementById('featured-slice').onclick = () => abrir(n.titulo, n.cuerpo, d);
-                }
+    noticiasArray.forEach((n, index) => {
+        const fechaObj = new Date(n.fecha);
+        const fechaFormateada = fechaObj.toLocaleDateString();
 
-                grid.innerHTML += `
-                    <div class="card" onclick="abrir('${n.titulo}', '${n.cuerpo.replace(/'/g, "\\'")}', '${d}')">
-                        <div class="card-img"></div>
-                        <div class="card-info">
-                            <span class="news-date">${d}</span>
-                            <h3>${n.titulo}</h3>
-                            <p>${n.cuerpo.substring(0, 100)}...</p>
-                        </div>
-                    </div>`;
-                count++;
-            });
-        });
+        // Lógica para la noticia destacada (la primera del array)
+        if(index === 0) {
+            const featTitle = document.getElementById('feat-title');
+            const featDate = document.getElementById('feat-date');
+            const featSlice = document.getElementById('featured-slice');
+            
+            if(featTitle) featTitle.innerText = n.titulo;
+            if(featDate) featDate.innerText = "DESTACADO | " + fechaFormateada;
+            if(featSlice) featSlice.onclick = () => abrir(n.titulo, n.cuerpo, fechaFormateada);
+        }
+
+        // Renderizar en el grid general
+        grid.innerHTML += `
+            <div class="card" onclick="abrir('${n.titulo.replace(/'/g, "\\'")}', '${n.cuerpo.replace(/'/g, "\\'").replace(/\n/g, "<br>")}', '${fechaFormateada}')">
+                <div class="card-img"></div>
+                <div class="card-info">
+                    <span class="news-date">${fechaFormateada}</span>
+                    <h3>${n.titulo}</h3>
+                    <p>${n.cuerpo.substring(0, 100)}...</p>
+                </div>
+            </div>`;
+    });
+});
 
         function abrir(t, b, d) {
             document.getElementById('pop-title').innerText = t;

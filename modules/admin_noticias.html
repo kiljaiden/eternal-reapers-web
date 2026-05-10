@@ -98,42 +98,30 @@
 
         // Publicar
         window.publicarNoticia = function() {
-            const titulo = tIn.value;
-            const cuerpo = editor.innerHTML;
+    const tIn = document.getElementById('news-title');
+    const bIn = document.getElementById('news-body');
+    const titulo = tIn.value;
+    const cuerpo = bIn.value;
 
-            if(!titulo || cuerpo.length < 10) return alert("Escribe un título y contenido suficiente.");
+    if(!titulo || !cuerpo) return alert("Completa todos los campos");
 
-            db.ref('noticias').push({
-                titulo: titulo,
-                cuerpo: cuerpo,
-                fecha: new Date().toISOString()
-            }).then(() => {
-                alert("¡Noticia publicada!");
-                tIn.value = "";
-                editor.innerHTML = "";
-                prevMedia.innerHTML = '<span style="font-family: \'Oswald\';">MULTIMEDIA</span>';
-            });
-        };
-
-        // Cargar Lista de Noticias para gestionar
-        db.ref('noticias').limitToLast(10).on('value', s => {
-            const list = document.getElementById('lista-noticias-admin');
-            list.innerHTML = '';
-            s.forEach(ch => {
-                const n = ch.val();
-                const key = ch.key;
-                const item = document.createElement('div');
-                item.style.cssText = "background: rgba(0,0,0,0.3); padding: 10px; border-radius: 4px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid var(--accent-color);";
-                item.innerHTML = `
-                    <div style="max-width: 70%;">
-                        <div style="font-size: 0.85rem; color: #fff; font-family: 'Oswald';">${n.titulo}</div>
-                        <div style="font-size: 0.65rem; color: #555;">${new Date(n.fecha).toLocaleDateString()}</div>
-                    </div>
-                    <button onclick="eliminarNoticia('${key}')" style="background:none; border:none; color:#dc3545; cursor:pointer; font-weight:bold;">&times;</button>
-                `;
-                list.prepend(item);
-            });
-        });
+    // Referencia a 'noticias' en la base de datos
+    db.ref('noticias').push({
+        titulo: titulo,
+        cuerpo: cuerpo,
+        fecha: new Date().toISOString() // Formato ISO para facilitar el ordenamiento
+    }).then(() => {
+        alert("¡Noticia publicada con éxito!");
+        tIn.value = "";
+        bIn.value = "";
+        // Actualizar vista previa a valores por defecto
+        document.getElementById('prev-title').innerText = "Título de ejemplo";
+        document.getElementById('prev-body').innerText = "El contenido se verá así...";
+    }).catch(error => {
+        console.error("Error al publicar:", error);
+        alert("Error al conectar con la base de datos.");
+    });
+};
 
         window.eliminarNoticia = (key) => {
             if(confirm("¿Eliminar esta noticia permanentemente?")) db.ref('noticias/' + key).remove();
