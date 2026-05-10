@@ -253,3 +253,31 @@ input:focus, textarea:focus {
 }
 
 textarea { height: 100px; resize: vertical; }
+.discord-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: center;
+    background: rgba(10, 10, 10, 0.8);
+    padding: 30px;
+    border: 1px solid var(--gold);
+    border-radius: 10px;
+}
+
+@media (max-width: 768px) {
+    .discord-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+.discord-info h3 {
+    color: var(--gold-bright);
+    font-size: 2rem;
+    margin-bottom: 20px;
+}
+
+.discord-info p {
+    margin-bottom: 30px;
+    font-size: 1.1rem;
+    color: #ccc;
+}
