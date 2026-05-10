@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hermandad>
+    <oficiales>
+        <miembro>
+            <nombre>Sully</nombre>
+            <clase>Guerrero Protección</clase>
+            <rango>Maestro de Hermandad</rango>
+        </miembro>
+        <miembro>
+            <nombre>Arthas</nombre>
+            <clase>Caballero de la Muerte</clase>
+            <rango>Oficial</rango>
+        </miembro>
+        <miembro>
+            <nombre>Jaina</nombre>
+            <clase>Mago Escarcha</clase>
+            <rango>Oficial</rango>
+        </miembro>
+        <miembro>
+            <nombre>Thrall</nombre>
+            <clase>Chamán Mejora</clase>
+            <rango>Oficial</rango>
+        </miembro>
+    </oficiales>
+</hermandad>
