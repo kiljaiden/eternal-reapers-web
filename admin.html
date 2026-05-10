@@ -1,0 +1,19 @@
+<div class="admin-box">
+    <h3>Agregar Oficial al Roster</h3>
+    <input type="text" id="off-name" class="admin-input" placeholder="Nombre del personaje">
+    <input type="text" id="off-rank" class="admin-input" placeholder="Rango">
+    <button onclick="addOficial()" class="btn-primary">AGREGAR MIEMBRO</button>
+</div>
+
+<script>
+function addOficial() {
+    const nombre = document.getElementById('off-name').value;
+    const rango = document.getElementById('off-rank').value;
+    if(nombre && rango) {
+        database.ref('oficiales').push({ nombre, rango }).then(() => {
+            alert("Oficial añadido");
+            document.getElementById('off-name').value = '';
+        });
+    }
+}
+</script>
