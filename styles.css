@@ -281,3 +281,14 @@ textarea { height: 100px; resize: vertical; }
     font-size: 1.1rem;
     color: #ccc;
 }
+.candidato-card {
+    background: #151515;
+    margin-bottom: 10px;
+    border-left: 3px solid var(--gold);
+    transition: 0.3s;
+}
+
+.candidato-card:hover {
+    background: #1a1a1a;
+    transform: translateX(5px);
+}
