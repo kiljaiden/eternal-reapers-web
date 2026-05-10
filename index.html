@@ -3,156 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eternal Reapers - Sitio Oficial</title>
+    <title>Eternal Reapers - Launcher</title>
     <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
-<body>
+<body class="bnet-layout">
 
-    <header>
-        <nav>
-            <div class="logo">ETERNAL REAPERS</div>
-            <ul>
-                <li><a href="#inicio">Inicio</a></li>
-                <li><a href="#noticias">Noticias</a></li>
-                <li><a href="#roster">Roster</a></li>
-                <li><a href="#reglas">Reglas</a></li>
-            </ul>
-        </nav>
-    </header>
+    <aside class="sidebar-games">
+        <div class="game-icon active">ER</div>
+        <div class="divider"></div>
+        <a href="#noticias" class="nav-item">Noticias</a>
+        <a href="#calendario" class="nav-item">Calendario</a>
+        <a href="#apply" class="nav-item">Reclutar</a>
+    </aside>
 
-    <section id="hero">
-        <div class="hero-content">
-            <h1>BIENVENIDOS A LA OSCURIDAD</h1>
-            <p>Hermandad líder en UltimoWoW 3.3.5</p>
-            <button class="btn-primary">UNIRSE AL DISCORD</button>
-        </div>
-    </section>
+    <main class="main-content">
+        <header class="content-header">
+            <div class="header-info">
+                <h1>ETERNAL REAPERS</h1>
+                <p>Estado del Reino: <span class="status-online">En línea</span></p>
+            </div>
+            <button class="play-btn" onclick="document.getElementById('apply').scrollIntoView()">UNIRSE AHORA</button>
+        </header>
 
-    <main>
-        <section id="roster-section">
-            <h2 class="section-title">NUESTROS OFICIALES</h2>
-            <div id="roster-container">
-                </div>
+        <section id="noticias" class="noticias-grid">
+            </section>
+
+        <section id="calendario" class="calendar-section">
+            <h2>Próximas Incursiones</h2>
+            <div id="calendar-container"></div>
         </section>
-<section id="progreso">
-    <h2 class="section-title">PROGRESO DE BANDA</h2>
-    <div class="raid-grid">
-        <div class="raid-card farm">
-            <h3>Ciudadela de la Corona de Hielo (25H)</h3>
-            <div class="boss-count">12/12</div>
-            <div class="status">COMPLETADO</div>
-        </div>
-        <div class="raid-card progress">
-            <h3>Sagrario Rubí (25H)</h3>
-            <div class="boss-count">0/1</div>
-            <div class="status">EN PROGRESO</div>
-        </div>
-    </div>
-</section>
-        <section id="calendario-raid" class="container">
-    <h2 class="section-title">CALENDARIO DE ACTIVIDADES</h2>
-    <div class="calendar-wrapper">
-        <div class="calendar-header">
-            <h3 id="month-name">MAYO 2026</h3>
-            <div class="calendar-nav">
-                <!-- Podríamos añadir botones de ant/sig después -->
-            </div>
-        </div>
-        <div class="calendar-grid">
-            <div class="day-name">LUN</div>
-            <div class="day-name">MAR</div>
-            <div class="day-name">MIE</div>
-            <div class="day-name">JUE</div>
-            <div class="day-name">VIE</div>
-            <div class="day-name">SAB</div>
-            <div class="day-name">DOM</div>
-        </div>
-        <div id="calendar-days" class="calendar-grid">
-            <!-- Los días se generan con JS -->
-        </div>
-    </div>
-</section>
-<!-- SECCIÓN DE REGLAS (ACORDEÓN) -->
-<section id="reglas" class="container">
-    <h2 class="section-title">NORMAS DE LA HERMANDAD</h2>
-    <div class="acordeon">
-        <details>
-            <summary>SISTEMA DE LOOT: SOFT RESERVE (SR)</summary>
-            <div class="content">
-                <p>Usamos un sistema de 2SR (Soft Reserve). Cada jugador puede reservar 2 objetos antes de empezar la banda. Si el objeto cae, se rolea entre quienes lo reservaron.</p>
-                <ul>
-                    <li>Los objetos no reservados se tiran por Dados (Main Spec > Off Spec).</li>
-                    <li>Fragmentos de Val'anyr/Shadowmourne están reservados por prioridad de hermandad.</li>
-                </ul>
-            </div>
-        </details>
-        <details>
-            <summary>HORARIOS DE RAID</summary>
-            <div class="content">
-                <p>Nuestras raids principales se realizan en los siguientes horarios (Hora Servidor):</p>
-                <table>
-                    <tr><td>Jueves</td><td>21:00 - 00:00</td><td>ICC 25H</td></tr>
-                    <tr><td>Viernes</td><td>21:00 - 00:00</td><td>ICC 25H (Continuación)</td></tr>
-                    <tr><td>Sábado</td><td>18:00 - 21:00</td><td>Sagrario Rubí / Algalon</td></tr>
-                </table>
-            </div>
-        </details>
-    </div>
-</section>
-
-<!-- SECCIÓN DE RECLUTAMIENTO -->
-        <section id="candidatos" class="container">
-    <h2 class="section-title">ÚLTIMAS SOLICITUDES</h2>
-    <div id="lista-candidatos">
-        <!-- JS cargará los aplicantes aquí -->
-    </div>
-</section>
-<section id="apply" class="container">
-    <h2 class="section-title">RECLUTAMIENTO</h2>
-    <p style="text-align:center;">¿Quieres unirte a Eternal Reapers? Completa el formulario:</p>
-    <!-- Usaremos Formspree (Gratis) para que las solicitudes lleguen a tu email -->
-    <form action="https://formspree.io/f/tu_id_aqui" method="POST" id="apply-form">
-        <div class="form-group">
-            <input type="text" name="name" placeholder="Nombre de tu Personaje" required>
-            <input type="text" name="class" placeholder="Clase y Especialización" required>
-        </div>
-        <div class="form-group">
-            <input type="number" name="gs" placeholder="Gearscore (GS)" required>
-            <input type="text" name="exp" placeholder="Experiencia (ej: 11/12 HC)" required>
-        </div>
-        <textarea name="message" placeholder="¿Por qué quieres unirte?"></textarea>
-        <button type="submit" class="btn-primary">ENVIAR APLICACIÓN</button>
-    </form>
-</section>
-        <section id="discord-section" class="container">
-    <h2 class="section-title">ESTADO DEL DISCORD</h2>
-    <div class="discord-container">
-        <!-- Reemplaza TU_ID_AQUI con el ID de tu servidor de Discord -->
-        <iframe src="https://discord.com/widget?id=967199954693140584&theme=dark" 
-                width="100%" height="400" allowtransparency="true" 
-                frameborder="0" 
-                sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts">
-        </iframe>
-        
-        <div class="discord-info">
-            <h3>Únete a la Voz</h3>
-            <p>Conéctate con los oficiales y miembros para coordinar las raids de ICC y Sagrario Rubí.</p>
-            <a href="https://discord.gg/7HBwTztPek" class="btn-primary">ENTRAR AL DISCORD</a>
-        </div>
-    </div>
-</section>
-        
     </main>
 
-    <footer>
-        <p>&copy; 2026 Eternal Reapers - Forjando Leyendas en el Reino</p>
-    </footer>
+    <aside class="sidebar-social">
+        <div class="social-header">MIEMBROS DE ÉLITE</div>
+        <div id="roster-list" class="roster-list">
+            </div>
+        <div class="discord-widget">
+            </div>
+        <div class="visitor-box">
+            Visitas: <span id="visit-count">0</span>
+        </div>
+    </aside>
 
-<!-- SDK de Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-database-compat.js"></script>
-
-<!-- Tu script principal -->
-<script src="script.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-database-compat.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
