@@ -49,6 +49,52 @@
         </div>
     </div>
 </section>
+<!-- SECCIÓN DE REGLAS (ACORDEÓN) -->
+<section id="reglas" class="container">
+    <h2 class="section-title">NORMAS DE LA HERMANDAD</h2>
+    <div class="acordeon">
+        <details>
+            <summary>SISTEMA DE LOOT: SOFT RESERVE (SR)</summary>
+            <div class="content">
+                <p>Usamos un sistema de 2SR (Soft Reserve). Cada jugador puede reservar 2 objetos antes de empezar la banda. Si el objeto cae, se rolea entre quienes lo reservaron.</p>
+                <ul>
+                    <li>Los objetos no reservados se tiran por Dados (Main Spec > Off Spec).</li>
+                    <li>Fragmentos de Val'anyr/Shadowmourne están reservados por prioridad de hermandad.</li>
+                </ul>
+            </div>
+        </details>
+        <details>
+            <summary>HORARIOS DE RAID</summary>
+            <div class="content">
+                <p>Nuestras raids principales se realizan en los siguientes horarios (Hora Servidor):</p>
+                <table>
+                    <tr><td>Jueves</td><td>21:00 - 00:00</td><td>ICC 25H</td></tr>
+                    <tr><td>Viernes</td><td>21:00 - 00:00</td><td>ICC 25H (Continuación)</td></tr>
+                    <tr><td>Sábado</td><td>18:00 - 21:00</td><td>Sagrario Rubí / Algalon</td></tr>
+                </table>
+            </div>
+        </details>
+    </div>
+</section>
+
+<!-- SECCIÓN DE RECLUTAMIENTO -->
+<section id="apply" class="container">
+    <h2 class="section-title">RECLUTAMIENTO</h2>
+    <p style="text-align:center;">¿Quieres unirte a Eternal Reapers? Completa el formulario:</p>
+    <!-- Usaremos Formspree (Gratis) para que las solicitudes lleguen a tu email -->
+    <form action="https://formspree.io/f/tu_id_aqui" method="POST" id="apply-form">
+        <div class="form-group">
+            <input type="text" name="name" placeholder="Nombre de tu Personaje" required>
+            <input type="text" name="class" placeholder="Clase y Especialización" required>
+        </div>
+        <div class="form-group">
+            <input type="number" name="gs" placeholder="Gearscore (GS)" required>
+            <input type="text" name="exp" placeholder="Experiencia (ej: 11/12 HC)" required>
+        </div>
+        <textarea name="message" placeholder="¿Por qué quieres unirte?"></textarea>
+        <button type="submit" class="btn-primary">ENVIAR APLICACIÓN</button>
+    </form>
+</section>
     </main>
 
     <footer>
