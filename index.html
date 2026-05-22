@@ -132,8 +132,8 @@
         .btn-primary { width: 100%; padding: 12px; background: linear-gradient(to bottom, #0078d7, #005a9e); border: 1px solid var(--accent); color: white; font-weight: bold; cursor: pointer; border-radius: 4px; }
         .btn-primary:hover { background: linear-gradient(to bottom, #00a8ff, #0078d7); }
 
-        /* Tablas de Cola */
-        .table-scroll { overflow-y: auto; max-height: 400px; }
+        /* Tablas de Cola y Chat Box */
+        .table-scroll { overflow-y: auto; flex-grow: 1; }
         .bnet-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
         .bnet-table th { padding: 10px; border-bottom: 2px solid var(--border); color: var(--text-muted); font-weight: normal; }
         .bnet-table td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.02); }
@@ -141,6 +141,15 @@
         .bnet-table tr.active-track { background-color: rgba(0, 168, 255, 0.05); color: var(--accent); border-left: 3px solid var(--accent); }
         .btn-delete-track { background: none; border: none; color: var(--text-muted); cursor: pointer; transition: color 0.2s; font-size: 1rem; outline: none; }
         .btn-delete-track:hover { color: #ef4444; }
+
+        /* Chat Estilos */
+        .chat-container { display: flex; flex-direction: column; height: 100%; overflow: hidden; gap: 10px; }
+        .chat-messages { flex-grow: 1; overflow-y: auto; padding-right: 5px; display: flex; flex-direction: column; gap: 8px; }
+        .chat-msg { font-size: 0.9rem; line-height: 1.4; padding: 6px; border-radius: 4px; background: rgba(255,255,255,0.02); }
+        .chat-msg strong { color: var(--accent); font-weight: 600; margin-right: 5px; }
+        .chat-input-wrapper { display: flex; gap: 8px; }
+        .chat-input-wrapper input { flex-grow: 1; padding: 10px; background-color: var(--bg-darker); border: 1px solid var(--border); color: white; outline: none; border-radius: 4px; }
+        .chat-input-wrapper input:focus { border-color: var(--accent); }
 
         /* Barra de Control Inferior Potenciada */
         .player-bar { grid-column: 1 / 3; background-color: var(--bg-darker); border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 30px; }
@@ -163,7 +172,7 @@
         .dj-active-app .dj-mixer-console { display: block; }
         .dj-active-app .player-btn.fx-active { color: var(--dj-live); text-shadow: 0 0 8px var(--dj-glow); }
 
-        /* Modal Inmersivo */
+        /* Modals Inmersivos (Salas y Login) */
         .bnet-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(3, 5, 10, 0.85); backdrop-filter: blur(6px); z-index: 1000; align-items: center; justify-content: center; animation: fadeIn 0.3s ease; }
         .bnet-modal { background-color: var(--bg-panel); border: 2px solid var(--accent); border-radius: 6px; width: 400px; padding: 25px; box-shadow: 0 0 25px var(--accent-glow); animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position: relative; }
         .modal-close { position: absolute; top: 15px; right: 15px; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; }
@@ -201,7 +210,6 @@
                     <div class="user-name" id="user-display-name">Cargando...</div>
                     <div class="user-status" id="user-status-text">Desconectado</div>
                 </div>
-                <!-- NUEVO: Controles de Hardware de Voz -->
                 <div class="voice-controls">
                     <button class="voice-btn" id="btn-toggle-mic" title="Silenciar micrófono"><i class="fa-solid fa-microphone"></i></button>
                     <button class="voice-btn" id="btn-toggle-deaf" title="Ensordecer"><i class="fa-solid fa-headphones"></i></button>
@@ -293,15 +301,32 @@
                 </div>
 
                 <div class="panel-right">
-                    <section class="bnet-panel playlist-panel">
-                        <div class="panel-header">📋 COLA DE LA SALA</div>
-                        <div class="table-scroll">
+                    <section class="bnet-panel playlist-panel" style="display: flex; flex-direction: column; height: 100%;">
+                        <!-- NUEVO: Cabecera con Pestañas Quirúrgicas -->
+                        <div class="panel-header" style="display: flex; gap: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 10px;">
+                            <span id="tab-playlist" style="cursor: pointer; color: var(--accent); transition: color 0.3s;">📋 COLA DE LA SALA</span>
+                            <span id="tab-chat" style="cursor: pointer; color: var(--text-muted); transition: color 0.3s;">💬 CHAT INTERNO</span>
+                        </div>
+                        
+                        <!-- Vista 1: Lista de Canciones -->
+                        <div id="view-playlist" class="table-scroll">
                             <table class="bnet-table">
                                 <thead>
                                     <tr><th>Tipo</th><th>Título</th><th>Artista</th><th style="text-align: right;">Gestionar</th></tr>
                                 </thead>
                                 <tbody id="playlist-body"></tbody>
                             </table>
+                        </div>
+
+                        <!-- Vista 2: Chat en Tiempo Real -->
+                        <div id="view-chat" class="chat-container" style="display: none;">
+                            <div id="chat-messages" class="chat-messages">
+                                <!-- Mensajes cargados por Firebase -->
+                            </div>
+                            <form id="chat-form" class="chat-input-wrapper">
+                                <input type="text" id="chat-input" placeholder="Escribe un mensaje al canal..." required autocomplete="off">
+                                <button type="submit" class="btn-primary" style="width: auto; padding: 0 15px;"><i class="fa-solid fa-paper-plane"></i></button>
+                            </form>
                         </div>
                     </section>
                 </div>
@@ -323,6 +348,7 @@
         </footer>
     </div>
 
+    <!-- Modal Crear Canal -->
     <div class="bnet-modal-overlay" id="room-modal-overlay">
         <div class="bnet-modal">
             <button class="modal-close" id="btn-close-modal">✕</button>
@@ -335,6 +361,20 @@
         </div>
     </div>
 
+    <!-- NUEVO: Modal de Login Inmersivo -->
+    <div class="bnet-modal-overlay" id="login-modal-overlay">
+        <div class="bnet-modal">
+            <button class="modal-close" id="btn-close-login">✕</button>
+            <div class="modal-header"><i class="fa-solid fa-user-shield"></i><span>INICIAR SESIÓN BATTLE.NET</span></div>
+            <input type="email" id="login-email" class="modal-input" placeholder="Correo Electrónico" style="margin-bottom: 10px;">
+            <input type="password" id="login-pass" class="modal-input" placeholder="Contraseña">
+            <div class="modal-actions">
+                <button class="btn-cancel" id="btn-cancel-login">Cancelar</button>
+                <button class="btn-primary" id="btn-submit-login" style="width: auto; padding: 10px 25px;">Conectar</button>
+            </div>
+        </div>
+    </div>
+
     <div id="youtube-audio-player" style="display:none;"></div>
     
     <script src="https://www.youtube.com/iframe_api"></script>
@@ -342,8 +382,8 @@
     <!-- INTEGRACIÓN SCRIPT: CARGA DE MÓDULOS DE FIREBASE SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        // IMPORTANTE: Ahora importamos deleteField para la auto-limpieza al cambiar de sala
+        // Importamos métodos de Auth para Logueo Real
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, doc, onSnapshot, addDoc, deleteDoc, updateDoc, query, orderBy, getDoc, deleteField } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -364,6 +404,7 @@
         let localTracks = [];
         let activeRoomTracksListener = null;
         let activeRoomDjListener = null; 
+        let activeChatListener = null; // Escucha para el chat en vivo
         
         let currentUserData = { name: "Invitado", uid: "local_user_" + Math.floor(Math.random()*1000) }; 
         let isMicMuted = false;
@@ -372,25 +413,59 @@
         window.currentRoom = '';
         window.getTracksList = () => localTracks;
 
-        // 1. MANEJO DE USUARIOS Y HARDWARE LOCAL
+        // 1. MANEJO DE USUARIOS AUTENTICADOS (Login Real)
         onAuthStateChanged(auth, (user) => {
             const nameDisplay = document.getElementById('user-display-name');
             const statusText = document.getElementById('user-status-text');
             const avatarImg = document.getElementById('user-display-avatar');
 
             if (user) {
-                currentUserData = { name: user.displayName || "Miembro", uid: user.uid };
+                currentUserData = { name: user.displayName || user.email.split('@')[0], uid: user.uid };
                 nameDisplay.innerText = currentUserData.name;
-                statusText.innerText = "En línea";
+                statusText.innerHTML = `En línea - <a href="#" id="auth-logout-btn" style="color:var(--dj-live); text-decoration:none;">Desconectar</a>`;
                 if(user.photoURL) avatarImg.src = user.photoURL;
             } else {
-                currentUserData = { name: "Invitado", uid: "jaiden_reaper_" + Math.floor(Math.random()*100) };
+                currentUserData = { name: "Invitado", uid: "invitado_" + Math.floor(Math.random()*1000) };
                 nameDisplay.innerText = currentUserData.name;
-                statusText.innerText = "Modo Local (Sin Auth)";
+                statusText.innerHTML = `Sin conexión - <a href="#" id="auth-login-btn" style="color:var(--accent); text-decoration:none; font-weight:bold;">Iniciar Sesión</a>`;
+                avatarImg.src = "https://i.pravatar.cc/150?img=61"; // Avatar default
             }
             if(window.renderRooms) window.renderRooms();
-            if(window.currentRoom) updateMyPresence(); // Actualiza a Firebase al cargar
+            if(window.currentRoom) updateMyPresence(); 
         });
+
+        // Controles de Interfaz de Login Dinámico
+        document.addEventListener('click', async (e) => {
+            if(e.target.id === 'auth-login-btn') {
+                e.preventDefault();
+                document.getElementById('login-modal-overlay').style.display = 'flex';
+            }
+            if(e.target.id === 'auth-logout-btn') {
+                e.preventDefault();
+                if(window.currentRoom) await leavePresence(window.currentRoom);
+                signOut(auth);
+            }
+        });
+
+        // Evento de Login Formulario
+        document.getElementById('btn-submit-login').onclick = async () => {
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-pass').value;
+            if(!email || !pass) return;
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+                document.getElementById('login-modal-overlay').style.display = 'none';
+                document.getElementById('login-email').value = '';
+                document.getElementById('login-pass').value = '';
+            } catch(error) {
+                alert("⚠️ Error de credenciales: " + error.message);
+            }
+        };
+
+        // Cerrar modal login
+        const closeLoginModal = () => document.getElementById('login-modal-overlay').style.display = 'none';
+        document.getElementById('btn-close-login').onclick = closeLoginModal;
+        document.getElementById('btn-cancel-login').onclick = closeLoginModal;
 
         // Toggle Visual de Micrófono y Cascos
         document.getElementById('btn-toggle-mic').onclick = () => {
@@ -406,14 +481,14 @@
             const btn = document.getElementById('btn-toggle-deaf');
             btn.classList.toggle('muted', isDeafened);
             if (isDeafened) {
-                isMicMuted = true; // Si te ensordeces, te muteas automáticamente
+                isMicMuted = true; 
                 document.getElementById('btn-toggle-mic').classList.add('muted');
                 document.getElementById('btn-toggle-mic').innerHTML = '<i class="fa-solid fa-microphone-slash"></i>';
             }
             updateMyPresence();
         };
 
-        // LÓGICA DE PRESENCIA (Unir y Salir de la base de datos de la sala)
+        // LÓGICA DE PRESENCIA
         async function updateMyPresence() {
             if (!window.currentRoom || !currentUserData.uid) return;
             const roomRef = doc(db, "rooms", window.currentRoom);
@@ -426,25 +501,22 @@
                         isDeafened: isDeafened
                     }
                 });
-            } catch (error) { console.warn("Esperando que la sala se cree...", error); }
+            } catch (error) { }
         }
 
         async function leavePresence(roomId) {
             if (!roomId || !currentUserData.uid) return;
             const roomRef = doc(db, "rooms", roomId);
             try {
-                await updateDoc(roomRef, {
-                    [`listeners.${currentUserData.uid}`]: deleteField()
-                });
+                await updateDoc(roomRef, { [`listeners.${currentUserData.uid}`]: deleteField() });
             } catch (error) {}
         }
 
-        // Auto-Limpiar presencia si el usuario cierra el navegador
         window.addEventListener('beforeunload', () => {
             if (window.currentRoom) leavePresence(window.currentRoom);
         });
 
-        // 2. SINCRONIZACIÓN DE SALAS EN TIEMPO REAL CON PRESENCIA
+        // SINCRONIZACIÓN DE SALAS EN TIEMPO REAL CON PRESENCIA
         let currentSnapshotRooms = [];
         window.renderRooms = function() {
             const container = document.getElementById('rooms-container');
@@ -458,12 +530,10 @@
                 div.className = `channel-item ${room.id === window.currentRoom ? 'active' : ''}`;
                 div.onclick = () => switchRoom(room.id, room.name);
 
-                // Info principal del canal
                 let htmlContent = `<span><i class="fa-solid fa-volume-high"></i> ${room.name}</span>`;
                 div.innerHTML = htmlContent;
                 wrapper.appendChild(div);
 
-                // Sublista de Usuarios Escuchando (ESTILO DISCORD)
                 if (room.listeners && Object.keys(room.listeners).length > 0) {
                     const listenerList = document.createElement('div');
                     listenerList.className = 'listener-list';
@@ -512,37 +582,46 @@
             }
         });
 
-        // Cambio de Sala Quirúrgico
+        // Cambio de Sala Quirúrgico (Incluye lectura del Chat del Canal)
         function switchRoom(roomId, roomName) {
-            // Elimina tu presencia de la sala anterior antes de moverte
-            if (window.currentRoom && window.currentRoom !== roomId) {
-                leavePresence(window.currentRoom);
-            }
-
+            if (window.currentRoom && window.currentRoom !== roomId) leavePresence(window.currentRoom);
             if (activeRoomTracksListener) activeRoomTracksListener(); 
             if (activeRoomDjListener) activeRoomDjListener(); 
+            if (activeChatListener) activeChatListener(); // Limpiar el chat de la sala vieja
             
             window.currentRoom = roomId;
             document.getElementById('active-room-title').innerText = roomName;
             
-            // Registra tu presencia en la sala nueva
             updateMyPresence();
             window.renderRooms();
 
             // Sincronizar tracks
             const tracksRef = collection(db, "rooms", window.currentRoom, "tracks");
-            const q = query(tracksRef, orderBy("createdAt", "asc"));
-
-            activeRoomTracksListener = onSnapshot(q, (snapshot) => {
+            activeRoomTracksListener = onSnapshot(query(tracksRef, orderBy("createdAt", "asc")), (snapshot) => {
                 localTracks = [];
-                snapshot.forEach(docSnap => {
-                    localTracks.push({ docId: docSnap.id, ...docSnap.data() });
-                });
+                snapshot.forEach(docSnap => localTracks.push({ docId: docSnap.id, ...docSnap.data() }));
                 
                 if (window.renderPlaylist) window.renderPlaylist();
-                if (localTracks.length > 0 && currentTrackIndex === 0 && window.loadTrack) {
-                    window.loadTrack(0);
-                }
+                if (localTracks.length > 0 && currentTrackIndex === 0 && window.loadTrack) window.loadTrack(0);
+            });
+
+            // Sincronizar Chat del Canal Exclusivo
+            const chatRef = collection(db, "rooms", window.currentRoom, "messages");
+            activeChatListener = onSnapshot(query(chatRef, orderBy("createdAt", "asc")), (snapshot) => {
+                const chatBox = document.getElementById('chat-messages');
+                chatBox.innerHTML = '';
+                snapshot.forEach(docSnap => {
+                    const msg = docSnap.data();
+                    const time = new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    chatBox.innerHTML += `
+                        <div class="chat-msg">
+                            <span style="font-size:0.7rem; color:var(--text-muted); margin-right:5px;">[${time}]</span>
+                            <strong>${msg.userName}:</strong>
+                            <span style="color:var(--text)">${msg.text}</span>
+                        </div>
+                    `;
+                });
+                chatBox.scrollTop = chatBox.scrollHeight;
             });
 
             activeRoomDjListener = onSnapshot(doc(db, "rooms", window.currentRoom), (docSnap) => {
@@ -555,19 +634,34 @@
                 if (room && room.currentDj === currentUserData.uid) {
                     appWrapper.classList.add('dj-active-app');
                     statusDot.className = 'status-indicator dj-mode';
-                    statusText.innerText = "Transmitiendo en vivo 🎙️";
-                    statusText.style.color = 'var(--dj-live)';
                     labelText.innerText = "MODO DJ TRANSMITIENDO";
                 } else {
                     appWrapper.classList.remove('dj-active-app');
                     statusDot.className = 'status-indicator online';
-                    statusText.innerText = "En línea";
-                    statusText.style.color = 'var(--text-muted)';
                     labelText.innerText = "MODO DJ OFFLINE";
                     if (window.toggleEqualizerAnimation) window.toggleEqualizerAnimation(false);
                 }
             });
         }
+
+        // Lógica de Envío de Mensajes del Chat Interno
+        document.getElementById('chat-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if (!text || !window.currentRoom) return;
+
+            // Inyectamos el mensaje directo a la subcolección de Firebase de esta sala
+            try {
+                await addDoc(collection(db, "rooms", window.currentRoom, "messages"), {
+                    uid: currentUserData.uid,
+                    userName: currentUserData.name,
+                    text: text,
+                    createdAt: Date.now()
+                });
+                input.value = '';
+            } catch (error) { console.error("Error al enviar msj:", error); }
+        });
 
         document.getElementById('song-form').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -578,19 +672,13 @@
 
             let finalId = rawUrl;
             if (type === 'youtube') {
-                if (window.parseYouTubeTarget) {
-                    finalId = window.parseYouTubeTarget(rawUrl);
-                }
+                if (window.parseYouTubeTarget) finalId = window.parseYouTubeTarget(rawUrl);
                 if (finalId.length !== 11) { alert('⚠️ ID inválido.'); return; }
             }
 
             try {
                 await addDoc(collection(db, "rooms", window.currentRoom, "tracks"), {
-                    type: type,
-                    id: finalId,
-                    title: title,
-                    artist: artist,
-                    createdAt: Date.now()
+                    type: type, id: finalId, title: title, artist: artist, createdAt: Date.now()
                 });
                 document.getElementById('song-form').reset();
             } catch (err) {}
@@ -598,21 +686,14 @@
 
         window.removeTrack = async function(index) {
             const track = localTracks[index];
-            if (track && track.docId) {
-                await deleteDoc(doc(db, "rooms", window.currentRoom, "tracks", track.docId));
-            }
+            if (track && track.docId) await deleteDoc(doc(db, "rooms", window.currentRoom, "tracks", track.docId));
         };
 
         document.getElementById('btn-submit-modal').onclick = async () => {
             const roomName = document.getElementById('modal-room-name').value.trim();
             if (!roomName) return;
 
-            const newRoomRef = await addDoc(collection(db, "rooms"), {
-                name: roomName,
-                currentDj: null,
-                listeners: {}
-            });
-
+            const newRoomRef = await addDoc(collection(db, "rooms"), { name: roomName, currentDj: null, listeners: {} });
             switchRoom(newRoomRef.id, roomName);
             document.getElementById('room-modal-overlay').style.display = 'none';
         };
@@ -620,22 +701,13 @@
         document.getElementById('dj-toggle').onclick = async () => {
             if (!window.currentRoom) return;
             const roomRef = doc(db, "rooms", window.currentRoom);
-            
             try {
                 const docSnap = await getDoc(roomRef);
                 const room = docSnap.data();
                 if (!room) return;
-
-                if (room.currentDj && room.currentDj !== currentUserData.uid) {
-                    alert("⚠️ Consola ocupada por otro DJ de la guild.");
-                    return;
-                }
-
-                if (!room.currentDj) {
-                    await updateDoc(roomRef, { currentDj: currentUserData.uid });
-                } else {
-                    await updateDoc(roomRef, { currentDj: null });
-                }
+                if (room.currentDj && room.currentDj !== currentUserData.uid) return alert("⚠️ Consola ocupada por otro DJ de la guild.");
+                if (!room.currentDj) await updateDoc(roomRef, { currentDj: currentUserData.uid });
+                else await updateDoc(roomRef, { currentDj: null });
             } catch (error) {}
         };
     </script>
@@ -653,6 +725,28 @@
         window.loadTrack = loadTrack;
         window.toggleEqualizerAnimation = toggleEqualizerAnimation;
         window.parseYouTubeTarget = parseYouTubeTarget;
+
+        // Lógica de Navegación de Pestañas (COLA vs CHAT)
+        const tabPlaylist = document.getElementById('tab-playlist');
+        const tabChat = document.getElementById('tab-chat');
+        const viewPlaylist = document.getElementById('view-playlist');
+        const viewChat = document.getElementById('view-chat');
+
+        tabPlaylist.onclick = () => {
+            viewPlaylist.style.display = 'block';
+            viewChat.style.display = 'none';
+            tabPlaylist.style.color = 'var(--accent)';
+            tabChat.style.color = 'var(--text-muted)';
+        };
+
+        tabChat.onclick = () => {
+            viewPlaylist.style.display = 'none';
+            viewChat.style.display = 'flex';
+            tabChat.style.color = 'var(--accent)';
+            tabPlaylist.style.color = 'var(--text-muted)';
+            const chatBox = document.getElementById('chat-messages');
+            chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll abajo
+        };
 
         function renderPlaylist() {
             const tbody = document.getElementById('playlist-body');
