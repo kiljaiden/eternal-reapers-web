@@ -492,11 +492,15 @@
             }
         });
 
-        function parseYouTubeTarget(input) {
-            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=||shorts\/)([^#\&\?]*).*/;
-            const match = input.match(regExp);
-            return (match && match[2].length === 11) ? match[2] : input;
-        }
+       function parseYouTubeTarget(input) {
+    // Reemplazar el subdominio de music por el estándar para engañar al validador de texto
+    let cleanInput = input.replace("music.youtube.com", "youtube.com");
+    
+    // Extractor avanzado por expresiones regulares
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=||shorts\/)([^#\&\?]*).*/;
+    const match = cleanInput.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : cleanInput;
+}
 
         // Gestión de Inserción Manual de Canciones
         document.getElementById('song-form').addEventListener('submit', (e) => {
