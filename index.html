@@ -45,21 +45,25 @@
 
         .category-header { display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 5px; }
         .category-title { font-size: 0.75rem; color: var(--text-muted); font-weight: bold; letter-spacing: 0.5px; }
-        #btn-create-room { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 0.9rem; outline: none; }
+        #btn-open-modal { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 0.9rem; outline: none; transition: transform 0.2s; }
+        #btn-open-modal:hover { transform: scale(1.2); color: white; }
 
+        .channels-list { flex-grow: 1; overflow-y: auto; }
         .channel-item { padding: 10px; border-radius: 4px; cursor: pointer; margin-bottom: 8px; transition: background 0.2s; border-left: 3px solid transparent; }
         .channel-item:hover { background-color: rgba(255,255,255,0.05); color: white; }
         .channel-item.active { background-color: rgba(0, 168, 255, 0.1); border-left-color: var(--accent); color: var(--accent); }
         .user-badge-container { padding-left: 20px; margin-top: 5px; display: flex; flex-direction: column; gap: 4px; }
         .user-badge { font-size: 0.8rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
         .user-badge i { color: #10b981; font-size: 0.5rem; }
+        .user-badge.dj-active-tag { color: var(--dj-live); font-weight: bold; }
+        .user-badge.dj-active-tag i { color: var(--dj-live); box-shadow: 0 0 5px var(--dj-live); }
 
         /* Contenido Principal */
         .main-content { background-color: var(--bg-main); display: flex; flex-direction: column; overflow: hidden; }
         .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background-color: rgba(7, 9, 17, 0.5); border-bottom: 1px solid var(--border); }
         .room-info { font-weight: bold; color: white; }
         
-        /* Botón de Modo DJ Mejorado */
+        /* Botón de Modo DJ */
         .dj-toggle-container { display: flex; align-items: center; gap: 10px; background-color: #070911; padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); cursor: pointer; transition: all 0.3s; }
         .dj-toggle-container:hover { border-color: var(--accent); }
         .dj-toggle-container.active-dj { border-color: var(--dj-live); box-shadow: 0 0 10px var(--dj-glow); }
@@ -83,17 +87,22 @@
         .track-info h3 { font-size: 1.1rem; color: white; margin-bottom: 4px; }
         .track-info p { font-size: 0.9rem; color: var(--text-muted); }
 
-        /* Ecualizador Animado Inmersivo */
+        /* Ecualizador Gráfico */
         .bnet-equalizer { display: none; align-items: flex-end; gap: 3px; width: 40px; height: 30px; position: absolute; right: 10px; }
         .eq-bar { width: 4px; height: 5px; background-color: var(--accent); animation: bounce 0.3s ease infinite alternate; transform-origin: bottom; }
         .eq-bar:nth-child(2) { animation-delay: 0.1s; animation-duration: 0.4s; }
         .eq-bar:nth-child(3) { animation-delay: 0.2s; animation-duration: 0.2s; }
         .eq-bar:nth-child(4) { animation-delay: 0.05s; animation-duration: 0.5s; }
         
-        @keyframes bounce { 
-            0% { transform: scaleY(1); } 
-            100% { transform: scaleY(6); } 
-        }
+        @keyframes bounce { 0% { transform: scaleY(1); } 100% { transform: scaleY(6); } }
+
+        /* Consola de Mezclas DJ Exclusiva */
+        .dj-mixer-console { display: none; background: linear-gradient(145deg, #161d2b, #0f141f); border: 1px solid var(--dj-live); border-radius: 4px; padding: 15px; margin-bottom: 15px; box-shadow: 0 0 15px rgba(239, 68, 68, 0.2); animation: fadeIn 0.4s ease; }
+        .mixer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; text-align: center; margin-top: 10px; }
+        .knob-container { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .knob { width: 45px; height: 45px; background: radial-gradient(circle, #2a354d 30%, #090d14 70%); border: 2px solid var(--border); border-radius: 50%; position: relative; cursor: pointer; transition: transform 0.1s; transform: rotate(0deg); }
+        .knob::after { content: ''; width: 4px; height: 12px; background-color: var(--dj-live); position: absolute; top: 2px; left: 50%; transform: translateX(-50%); border-radius: 2px; }
+        .knob-label { font-size: 0.75rem; font-weight: bold; color: var(--text-muted); text-transform: uppercase; }
 
         /* Buscador y Formulario */
         .search-box { display: flex; gap: 10px; margin-bottom: 10px; }
@@ -120,15 +129,17 @@
         .btn-delete-track { background: none; border: none; color: var(--text-muted); cursor: pointer; transition: color 0.2s; font-size: 1rem; outline: none; }
         .btn-delete-track:hover { color: #ef4444; }
 
-        /* Barra de Control Inferior */
-        .player-bar { grid-column: 1 / 3; background-color: var(--bg-darker); border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 30px; transition: background 0.3s; }
-        .player-btn { background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; outline: none; }
-        .player-btn:hover { color: white; }
+        /* Barra de Control Inferior Potenciada */
+        .player-bar { grid-column: 1 / 3; background-color: var(--bg-darker); border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 30px; }
+        .controls-group { display: flex; gap: 15px; align-items: center; }
+        .player-btn { background: none; border: none; color: var(--text-muted); font-size: 1.1rem; cursor: pointer; outline: none; transition: color 0.2s; }
+        .player-btn:hover, .player-btn.fx-active { color: white; }
+        .player-btn.fx-active { color: var(--accent); text-shadow: 0 0 8px var(--accent-glow); }
         .main-play { color: var(--accent); font-size: 1.8rem; text-shadow: 0 0 10px var(--accent-glow); transition: all 0.3s; }
         .volume-group { display: flex; align-items: center; gap: 10px; color: var(--text-muted); }
-        .volume-group input { accent-color: var(--accent); cursor: pointer; transition: accent-color 0.3s; }
+        .volume-group input { accent-color: var(--accent); cursor: pointer; }
 
-        /* Estilos Dinámicos del Modo DJ (Inmersión Cyberpunk) */
+        /* Estilos Dinámicos del Modo DJ */
         .dj-active-app .bnet-panel.current-panel { border-color: var(--dj-live); box-shadow: 0 0 15px var(--dj-glow); }
         .dj-active-app .cover-art { border-color: var(--dj-live); color: var(--dj-live); }
         .dj-active-app .audio-source-indicator { background-color: var(--dj-live); color: white; }
@@ -136,8 +147,25 @@
         .dj-active-app .volume-group input { accent-color: var(--dj-live); }
         .dj-active-app .bnet-equalizer { display: flex; }
         .dj-active-app .eq-bar { background-color: var(--dj-live); }
+        .dj-active-app .dj-mixer-console { display: block; }
+        .dj-active-app .player-btn.fx-active { color: var(--dj-live); text-shadow: 0 0 8px var(--dj-glow); }
 
-        /* Responsive Móvil */
+        /* Modal Inmersivo */
+        .bnet-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(3, 5, 10, 0.85); backdrop-filter: blur(6px); z-index: 1000; align-items: center; justify-content: center; animation: fadeIn 0.3s ease; }
+        .bnet-modal { background-color: var(--bg-panel); border: 2px solid var(--accent); border-radius: 6px; width: 400px; padding: 25px; box-shadow: 0 0 25px var(--accent-glow); animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position: relative; }
+        .modal-close { position: absolute; top: 15px; right: 15px; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; }
+        .modal-close:hover { color: white; }
+        .modal-header { font-size: 1.1rem; color: white; font-weight: bold; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        .modal-header i { color: var(--accent); }
+        .modal-input { width: 100%; padding: 12px; background-color: var(--bg-darker); border: 1px solid var(--border); color: white; outline: none; border-radius: 4px; margin-bottom: 20px; font-size: 1rem; }
+        .modal-input:focus { border-color: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .btn-cancel { padding: 10px 20px; background-color: transparent; border: 1px solid var(--border); color: var(--text); cursor: pointer; border-radius: 4px; }
+        .btn-cancel:hover { background-color: rgba(255,255,255,0.05); }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
         @media (max-width: 768px) {
             .app-container { grid-template-columns: 1fr; }
             .channels-sidebar { display: none; }
@@ -151,15 +179,14 @@
         
         <!-- COLUMNA 1: Canales estilo Discord -->
         <aside class="channels-sidebar">
-            <!-- Sección Perfil de Usuario Battle.net -->
             <div class="user-profile-panel">
                 <div class="avatar-wrapper">
-                    <img src="https://i.pravatar.cc/150?img=61" alt="Avatar" class="user-avatar">
+                    <img src="https://i.pravatar.cc/150?img=61" alt="Avatar" class="user-avatar" id="user-display-avatar">
                     <div class="status-indicator online" id="user-status-dot"></div>
                 </div>
                 <div class="user-info">
-                    <div class="user-name">Jaiden</div>
-                    <div class="user-status" id="user-status-text">En línea</div>
+                    <div class="user-name" id="user-display-name">Cargando...</div>
+                    <div class="user-status" id="user-status-text">Desconectado</div>
                 </div>
             </div>
 
@@ -168,22 +195,20 @@
             </div>
             
             <div class="category-header">
-                <span class="category-title">CANALES DE AUDIO / PLAYLISTS</span>
-                <button id="btn-create-room" title="Crear nuevo canal"><i class="fa-solid fa-plus"></i></button>
+                <span class="category-title">CANALES DE AUDIO</span>
+                <button id="btn-open-modal" title="Crear nuevo canal"><i class="fa-solid fa-square-plus"></i></button>
             </div>
 
-            <!-- Lista de Canales Dinámicos -->
             <div class="channels-list" id="rooms-container">
-                <!-- Se inyectan por JavaScript -->
+                <!-- Sincronizado desde Firestore -->
             </div>
         </aside>
 
         <!-- COLUMNA 2 y 3: Contenido Principal -->
         <main class="main-content">
             <header class="top-bar">
-                <div class="room-info">Estás en: <span id="active-room-title">Sala de Raids ⚔️</span></div>
+                <div class="room-info">Estás en: <span id="active-room-title">Selecciona una sala</span></div>
                 
-                <!-- Interruptor Inmersivo de Modo DJ -->
                 <div class="dj-toggle-container" id="dj-toggle">
                     <div class="dj-switch"><div class="dj-circle"></div></div>
                     <span class="dj-label" id="dj-label-text">MODO DJ OFFLINE</span>
@@ -193,8 +218,17 @@
             </header>
 
             <div class="content-grid">
-                <!-- Izquierda: Buscador / Admin y Reproductor Actual -->
                 <div class="panel-left">
+                    <section class="dj-mixer-console" id="dj-mixer">
+                        <div class="panel-header" style="color: var(--dj-live);"><i class="fa-solid fa-sliders"></i> CONSOLA DE MEZCLAS LIVE</div>
+                        <div class="mixer-grid">
+                            <div class="knob-container"><div class="knob" data-value="0"></div><span class="knob-label">Bajos</span></div>
+                            <div class="knob-container"><div class="knob" data-value="0"></div><span class="knob-label">Medios</span></div>
+                            <div class="knob-container"><div class="knob" data-value="0"></div><span class="knob-label">Agudos</span></div>
+                            <div class="knob-container"><div class="knob" data-value="0"></div><span class="knob-label">Efecto</span></div>
+                        </div>
+                    </section>
+
                     <section class="bnet-panel current-panel">
                         <div class="now-playing-box">
                             <div class="audio-source-indicator" id="source-badge">YT</div>
@@ -203,17 +237,12 @@
                                 <h3 id="track-title">Selecciona un tema</h3>
                                 <p id="track-artist">Artista</p>
                             </div>
-                            <!-- Ecualizador Gráfico Reactivo -->
                             <div class="bnet-equalizer" id="visual-eq">
-                                <div class="eq-bar"></div>
-                                <div class="eq-bar"></div>
-                                <div class="eq-bar"></div>
-                                <div class="eq-bar"></div>
+                                <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
                             </div>
                         </div>
                     </section>
 
-                    <!-- Panel de Gestión de Contenido Integrado -->
                     <section class="bnet-panel search-panel">
                         <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center;">
                             <span>⚡ GESTIÓN DE CONTENIDO</span>
@@ -222,7 +251,6 @@
                             </button>
                         </div>
 
-                        <!-- VISTA A: Buscador Automático -->
                         <div id="wrapper-search-view">
                             <div class="search-box">
                                 <input type="text" id="search-input" placeholder="Buscar en YouTube...">
@@ -231,26 +259,21 @@
                             <div id="search-results" class="search-results-list"></div>
                         </div>
 
-                        <!-- VISTA B: Panel de Administración Manual -->
                         <div id="wrapper-admin-view" style="display: none;">
                             <form id="song-form" class="bnet-form">
                                 <input type="text" id="admin-title" placeholder="Título de la canción" required>
                                 <input type="text" id="admin-artist" placeholder="Artista u Orquesta" required>
-                                <input type="text" id="admin-playlist-target" placeholder="Nombre de la Playlist (Ej: Salsa, WoW OST)" required>
-                                <input type="text" id="admin-url" placeholder="URL completa o ID de YouTube / Enlace MP3" required>
+                                <input type="text" id="admin-url" placeholder="URL o ID de YouTube / Enlace MP3" required>
                                 <select id="admin-type">
                                     <option value="youtube">YouTube Video</option>
                                     <option value="mp3">Archivo MP3 (Directo)</option>
                                 </select>
-                                <button type="submit" class="btn-primary">
-                                    <i class="fa-solid fa-plus"></i> Guardar e Inyectar
-                                </button>
+                                <button type="submit" class="btn-primary">Inyectar a Firebase</button>
                             </form>
                         </div>
                     </section>
                 </div>
 
-                <!-- Derecha: Playlist del canal -->
                 <div class="panel-right">
                     <section class="bnet-panel playlist-panel">
                         <div class="panel-header">📋 COLA DE LA SALA</div>
@@ -259,9 +282,7 @@
                                 <thead>
                                     <tr><th>Tipo</th><th>Título</th><th>Artista</th><th style="text-align: right;">Gestionar</th></tr>
                                 </thead>
-                                <tbody id="playlist-body">
-                                    <!-- Carga por JS -->
-                                </tbody>
+                                <tbody id="playlist-body"></tbody>
                             </table>
                         </div>
                     </section>
@@ -269,12 +290,13 @@
             </div>
         </main>
 
-        <!-- BARRA INFERIOR: Reproductor Global -->
         <footer class="player-bar">
             <div class="controls-group">
+                <button class="player-btn" id="btn-shuffle"><i class="fa-solid fa-shuffle"></i></button>
                 <button class="player-btn" id="btn-prev"><i class="fa-solid fa-backward-step"></i></button>
                 <button class="player-btn main-play" id="btn-play"><i class="fa-solid fa-play"></i></button>
                 <button class="player-btn" id="btn-next"><i class="fa-solid fa-forward-step"></i></button>
+                <button class="player-btn" id="btn-repeat"><i class="fa-solid fa-repeat"></i></button>
             </div>
             <div class="volume-group">
                 <i class="fa-solid fa-volume-low"></i>
@@ -283,130 +305,274 @@
         </footer>
     </div>
 
-    <!-- Contenedor Oculto de la API de YouTube -->
+    <div class="bnet-modal-overlay" id="room-modal-overlay">
+        <div class="bnet-modal">
+            <button class="modal-close" id="btn-close-modal">✕</button>
+            <div class="modal-header"><i class="fa-solid fa-satellite-dish"></i><span>CREAR CANAL DE AUDIO</span></div>
+            <input type="text" id="modal-room-name" class="modal-input" placeholder="Nombre del canal..." autofocus>
+            <div class="modal-actions">
+                <button class="btn-cancel" id="btn-cancel-modal">Cancelar</button>
+                <button class="btn-primary" id="btn-submit-modal" style="width: auto; padding: 10px 25px;">Inicializar Canal</button>
+            </div>
+        </div>
+    </div>
+
     <div id="youtube-audio-player" style="display:none;"></div>
     
     <script src="https://www.youtube.com/iframe_api"></script>
-    <script>
-        let player;
-        let isPlayerReady = false;
-        const htmlAudioPlayer = new Audio();
-        let currentMotor = 'none';
-        let currentTrackIndex = 0;
-        let currentRoom = 'raids';
-        let isDjModeActive = false;
 
-        // Estructura Base de Datos inicial
-        const defaultRoomsData = {
-            raids: {
-                name: "Sala de Raids ⚔️",
-                tracks: [
-                    { type: 'youtube', id: 'fHd8F_WzQ3c', title: 'Epic Chiptune Gaming Mix', artist: 'Fan Audio' },
-                    { type: 'youtube', id: '2kMv08SjW7Y', title: 'Synthwave Lo-Fi Beats', artist: 'Retro Wave' }
-                ]
-            },
-            chill: {
-                name: "Taberna / Chill 🍺",
-                tracks: [
-                    { type: 'mp3', id: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3', title: 'Demo Pista Local MP3', artist: 'Suno AI' }
-                ]
-            }
+    <!-- INTEGRACIÓN SCRIPT: CARGA DE MÓDULOS DE FIREBASE SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        // IMPORTANTE: Se agregó getDoc para evitar el bucle infinito del botón DJ
+        import { getFirestore, collection, doc, onSnapshot, addDoc, deleteDoc, updateDoc, query, orderBy, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDGELmVvBZZywbJOf6kuVKQJjKaRt6Q9ws",
+            authDomain: "eternalreapersweb.firebaseapp.com",
+            databaseURL: "https://eternalreapersweb-default-rtdb.firebaseio.com",
+            projectId: "eternalreapersweb",
+            storageBucket: "eternalreapersweb.firebasestorage.app",
+            messagingSenderId: "945508907683",
+            appId: "1:945508907683:web:b26cc3660298d4d6ba1d16",
+            measurementId: "G-7J20NR0JDM"
         };
 
-        let roomsData = JSON.parse(localStorage.getItem('eternal_reapers_playlist')) || defaultRoomsData;
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
 
-        function saveToLocalStorage() {
-            localStorage.setItem('eternal_reapers_playlist', JSON.stringify(roomsData));
-        }
+        let localTracks = [];
+        let activeRoomTracksListener = null;
+        let activeRoomDjListener = null; // Creado para limpiar escuchas de DJ acumulados
+        let currentUserData = { name: "Invitado", uid: "local_user" }; 
 
-        // LÓGICA DE INTERACTIVIDAD: Activar/Desactivar Modo DJ de forma fluida
-        const djToggle = document.getElementById('dj-toggle');
-        djToggle.addEventListener('click', () => {
-            isDjModeActive = !isDjModeActive;
-            const appWrapper = document.getElementById('main-app-wrapper');
-            const statusDot = document.getElementById('user-status-dot');
+        // Publicar variables críticas para que el script secundario pueda leerlas de inmediato
+        window.currentRoom = '';
+        window.getTracksList = () => localTracks;
+
+        // 1. MANEJO DE USUARIOS (FIREBASE AUTH)
+        onAuthStateChanged(auth, (user) => {
+            const nameDisplay = document.getElementById('user-display-name');
             const statusText = document.getElementById('user-status-text');
-            const labelText = document.getElementById('dj-label-text');
+            const avatarImg = document.getElementById('user-display-avatar');
 
-            if (isDjModeActive) {
-                djToggle.classList.add('active-dj');
-                appWrapper.classList.add('dj-active-app');
-                statusDot.className = 'status-indicator dj-mode';
-                statusText.innerText = "Transmitiendo en vivo 🎙️";
-                statusText.style.color = 'var(--dj-live)';
-                labelText.innerText = "MODO DJ TRANSMITIENDO";
-                
-                // Efecto de inmersión auditiva si hay música sonando
-                const currentTracks = roomsData[currentRoom].tracks;
-                if (currentTracks.length > 0 && currentMotor !== 'none') {
-                    toggleEqualizerAnimation(true);
-                }
-            } else {
-                djToggle.classList.remove('active-dj');
-                appWrapper.classList.remove('dj-active-app');
-                statusDot.className = 'status-indicator online';
+            if (user) {
+                currentUserData = { name: user.displayName || "Miembro", uid: user.uid };
+                nameDisplay.innerText = currentUserData.name;
                 statusText.innerText = "En línea";
-                statusText.style.color = 'var(--text-muted)';
-                labelText.innerText = "MODO DJ OFFLINE";
-                toggleEqualizerAnimation(false);
+                if(user.photoURL) avatarImg.src = user.photoURL;
+            } else {
+                currentUserData = { name: "Invitado", uid: "jaiden_reaper" };
+                nameDisplay.innerText = currentUserData.name;
+                statusText.innerText = "Modo Local (Sin Auth)";
             }
+            if(window.renderRooms) window.renderRooms();
         });
 
-        // Controlar la animación de las barras del ecualizador
-        function toggleEqualizerAnimation(start) {
-            const bars = document.querySelectorAll('.eq-bar');
-            bars.forEach(bar => {
-                bar.style.animationPlayState = start ? 'running' : 'paused';
-            });
-        }
-
-        function renderRooms() {
+        // Almacenamiento temporal para renderizado fluido de salas
+        let currentSnapshotRooms = [];
+        window.renderRooms = function() {
             const container = document.getElementById('rooms-container');
             container.innerHTML = '';
 
-            Object.keys(roomsData).forEach(roomId => {
-                const room = roomsData[roomId];
+            currentSnapshotRooms.forEach(room => {
                 const div = document.createElement('div');
-                div.className = `channel-item ${roomId === currentRoom ? 'active' : ''}`;
-                div.setAttribute('data-room', roomId);
+                div.className = `channel-item ${room.id === window.currentRoom ? 'active' : ''}`;
+                div.setAttribute('data-room', room.id);
 
                 let htmlContent = `<span><i class="fa-solid fa-volume-high"></i> ${room.name}</span>`;
                 
-                if (roomId === currentRoom) {
+                if (room.id === window.currentRoom) {
+                    htmlContent += `<div class="user-badge-container">`;
+                    if (room.currentDj === currentUserData.uid) {
+                        htmlContent += `<span class="user-badge dj-active-tag"><i class="fa-solid fa-circle"></i> ${currentUserData.name} 👑 DJ</span>`;
+                    } else {
+                        htmlContent += `<span class="user-badge"><i class="fa-solid fa-circle"></i> ${currentUserData.name}</span>`;
+                    }
+                    htmlContent += `</div>`;
+                } else if (room.currentDj) {
                     htmlContent += `
                         <div class="user-badge-container">
-                            <span class="user-badge"><i class="fa-solid fa-circle"></i> Jaiden</span>
-                        </div>
-                    `;
+                            <span class="user-badge dj-active-tag"><i class="fa-solid fa-circle"></i> Otro DJ 👑</span>
+                        </div>`;
                 }
 
-                div.innerHTML = htmlContent;
-                div.onclick = () => switchRoom(roomId);
+                div.onclick = () => switchRoom(room.id, room.name);
                 container.appendChild(div);
+            });
+        };
+
+        // 2. SINCRONIZACIÓN DE SALAS EN TIEMPO REAL (FIRESTORE)
+        onSnapshot(collection(db, "rooms"), (snapshot) => {
+            if (snapshot.empty) {
+                addDoc(collection(db, "rooms"), { name: "Sala de Raids ⚔️", currentDj: null });
+                return;
+            }
+
+            currentSnapshotRooms = [];
+            snapshot.forEach(roomDoc => {
+                currentSnapshotRooms.push({ id: roomDoc.id, ...roomDoc.data() });
+            });
+
+            window.renderRooms();
+
+            if (currentSnapshotRooms.length > 0 && !window.currentRoom) {
+                switchRoom(currentSnapshotRooms[0].id, currentSnapshotRooms[0].name);
+            }
+        });
+
+        // Cambio de Sala e inicialización de escuchas de Firestore
+        function switchRoom(roomId, roomName) {
+            // Limpiamos los listeners anteriores quirúrgicamente para no acumular fantasmas
+            if (activeRoomTracksListener) activeRoomTracksListener(); 
+            if (activeRoomDjListener) activeRoomDjListener(); 
+            
+            window.currentRoom = roomId;
+            document.getElementById('active-room-title').innerText = roomName;
+            window.renderRooms();
+
+            // Sincronizar tracks de la subcolección de esa sala
+            const tracksRef = collection(db, "rooms", window.currentRoom, "tracks");
+            const q = query(tracksRef, orderBy("createdAt", "asc"));
+
+            activeRoomTracksListener = onSnapshot(q, (snapshot) => {
+                localTracks = [];
+                snapshot.forEach(docSnap => {
+                    localTracks.push({ docId: docSnap.id, ...docSnap.data() });
+                });
+                
+                if (window.renderPlaylist) window.renderPlaylist();
+                if (localTracks.length > 0 && currentTrackIndex === 0 && window.loadTrack) {
+                    window.loadTrack(0);
+                }
+            });
+
+            // Escuchar cambios de estado del DJ de esta sala
+            activeRoomDjListener = onSnapshot(doc(db, "rooms", window.currentRoom), (docSnap) => {
+                const room = docSnap.data();
+                const appWrapper = document.getElementById('main-app-wrapper');
+                const statusDot = document.getElementById('user-status-dot');
+                const statusText = document.getElementById('user-status-text');
+                const labelText = document.getElementById('dj-label-text');
+
+                if (room && room.currentDj === currentUserData.uid) {
+                    appWrapper.classList.add('dj-active-app');
+                    statusDot.className = 'status-indicator dj-mode';
+                    statusText.innerText = "Transmitiendo en vivo 🎙️";
+                    statusText.style.color = 'var(--dj-live)';
+                    labelText.innerText = "MODO DJ TRANSMITIENDO";
+                } else {
+                    appWrapper.classList.remove('dj-active-app');
+                    statusDot.className = 'status-indicator online';
+                    statusText.innerText = "En línea";
+                    statusText.style.color = 'var(--text-muted)';
+                    labelText.innerText = "MODO DJ OFFLINE";
+                    if (window.toggleEqualizerAnimation) window.toggleEqualizerAnimation(false);
+                }
             });
         }
 
-        function switchRoom(roomId) {
-            currentRoom = roomId;
-            document.getElementById('active-room-title').innerText = roomsData[currentRoom].name;
-            
-            currentTrackIndex = 0;
-            renderPlaylist();
-            renderRooms();
+        // 3. AGREGAR Y ELIMINAR CANCIONES DIRECTAMENTE EN FIRESTORE
+        document.getElementById('song-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('admin-title').value.trim();
+            const artist = document.getElementById('admin-artist').value.trim();
+            const rawUrl = document.getElementById('admin-url').value.trim();
+            let type = document.getElementById('admin-type').value;
 
-            if (roomsData[currentRoom].tracks.length > 0) {
-                loadTrack(0);
-            } else {
-                resetPlayerUI();
+            let finalId = rawUrl;
+            if (type === 'youtube') {
+                if (window.parseYouTubeTarget) {
+                    finalId = window.parseYouTubeTarget(rawUrl);
+                }
+                if (finalId.length !== 11) { alert('⚠️ ID inválido.'); return; }
             }
-        }
+
+            try {
+                await addDoc(collection(db, "rooms", window.currentRoom, "tracks"), {
+                    type: type,
+                    id: finalId,
+                    title: title,
+                    artist: artist,
+                    createdAt: Date.now()
+                });
+                document.getElementById('song-form').reset();
+            } catch (err) {
+                console.error("Error al inyectar en Firestore: ", err);
+            }
+        });
+
+        // Eliminar permanente en la nube
+        window.removeTrack = async function(index) {
+            const track = localTracks[index];
+            if (track && track.docId) {
+                await deleteDoc(doc(db, "rooms", window.currentRoom, "tracks", track.docId));
+            }
+        };
+
+        // Crear Salas en Firestore desde el nuevo Modal
+        document.getElementById('btn-submit-modal').onclick = async () => {
+            const roomName = document.getElementById('modal-room-name').value.trim();
+            if (!roomName) return;
+
+            const newRoomRef = await addDoc(collection(db, "rooms"), {
+                name: roomName,
+                currentDj: null
+            });
+
+            switchRoom(newRoomRef.id, roomName);
+            document.getElementById('room-modal-overlay').style.display = 'none';
+        };
+
+        // LÓGICA REPARADA: El Switch DJ ahora lee 1 sola vez en lugar de provocar un bucle infinito
+        document.getElementById('dj-toggle').onclick = async () => {
+            if (!window.currentRoom) return;
+            const roomRef = doc(db, "rooms", window.currentRoom);
+            
+            try {
+                const docSnap = await getDoc(roomRef);
+                const room = docSnap.data();
+                if (!room) return;
+
+                if (room.currentDj && room.currentDj !== currentUserData.uid) {
+                    alert("⚠️ Consola ocupada por otro DJ de la guild.");
+                    return;
+                }
+
+                if (!room.currentDj) {
+                    await updateDoc(roomRef, { currentDj: currentUserData.uid });
+                } else {
+                    await updateDoc(roomRef, { currentDj: null });
+                }
+            } catch (error) {
+                console.error("Error al cambiar modo DJ:", error);
+            }
+        };
+    </script>
+
+    <!-- LÓGICA DE CONTROLES MULTIMEDIA E INTERFAZ -->
+    <script>
+        const htmlAudioPlayer = new Audio();
+        let currentMotor = 'none';
+        let currentTrackIndex = 0;
+        let isShuffleActive = false;
+        let isRepeatActive = false;
+        let isPlayerReady = false;
+
+        // Compartir funciones críticas al entorno global y modular
+        window.renderPlaylist = renderPlaylist;
+        window.loadTrack = loadTrack;
+        window.toggleEqualizerAnimation = toggleEqualizerAnimation;
+        window.parseYouTubeTarget = parseYouTubeTarget;
 
         function renderPlaylist() {
             const tbody = document.getElementById('playlist-body');
             tbody.innerHTML = '';
-            const currentTracks = roomsData[currentRoom].tracks;
+            const tracks = window.getTracksList ? window.getTracksList() : [];
 
-            currentTracks.forEach((track, index) => {
+            tracks.forEach((track, index) => {
                 const tr = document.createElement('tr');
                 if (index === currentTrackIndex) tr.classList.add('active-track');
                 
@@ -415,111 +581,24 @@
                     : '<i class="fa-solid fa-file-audio" style="color:#00a8ff"></i>';
                 
                 tr.innerHTML = `
-                    <td>${icon}</td>
-                    <td>${track.title}</td>
-                    <td>${track.artist}</td>
+                    <td>${icon}</td><td>${track.title}</td><td>${track.artist}</td>
                     <td style="text-align: right;">
-                        <button class="btn-delete-track" data-index="${index}"><i class="fa-solid fa-trash"></i></button>
+                        <button class="btn-delete-track" onclick="event.stopPropagation(); removeTrack(${index})"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 `;
-
-                tr.onclick = (e) => {
-                    if (e.target.closest('.btn-delete-track')) return;
-                    loadTrack(index);
-                };
-
+                tr.onclick = () => loadTrack(index);
                 tbody.appendChild(tr);
             });
-
-            document.querySelectorAll('.btn-delete-track').forEach(btn => {
-                btn.onclick = (e) => {
-                    e.stopPropagation();
-                    const targetIndex = parseInt(btn.getAttribute('data-index'));
-                    removeTrack(targetIndex);
-                };
-            });
-        }
-
-        function removeTrack(index) {
-            const tracks = roomsData[currentRoom].tracks;
-            tracks.splice(index, 1);
-
-            saveToLocalStorage();
-
-            if (index === currentTrackIndex) {
-                currentTrackIndex = 0;
-                if (tracks.length > 0) {
-                    loadTrack(0);
-                } else {
-                    resetPlayerUI();
-                }
-            } else if (index < currentTrackIndex) {
-                currentTrackIndex--;
-            }
-            renderPlaylist();
-        }
-
-        document.getElementById('btn-create-room').onclick = () => {
-            const roomName = prompt("Introduce el nombre de la nueva Playlist o Canal:");
-            if (!roomName || !roomName.trim()) return;
-
-            const id = 'playlist_' + Date.now();
-            roomsData[id] = { name: roomName.trim(), tracks: [] };
-
-            saveToLocalStorage();
-            renderRooms();
-            switchRoom(id);
-        };
-
-        function resetPlayerUI() {
-            if(isPlayerReady) player.pauseVideo();
-            htmlAudioPlayer.pause();
-            document.getElementById('track-title').innerText = "Selecciona un tema";
-            document.getElementById('track-artist').innerText = "Artista";
-            document.getElementById('main-disc-icon').innerHTML = '<i class="fa-solid fa-compact-disc fa-3x"></i>';
-            document.querySelector('#btn-play i').className = 'fa-solid fa-play';
-            toggleEqualizerAnimation(false);
-        }
-
-        window.onYouTubeIframeAPIReady = function() {
-            player = new YT.Player('youtube-audio-player', {
-                height: '0', width: '0',
-                videoId: roomsData[currentRoom].tracks[0]?.id || '',
-                playerVars: {
-                    'origin': window.location.origin,
-                    'enablejsapi': 1
-                },
-                events: {
-                    'onReady': () => { isPlayerReady = true; },
-                    'onStateChange': onPlayerStateChange
-                }
-            });
-        }
-
-        function onPlayerStateChange(event) {
-            const playIcon = document.querySelector('#btn-play i');
-            const discIcon = document.getElementById('main-disc-icon');
-
-            if (event.data === YT.PlayerState.PLAYING) {
-                playIcon.className = 'fa-solid fa-pause';
-                discIcon.innerHTML = '<i class="fa-solid fa-compact-disc fa-spin fa-3x"></i>';
-                if (isDjModeActive) toggleEqualizerAnimation(true);
-            } else {
-                playIcon.className = 'fa-solid fa-play';
-                discIcon.innerHTML = '<i class="fa-solid fa-compact-disc fa-3x"></i>';
-                toggleEqualizerAnimation(false);
-            }
-            if (event.data === YT.PlayerState.ENDED) nextTrack();
         }
 
         function loadTrack(index) {
-            const tracks = roomsData[currentRoom].tracks;
+            const tracks = window.getTracksList ? window.getTracksList() : [];
             if (!tracks || tracks.length === 0) return;
 
             currentTrackIndex = index;
             const track = tracks[index];
 
-            if(isPlayerReady) player.pauseVideo();
+            if(isPlayerReady && player && typeof player.pauseVideo === 'function') player.pauseVideo();
             htmlAudioPlayer.pause();
 
             document.getElementById('track-title').innerText = track.title;
@@ -529,83 +608,120 @@
             if (track.type === 'youtube') {
                 currentMotor = 'youtube';
                 badge.innerText = 'YT';
-                badge.style.backgroundColor = isDjModeActive ? 'var(--dj-live)' : '#ff0000';
-                if (isPlayerReady) {
+                badge.style.backgroundColor = '#ff0000';
+                if (isPlayerReady && player) {
                     player.cueVideoById(track.id);
                     player.playVideo();
                 }
             } else {
                 currentMotor = 'mp3';
                 badge.innerText = 'MP3';
-                badge.style.backgroundColor = isDjModeActive ? 'var(--dj-live)' : '#00a8ff';
+                badge.style.backgroundColor = '#00a8ff';
                 htmlAudioPlayer.src = track.id;
                 htmlAudioPlayer.play();
                 document.querySelector('#btn-play i').className = 'fa-solid fa-pause';
                 document.getElementById('main-disc-icon').innerHTML = '<i class="fa-solid fa-compact-disc fa-spin fa-3x"></i>';
-                if (isDjModeActive) toggleEqualizerAnimation(true);
+                toggleEqualizerAnimation(true);
             }
             renderPlaylist();
         }
 
-        document.getElementById('btn-play').addEventListener('click', () => {
-            const playIcon = document.querySelector('#btn-play i');
-            const discIcon = document.getElementById('main-disc-icon');
-
-            if (currentMotor === 'youtube' && isPlayerReady) {
-                if (player.getPlayerState() === YT.PlayerState.PLAYING) { 
-                    player.pauseVideo(); 
-                } else { 
-                    player.playVideo(); 
+        window.onYouTubeIframeAPIReady = function() {
+            player = new YT.Player('youtube-audio-player', {
+                height: '0', width: '0',
+                videoId: '',
+                playerVars: { 'enablejsapi': 1 },
+                events: {
+                    'onReady': () => { isPlayerReady = true; },
+                    'onStateChange': (e) => {
+                        const playIcon = document.querySelector('#btn-play i');
+                        if (e.data === YT.PlayerState.PLAYING) {
+                            playIcon.className = 'fa-solid fa-pause';
+                            toggleEqualizerAnimation(true);
+                        } else {
+                            playIcon.className = 'fa-solid fa-play';
+                            toggleEqualizerAnimation(false);
+                        }
+                        if (e.data === YT.PlayerState.ENDED) handleTrackEnded();
+                    }
                 }
-            } else if (currentMotor === 'mp3') {
-                if (htmlAudioPlayer.paused) { 
-                    htmlAudioPlayer.play(); 
-                    playIcon.className = 'fa-solid fa-pause'; 
-                    discIcon.innerHTML = '<i class="fa-solid fa-compact-disc fa-spin fa-3x"></i>';
-                    if (isDjModeActive) toggleEqualizerAnimation(true);
-                } else { 
-                    htmlAudioPlayer.pause(); 
-                    playIcon.className = 'fa-solid fa-play'; 
-                    discIcon.innerHTML = '<i class="fa-solid fa-compact-disc fa-3x"></i>';
-                    toggleEqualizerAnimation(false);
-                }
-            }
-        });
-
-        function nextTrack() {
-            let nextIdx = currentTrackIndex + 1;
-            if (nextIdx >= roomsData[currentRoom].tracks.length) nextIdx = 0;
-            loadTrack(nextIdx);
+            });
         }
-        document.getElementById('btn-next').onclick = nextTrack;
 
-        document.getElementById('btn-prev').onclick = () => {
-            let prevIdx = currentTrackIndex - 1;
-            if (prevIdx < 0) prevIdx = roomsData[currentRoom].tracks.length - 1;
-            loadTrack(prevIdx);
+        document.getElementById('btn-play').onclick = () => {
+            if (currentMotor === 'youtube' && isPlayerReady && player) {
+                if (player.getPlayerState() === YT.PlayerState.PLAYING) player.pauseVideo(); else player.playVideo();
+            } else if (currentMotor === 'mp3') {
+                const playIcon = document.querySelector('#btn-play i');
+                if (htmlAudioPlayer.paused) { htmlAudioPlayer.play(); playIcon.className = 'fa-solid fa-pause'; } else { htmlAudioPlayer.pause(); playIcon.className = 'fa-solid fa-play'; }
+            }
         };
 
-        document.getElementById('volume-range').addEventListener('input', (e) => {
-            const val = e.target.value;
-            if (isPlayerReady) player.setVolume(val);
-            htmlAudioPlayer.volume = val / 100;
-        });
-
-        document.getElementById('toggle-admin-view').addEventListener('click', (e) => {
-            const searchView = document.getElementById('wrapper-search-view');
-            const adminView = document.getElementById('wrapper-admin-view');
-            const btn = e.currentTarget;
-
-            if (adminView.style.display === 'none') {
-                adminView.style.display = 'block';
-                searchView.style.display = 'none';
-                btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Modo Buscador';
-            } else {
-                adminView.style.display = 'none';
-                searchView.style.display = 'block';
-                btn.innerHTML = '<i class="fa-solid fa-gear"></i> Modo Manual';
+        function handleTrackEnded() {
+            const tracks = window.getTracksList ? window.getTracksList() : [];
+            if (isRepeatActive) loadTrack(currentTrackIndex);
+            else if (isShuffleActive) loadTrack(Math.floor(Math.random() * tracks.length));
+            else {
+                let nextIdx = currentTrackIndex + 1;
+                if (nextIdx < tracks.length) loadTrack(nextIdx);
             }
+        }
+        htmlAudioPlayer.addEventListener('ended', handleTrackEnded);
+
+        document.getElementById('btn-next').onclick = () => {
+            const tracks = window.getTracksList ? window.getTracksList() : [];
+            let nextIdx = currentTrackIndex + 1;
+            if (nextIdx < tracks.length) loadTrack(nextIdx);
+        };
+        document.getElementById('btn-prev').onclick = () => {
+            let prevIdx = currentTrackIndex - 1;
+            if (prevIdx >= 0) loadTrack(prevIdx);
+        };
+
+        document.getElementById('volume-range').oninput = (e) => {
+            if (isPlayerReady && player && typeof player.setVolume === 'function') player.setVolume(e.target.value);
+            htmlAudioPlayer.volume = e.target.value / 100;
+        };
+
+        // Interactividad de las Perillas de la Consola DJ (Rotación Visual)
+        document.querySelectorAll('.knob').forEach(knob => {
+            let isDragging = false;
+            let startY = 0;
+            let currentRotation = 0;
+
+            knob.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startY = e.clientY;
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const deltaY = startY - e.clientY;
+                startY = e.clientY;
+                currentRotation = Math.max(-135, Math.min(135, currentRotation + deltaY * 2));
+                knob.style.transform = `rotate(${currentRotation}deg)`;
+            });
+
+            document.addEventListener('mouseup', () => { isDragging = false; });
         });
+
+        // UI Modals y Toggles
+        document.getElementById('btn-open-modal').onclick = () => document.getElementById('room-modal-overlay').style.display = 'flex';
+        document.getElementById('btn-close-modal').onclick = () => document.getElementById('room-modal-overlay').style.display = 'none';
+        document.getElementById('btn-cancel-modal').onclick = () => document.getElementById('room-modal-overlay').style.display = 'none';
+        document.getElementById('btn-shuffle').onclick = () => { isShuffleActive = !isShuffleActive; document.getElementById('btn-shuffle').classList.toggle('fx-active', isShuffleActive); };
+        document.getElementById('btn-repeat').onclick = () => { isRepeatActive = !isRepeatActive; document.getElementById('btn-repeat').classList.toggle('fx-active', isRepeatActive); };
+
+        document.getElementById('toggle-admin-view').onclick = () => {
+            const sView = document.getElementById('wrapper-search-view');
+            const aView = document.getElementById('wrapper-admin-view');
+            if (aView.style.display === 'none') { aView.style.display = 'block'; sView.style.display = 'none'; } else { aView.style.display = 'none'; sView.style.display = 'block'; }
+        };
+
+        function toggleEqualizerAnimation(start) {
+            document.querySelectorAll('.eq-bar').forEach(bar => bar.style.animationPlayState = start ? 'running' : 'paused');
+        }
 
         function parseYouTubeTarget(input) {
             let cleanInput = input.replace("music.youtube.com", "youtube.com");
@@ -613,69 +729,6 @@
             const match = cleanInput.match(regExp);
             return (match && match[2].length === 11) ? match[2] : cleanInput;
         }
-
-        document.getElementById('song-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const title = document.getElementById('admin-title').value.trim();
-            const artist = document.getElementById('admin-artist').value.trim();
-            const playlistTarget = document.getElementById('admin-playlist-target').value.trim();
-            const rawUrl = document.getElementById('admin-url').value.trim();
-            let type = document.getElementById('admin-type').value;
-
-            let finalId = rawUrl;
-            if (type === 'youtube') {
-                finalId = parseYouTubeTarget(rawUrl);
-                if (finalId.length !== 11) { alert('⚠️ Enlace de YT inválido.'); return; }
-            }
-
-            let playlistId = playlistTarget.toLowerCase().replace(/[^a-z0-9]/g, '_');
-            
-            if (!roomsData[playlistId]) {
-                roomsData[playlistId] = { name: playlistTarget, tracks: [] };
-            }
-
-            roomsData[playlistId].tracks.push({ type: type, id: finalId, title: title, artist: artist });
-            
-            saveToLocalStorage();
-            renderRooms();
-            switchRoom(playlistId);
-            
-            document.getElementById('song-form').reset();
-            alert(`🎵 ¡Guardada con éxito en la playlist "${playlistTarget}"!`);
-        });
-
-        // Buscador Simulado
-        document.getElementById('btn-search').addEventListener('click', () => {
-            const query = document.getElementById('search-input').value.trim();
-            if (!query) return;
-            const container = document.getElementById('search-results');
-            container.innerHTML = '';
-
-            const mock = [
-                { type: 'youtube', id: 'fHd8F_WzQ3c', title: `${query} (Audio Mix)`, artist: 'YouTube Engine' },
-                { type: 'mp3', id: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3', title: `${query} (Pista Local MP3)`, artist: 'Cloud Storage' }
-            ];
-
-            mock.forEach(res => {
-                const div = document.createElement('div');
-                div.className = 'search-result-item';
-                div.innerHTML = `<span><strong>[${res.type.toUpperCase()}]</strong> ${res.title}</span> <button><i class="fa-solid fa-square-plus"></i></button>`;
-                div.querySelector('button').onclick = () => {
-                    roomsData[currentRoom].tracks.push(res);
-                    saveToLocalStorage();
-                    renderPlaylist();
-                    container.innerHTML = '';
-                    document.getElementById('search-input').value = '';
-                    alert('🎵 ¡Añadido a la lista activa!');
-                };
-                container.appendChild(div);
-            });
-        });
-
-        // Inicialización pausada del Ecualizador
-        toggleEqualizerAnimation(false);
-        renderRooms();
-        renderPlaylist();
     </script>
 </body>
 </html>
