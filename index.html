@@ -3,160 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eternal Reapers - Launcher</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bnet-blue: #00aeff; --bnet-dark: #15171e; --bnet-sidebar: #0a0b0d;
-            --bnet-card: #1a1d23; --bnet-text: #f0f0f0;
-        }
-        body { margin: 0; padding: 0; background: var(--bnet-dark); color: var(--bnet-text); font-family: 'Roboto', sans-serif; height: 100vh; overflow: hidden; display: flex; }
-
-        /* SIDEBAR DINÁMICO */
-        .sidebar { width: 240px; background: var(--bnet-sidebar); height: 100vh; border-right: 1px solid #2a2e35; display: flex; flex-direction: column; transition: 0.3s; }
-        .logo-container { padding: 30px; text-align: center; border-bottom: 1px solid #222; }
-        .logo-box { color: var(--bnet-blue); font-family: 'Oswald'; font-size: 1.8rem; border: 2px solid; padding: 5px 10px; display: inline-block; }
-
-        .nav-menu { flex: 1; padding-top: 20px; }
-        .nav-item { display: flex; align-items: center; padding: 15px 25px; cursor: pointer; transition: 0.3s; opacity: 0.7; font-weight: bold; }
-        .nav-item:hover, .nav-item.active { opacity: 1; background: #1a1d23; color: var(--bnet-blue); border-left: 4px solid var(--bnet-blue); }
-        .nav-item span { margin-left: 15px; font-family: 'Oswald'; letter-spacing: 1px; }
-
-        /* CONTENIDO Y HEADER */
-        .main-container { flex: 1; display: flex; flex-direction: column; }
-        .main-header { height: 80px; background: var(--bnet-sidebar); display: flex; justify-content: space-between; align-items: center; padding: 0 40px; border-bottom: 1px solid #2a2e35; }
-        .main-header h1 { font-family: 'Oswald'; font-size: 1.8rem; margin: 0; letter-spacing: 2px; }
-
-        .auth-controls { display: flex; align-items: center; gap: 10px; }
-        button { padding: 10px 20px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; font-family: 'Oswald'; transition: 0.3s; }
-        .btn-blue { background: var(--bnet-blue); color: white; }
-        .btn-green { background: #28a745; color: white; }
-        .btn-red { background: #551111; color: white; }
-        .btn-outline { background: transparent; color: white; border: 1px solid #444; }
-
-        .iframe-container { flex: 1; position: relative; }
-        iframe { width: 100%; height: 100%; border: none; }
-
-        /* MODALES */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
-        .modal-content { background: #1a1d23; padding: 40px; border-radius: 12px; width: 400px; border: 1px solid #333; position: relative; }
-        .close { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; }
-        input { width: 100%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #333; color: white; border-radius: 4px; box-sizing: border-box; }
-        
-        .hidden { display: none !important; }
-    </style>
+    <title>Eternal Reapers Hub</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-
-    <aside class="sidebar">
-        <div class="logo-container"><div class="logo-box">ER</div></div>
-        <nav class="nav-menu">
-            <div class="nav-item active" onclick="cargarModulo('noticias.html', this)"><span>📰 NOTICIAS</span></div>
-            <div class="nav-item" onclick="cargarModulo('calendario.html', this)"><span>📅 CALENDARIO</span></div>
-            <div class="nav-item" onclick="cargarModulo('reglas.html', this)"><span>📜 REGLAMENTO</span></div>
-            <div class="nav-item" onclick="cargarModulo('apply.html', this)"><span>⚔️ UNIRSE</span></div>
-            <div class="nav-item" id="nav-config" style="display:none;" onclick="cargarModulo('config.html', this)"><span>⚙️ AJUSTES</span></div>
-        </nav>
-    </aside>
-
-    <main class="main-container">
-        <header class="main-header">
-            <h1 id="view-title">NOTICIAS</h1>
-            <div class="auth-controls">
-                <div id="auth-out">
-                    <button class="btn-blue" onclick="abrirModal('modal-login')">LOGIN</button>
-                    <button class="btn-outline" onclick="abrirModal('modal-register')">REGISTRO</button>
+    <div class="app-container">
+        
+        <!-- COLUMNA 1: Canales estilo Discord -->
+        <aside class="channels-sidebar">
+            <!-- Sección Perfil de Usuario Battle.net -->
+            <div class="user-profile-panel">
+                <div class="avatar-wrapper">
+                    <img src="https://i.pravatar.cc/150?img=68" alt="Avatar" class="user-avatar">
+                    <div class="status-indicator online"></div>
                 </div>
-                <div id="auth-in" class="hidden">
-                    <span id="user-display" style="margin-right:15px; font-weight:bold; color:var(--bnet-blue);"></span>
-                    <button id="btn-panel" class="btn-green hidden" onclick="entrarAlPanel()">PANEL DE CONTROL</button>
-                    <button class="btn-red" onclick="cerrarSesion()">SALIR</button>
+                <div class="user-info">
+                    <div class="user-name">Jaiden</div>
+                    <div class="user-status">En línea</div>
                 </div>
             </div>
-        </header>
 
-        <div class="iframe-container">
-            <iframe src="noticias.html" id="content-frame"></iframe>
-        </div>
-    </main>
+            <div class="guild-header">
+                <h2><i class="fa-brands fa-battle-net"></i> ETERNAL REAPERS</h2>
+            </div>
+            
+            <div class="category-header">
+                <span class="category-title">CANALES DE AUDIO</span>
+                <button id="btn-create-room" title="Crear nuevo canal"><i class="fa-solid fa-plus"></i></button>
+            </div>
 
-    <div id="modal-login" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="cerrarModal('modal-login')">×</span>
-            <h2 style="font-family:'Oswald'">INICIAR SESIÓN</h2>
-            <input type="email" id="email-log" placeholder="Email">
-            <input type="password" id="pass-log" placeholder="Password">
-            <button class="btn-blue" style="width:100%" onclick="login()">CONECTAR</button>
-        </div>
+            <!-- Lista de Canales Dinámicos -->
+            <div class="channels-list" id="rooms-container">
+                <!-- Se inyectan por JavaScript -->
+            </div>
+        </aside>
+
+        <!-- COLUMNA 2 y 3: Contenido Principal -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="room-info">Estás en: <span id="active-room-title">Sala de Raids ⚔️</span></div>
+                <div class="window-controls"><span>—</span><span>□</span><span>✕</span></div>
+            </header>
+
+            <div class="content-grid">
+                <!-- Izquierda: Buscador / Admin y Reproductor Actual -->
+                <div class="panel-left">
+                    <section class="bnet-panel current-panel">
+                        <div class="now-playing-box">
+                            <div class="audio-source-indicator" id="source-badge">YT</div>
+                            <div class="cover-art"><i class="fa-solid fa-compact-disc fa-spin fa-3x"></i></div>
+                            <div class="track-info">
+                                <h3 id="track-title">Selecciona un tema</h3>
+                                <p id="track-artist">Artista</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Panel de Gestión de Contenido -->
+                    <section class="bnet-panel search-panel">
+                        <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>⚡ GESTIÓN DE CONTENIDO</span>
+                            <button id="toggle-admin-view" style="background: none; border: none; color: #00a8ff; cursor: pointer; font-size: 0.8rem; font-weight: bold; outline: none;">
+                                <i class="fa-solid fa-gear"></i> Modo Manual
+                            </button>
+                        </div>
+
+                        <!-- VISTA A: Buscador -->
+                        <div id="wrapper-search-view">
+                            <div class="search-box">
+                                <input type="text" id="search-input" placeholder="Buscar en YouTube...">
+                                <button id="btn-search"><i class="fa-solid fa-magnifying-glass"></i></button>
+                            </div>
+                            <div id="search-results" class="search-results-list"></div>
+                        </div>
+
+                        <!-- VISTA B: Panel Manual -->
+                        <div id="wrapper-admin-view" style="display: none;">
+                            <form id="song-form" class="bnet-form" style="display: flex; flex-direction: column; gap: 10px;">
+                                <input type="text" id="admin-title" placeholder="Título de la canción" required style="width: 100%; padding: 10px; background-color: #070911; border: 1px solid #222d3f; color: white; outline: none; border-radius: 4px;">
+                                <input type="text" id="admin-artist" placeholder="Artista u Orquesta" required style="width: 100%; padding: 10px; background-color: #070911; border: 1px solid #222d3f; color: white; outline: none; border-radius: 4px;">
+                                <input type="text" id="admin-url" placeholder="URL completa o ID de YouTube / Enlace MP3" required style="width: 100%; padding: 10px; background-color: #070911; border: 1px solid #222d3f; color: white; outline: none; border-radius: 4px;">
+                                <div style="display: flex; gap: 10px;">
+                                    <select id="admin-type" style="padding: 10px; background-color: #070911; border: 1px solid #222d3f; color: white; outline: none; border-radius: 4px; cursor: pointer;">
+                                        <option value="youtube">YouTube Video</option>
+                                        <option value="mp3">Archivo MP3 (Directo)</option>
+                                    </select>
+                                    <button type="submit" class="btn-primary" style="flex-grow: 1; padding: 10px; background: linear-gradient(to bottom, #0078d7, #005a9e); border: 1px solid #00a8ff; color: white; font-weight: bold; cursor: pointer; border-radius: 4px;">
+                                        <i class="fa-solid fa-plus"></i> Inyectar a la Sala
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Derecha: Playlist del canal -->
+                <div class="panel-right">
+                    <section class="bnet-panel playlist-panel">
+                        <div class="panel-header">📋 COLA DE LA SALA</div>
+                        <div class="table-scroll">
+                            <table class="bnet-table">
+                                <thead>
+                                    <tr><th>Tipo</th><th>Título</th><th>Artista</th><th style="text-align: right;">Gestionar</th></tr>
+                                </thead>
+                                <tbody id="playlist-body">
+                                    <!-- Carga por JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+
+        <!-- BARRA INFERIOR: Reproductor -->
+        <footer class="player-bar">
+            <div class="controls-group">
+                <button class="player-btn" id="btn-prev"><i class="fa-solid fa-backward-step"></i></button>
+                <button class="player-btn main-play" id="btn-play"><i class="fa-solid fa-play"></i></button>
+                <button class="player-btn" id="btn-next"><i class="fa-solid fa-forward-step"></i></button>
+            </div>
+            <div class="volume-group">
+                <i class="fa-solid fa-volume-low"></i>
+                <input type="range" id="volume-range" min="0" max="100" value="50">
+            </div>
+        </footer>
     </div>
 
-    <div id="modal-register" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="cerrarModal('modal-register')">×</span>
-            <h2 style="font-family:'Oswald'">CREAR CUENTA</h2>
-            <input type="text" id="user-reg" placeholder="Nombre de Usuario">
-            <input type="email" id="email-reg" placeholder="Email">
-            <input type="password" id="pass-reg" placeholder="Contraseña">
-            <button class="btn-blue" style="width:100%" onclick="registro()">REGISTRARME</button>
-        </div>
-    </div>
-
-    <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.18.0/firebase-database-compat.js"></script>
-
-    <script>
-        const firebaseConfig = { apiKey: "AIzaSyDGELmVvBZZywbJOf6kuVKQJjKaRt6Q9ws", authDomain: "eternalreapersweb.firebaseapp.com", databaseURL: "https://eternalreapersweb-default-rtdb.firebaseio.com", projectId: "eternalreapersweb" };
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth(), db = firebase.database();
-
-        function cargarModulo(url, el) {
-            document.getElementById('content-frame').src = url;
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            el.classList.add('active');
-            document.getElementById('view-title').innerText = el.innerText.split(' ').slice(1).join(' ');
-        }
-
-        function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
-
-        // AUTH LOGIC
-        auth.onAuthStateChanged(user => {
-            if(user) {
-                document.getElementById('auth-out').classList.add('hidden');
-                document.getElementById('auth-in').classList.remove('hidden');
-                document.getElementById('nav-config').style.display = 'flex';
-                db.ref('usuarios/'+user.uid).on('value', snap => {
-                    const u = snap.val();
-                    if(u) {
-                        document.getElementById('user-display').innerText = u.nombre.toUpperCase();
-                        if(u.rango === 'admin' || u.rango === 'oficial') {
-                            document.getElementById('btn-panel').classList.remove('hidden');
-                            document.getElementById('btn-panel').innerText = u.rango === 'admin' ? "COMANDANCIA" : "OFICIALÍA";
-                        }
-                    }
-                });
-            } else {
-                document.getElementById('auth-out').classList.remove('hidden');
-                document.getElementById('auth-in').classList.add('hidden');
-                document.getElementById('nav-config').style.display = 'none';
-            }
-        });
-
-        function login() { auth.signInWithEmailAndPassword(document.getElementById('email-log').value, document.getElementById('pass-log').value).then(() => location.reload()); }
-        function registro() {
-            const e = document.getElementById('email-reg').value, p = document.getElementById('pass-reg').value, n = document.getElementById('user-reg').value;
-            auth.createUserWithEmailAndPassword(e,p).then(u => {
-                db.ref('usuarios/'+u.user.uid).set({ nombre: n, email: e, rango: 'aspirante' });
-                location.reload();
-            });
-        }
-        function cerrarSesion() { auth.signOut().then(() => location.reload()); }
-        function entrarAlPanel() {
-            db.ref('usuarios/'+auth.currentUser.uid+'/rango').once('value', s => {
-                window.location.href = s.val() === 'admin' ? 'admin.html' : 'mainpanel.html';
-            });
-        }
-    </script>
+    <!-- API Oculta de YouTube -->
+    <div id="youtube-audio-player" style="display:none;"></div>
+    
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script src="app.js"></script>
 </body>
 </html>
