@@ -18,6 +18,7 @@
             --text-muted: #6b7280;
             --dj-live: #ef4444;
             --dj-glow: rgba(239, 68, 68, 0.4);
+            --voice-muted: #ef4444;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
@@ -25,19 +26,24 @@
 
         .app-container { display: grid; grid-template-columns: 260px 1fr; grid-template-rows: 1fr 70px; height: 100vh; }
 
-        /* Panel de Perfil de Usuario */
+        /* Panel de Perfil de Usuario con Controles de Voz */
         .user-profile-panel {
-            display: flex; gap: 12px; align-items: center; background-color: rgba(255,255,255,0.02);
+            display: flex; gap: 10px; align-items: center; background-color: rgba(255,255,255,0.02);
             padding: 12px; border-radius: 6px; border: 1px solid var(--border); margin-bottom: 15px;
         }
-        .avatar-wrapper { position: relative; width: 40px; height: 40px; }
+        .avatar-wrapper { position: relative; width: 40px; height: 40px; flex-shrink: 0; }
         .user-avatar { width: 100%; height: 100%; border-radius: 50%; border: 1px solid var(--accent); object-fit: cover; }
         .status-indicator { position: absolute; bottom: 0; right: 0; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--bg-darker); transition: background 0.3s; }
         .status-indicator.online { background-color: #10b981; }
         .status-indicator.dj-mode { background-color: var(--dj-live); box-shadow: 0 0 8px var(--dj-live); }
-        .user-info { display: flex; flex-direction: column; }
-        .user-name { font-weight: bold; color: white; font-size: 0.95rem; }
-        .user-status { font-size: 0.8rem; color: var(--text-muted); transition: color 0.3s; }
+        .user-info { display: flex; flex-direction: column; flex-grow: 1; overflow: hidden; }
+        .user-name { font-weight: bold; color: white; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-status { font-size: 0.75rem; color: var(--text-muted); transition: color 0.3s; }
+        
+        .voice-controls { display: flex; gap: 8px; color: var(--text-muted); }
+        .voice-btn { background: none; border: none; color: inherit; cursor: pointer; transition: color 0.2s; font-size: 1rem; outline: none; }
+        .voice-btn:hover { color: white; }
+        .voice-btn.muted { color: var(--voice-muted); }
 
         /* Sidebar Estilo Discord / Battle.net */
         .channels-sidebar { background-color: var(--bg-darker); border-right: 1px solid var(--border); padding: 15px; display: flex; flex-direction: column; }
@@ -49,14 +55,21 @@
         #btn-open-modal:hover { transform: scale(1.2); color: white; }
 
         .channels-list { flex-grow: 1; overflow-y: auto; }
-        .channel-item { padding: 10px; border-radius: 4px; cursor: pointer; margin-bottom: 8px; transition: background 0.2s; border-left: 3px solid transparent; }
+        .channel-wrapper { margin-bottom: 8px; }
+        .channel-item { padding: 10px; border-radius: 4px; cursor: pointer; transition: background 0.2s; border-left: 3px solid transparent; display: flex; justify-content: space-between; align-items: center; }
         .channel-item:hover { background-color: rgba(255,255,255,0.05); color: white; }
         .channel-item.active { background-color: rgba(0, 168, 255, 0.1); border-left-color: var(--accent); color: var(--accent); }
-        .user-badge-container { padding-left: 20px; margin-top: 5px; display: flex; flex-direction: column; gap: 4px; }
-        .user-badge { font-size: 0.8rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
-        .user-badge i { color: #10b981; font-size: 0.5rem; }
-        .user-badge.dj-active-tag { color: var(--dj-live); font-weight: bold; }
-        .user-badge.dj-active-tag i { color: var(--dj-live); box-shadow: 0 0 5px var(--dj-live); }
+        
+        /* Lista de Usuarios dentro del Canal (Presencia) */
+        .listener-list { padding-left: 15px; margin-top: 4px; display: flex; flex-direction: column; gap: 4px; }
+        .listener-item { display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-radius: 4px; transition: background 0.2s; }
+        .listener-item:hover { background-color: rgba(255,255,255,0.03); }
+        .listener-avatar { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--border); object-fit: cover; }
+        .listener-name { font-size: 0.8rem; color: var(--text-muted); flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .listener-item.is-me .listener-name { color: white; font-weight: bold; }
+        .listener-badges { font-size: 0.7rem; color: var(--text-muted); display: flex; gap: 4px; }
+        .listener-badges .dj-icon { color: var(--dj-live); text-shadow: 0 0 5px var(--dj-live); }
+        .listener-badges .mute-icon { color: var(--voice-muted); }
 
         /* Contenido Principal */
         .main-content { background-color: var(--bg-main); display: flex; flex-direction: column; overflow: hidden; }
@@ -188,6 +201,11 @@
                     <div class="user-name" id="user-display-name">Cargando...</div>
                     <div class="user-status" id="user-status-text">Desconectado</div>
                 </div>
+                <!-- NUEVO: Controles de Hardware de Voz -->
+                <div class="voice-controls">
+                    <button class="voice-btn" id="btn-toggle-mic" title="Silenciar micrófono"><i class="fa-solid fa-microphone"></i></button>
+                    <button class="voice-btn" id="btn-toggle-deaf" title="Ensordecer"><i class="fa-solid fa-headphones"></i></button>
+                </div>
             </div>
 
             <div class="guild-header">
@@ -195,12 +213,12 @@
             </div>
             
             <div class="category-header">
-                <span class="category-title">CANALES DE AUDIO</span>
+                <span class="category-title">CANALES DE VOZ Y AUDIO</span>
                 <button id="btn-open-modal" title="Crear nuevo canal"><i class="fa-solid fa-square-plus"></i></button>
             </div>
 
             <div class="channels-list" id="rooms-container">
-                <!-- Sincronizado desde Firestore -->
+                <!-- Sincronizado desde Firestore con Presencia de Usuarios -->
             </div>
         </aside>
 
@@ -325,8 +343,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        // IMPORTANTE: Se agregó getDoc para evitar el bucle infinito del botón DJ
-        import { getFirestore, collection, doc, onSnapshot, addDoc, deleteDoc, updateDoc, query, orderBy, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        // IMPORTANTE: Ahora importamos deleteField para la auto-limpieza al cambiar de sala
+        import { getFirestore, collection, doc, onSnapshot, addDoc, deleteDoc, updateDoc, query, orderBy, getDoc, deleteField } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDGELmVvBZZywbJOf6kuVKQJjKaRt6Q9ws",
@@ -345,14 +363,16 @@
 
         let localTracks = [];
         let activeRoomTracksListener = null;
-        let activeRoomDjListener = null; // Creado para limpiar escuchas de DJ acumulados
-        let currentUserData = { name: "Invitado", uid: "local_user" }; 
+        let activeRoomDjListener = null; 
+        
+        let currentUserData = { name: "Invitado", uid: "local_user_" + Math.floor(Math.random()*1000) }; 
+        let isMicMuted = false;
+        let isDeafened = false;
 
-        // Publicar variables críticas para que el script secundario pueda leerlas de inmediato
         window.currentRoom = '';
         window.getTracksList = () => localTracks;
 
-        // 1. MANEJO DE USUARIOS (FIREBASE AUTH)
+        // 1. MANEJO DE USUARIOS Y HARDWARE LOCAL
         onAuthStateChanged(auth, (user) => {
             const nameDisplay = document.getElementById('user-display-name');
             const statusText = document.getElementById('user-status-text');
@@ -364,50 +384,119 @@
                 statusText.innerText = "En línea";
                 if(user.photoURL) avatarImg.src = user.photoURL;
             } else {
-                currentUserData = { name: "Invitado", uid: "jaiden_reaper" };
+                currentUserData = { name: "Invitado", uid: "jaiden_reaper_" + Math.floor(Math.random()*100) };
                 nameDisplay.innerText = currentUserData.name;
                 statusText.innerText = "Modo Local (Sin Auth)";
             }
             if(window.renderRooms) window.renderRooms();
+            if(window.currentRoom) updateMyPresence(); // Actualiza a Firebase al cargar
         });
 
-        // Almacenamiento temporal para renderizado fluido de salas
+        // Toggle Visual de Micrófono y Cascos
+        document.getElementById('btn-toggle-mic').onclick = () => {
+            isMicMuted = !isMicMuted;
+            const btn = document.getElementById('btn-toggle-mic');
+            btn.classList.toggle('muted', isMicMuted);
+            btn.innerHTML = isMicMuted ? '<i class="fa-solid fa-microphone-slash"></i>' : '<i class="fa-solid fa-microphone"></i>';
+            updateMyPresence();
+        };
+
+        document.getElementById('btn-toggle-deaf').onclick = () => {
+            isDeafened = !isDeafened;
+            const btn = document.getElementById('btn-toggle-deaf');
+            btn.classList.toggle('muted', isDeafened);
+            if (isDeafened) {
+                isMicMuted = true; // Si te ensordeces, te muteas automáticamente
+                document.getElementById('btn-toggle-mic').classList.add('muted');
+                document.getElementById('btn-toggle-mic').innerHTML = '<i class="fa-solid fa-microphone-slash"></i>';
+            }
+            updateMyPresence();
+        };
+
+        // LÓGICA DE PRESENCIA (Unir y Salir de la base de datos de la sala)
+        async function updateMyPresence() {
+            if (!window.currentRoom || !currentUserData.uid) return;
+            const roomRef = doc(db, "rooms", window.currentRoom);
+            try {
+                await updateDoc(roomRef, {
+                    [`listeners.${currentUserData.uid}`]: {
+                        name: currentUserData.name,
+                        avatar: document.getElementById('user-display-avatar').src,
+                        isMuted: isMicMuted,
+                        isDeafened: isDeafened
+                    }
+                });
+            } catch (error) { console.warn("Esperando que la sala se cree...", error); }
+        }
+
+        async function leavePresence(roomId) {
+            if (!roomId || !currentUserData.uid) return;
+            const roomRef = doc(db, "rooms", roomId);
+            try {
+                await updateDoc(roomRef, {
+                    [`listeners.${currentUserData.uid}`]: deleteField()
+                });
+            } catch (error) {}
+        }
+
+        // Auto-Limpiar presencia si el usuario cierra el navegador
+        window.addEventListener('beforeunload', () => {
+            if (window.currentRoom) leavePresence(window.currentRoom);
+        });
+
+        // 2. SINCRONIZACIÓN DE SALAS EN TIEMPO REAL CON PRESENCIA
         let currentSnapshotRooms = [];
         window.renderRooms = function() {
             const container = document.getElementById('rooms-container');
             container.innerHTML = '';
 
             currentSnapshotRooms.forEach(room => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'channel-wrapper';
+
                 const div = document.createElement('div');
                 div.className = `channel-item ${room.id === window.currentRoom ? 'active' : ''}`;
-                div.setAttribute('data-room', room.id);
+                div.onclick = () => switchRoom(room.id, room.name);
 
+                // Info principal del canal
                 let htmlContent = `<span><i class="fa-solid fa-volume-high"></i> ${room.name}</span>`;
-                
-                if (room.id === window.currentRoom) {
-                    htmlContent += `<div class="user-badge-container">`;
-                    if (room.currentDj === currentUserData.uid) {
-                        htmlContent += `<span class="user-badge dj-active-tag"><i class="fa-solid fa-circle"></i> ${currentUserData.name} 👑 DJ</span>`;
-                    } else {
-                        htmlContent += `<span class="user-badge"><i class="fa-solid fa-circle"></i> ${currentUserData.name}</span>`;
-                    }
-                    htmlContent += `</div>`;
-                } else if (room.currentDj) {
-                    htmlContent += `
-                        <div class="user-badge-container">
-                            <span class="user-badge dj-active-tag"><i class="fa-solid fa-circle"></i> Otro DJ 👑</span>
-                        </div>`;
+                div.innerHTML = htmlContent;
+                wrapper.appendChild(div);
+
+                // Sublista de Usuarios Escuchando (ESTILO DISCORD)
+                if (room.listeners && Object.keys(room.listeners).length > 0) {
+                    const listenerList = document.createElement('div');
+                    listenerList.className = 'listener-list';
+
+                    Object.keys(room.listeners).forEach(uid => {
+                        const user = room.listeners[uid];
+                        const isMe = uid === currentUserData.uid;
+                        const isDj = room.currentDj === uid;
+                        
+                        let userHtml = `
+                            <div class="listener-item ${isMe ? 'is-me' : ''}">
+                                <img src="${user.avatar}" class="listener-avatar">
+                                <span class="listener-name">${user.name}</span>
+                                <div class="listener-badges">
+                        `;
+                        
+                        if (isDj) userHtml += `<i class="fa-solid fa-crown dj-icon" title="DJ Activo"></i>`;
+                        if (user.isMuted) userHtml += `<i class="fa-solid fa-microphone-slash mute-icon" title="Silenciado"></i>`;
+                        if (user.isDeafened) userHtml += `<i class="fa-solid fa-headphones mute-icon" title="Ensordecido"></i>`;
+                        
+                        userHtml += `</div></div>`;
+                        listenerList.insertAdjacentHTML('beforeend', userHtml);
+                    });
+                    wrapper.appendChild(listenerList);
                 }
 
-                div.onclick = () => switchRoom(room.id, room.name);
-                container.appendChild(div);
+                container.appendChild(wrapper);
             });
         };
 
-        // 2. SINCRONIZACIÓN DE SALAS EN TIEMPO REAL (FIRESTORE)
         onSnapshot(collection(db, "rooms"), (snapshot) => {
             if (snapshot.empty) {
-                addDoc(collection(db, "rooms"), { name: "Sala de Raids ⚔️", currentDj: null });
+                addDoc(collection(db, "rooms"), { name: "Sala de Raids ⚔️", currentDj: null, listeners: {} });
                 return;
             }
 
@@ -423,17 +512,24 @@
             }
         });
 
-        // Cambio de Sala e inicialización de escuchas de Firestore
+        // Cambio de Sala Quirúrgico
         function switchRoom(roomId, roomName) {
-            // Limpiamos los listeners anteriores quirúrgicamente para no acumular fantasmas
+            // Elimina tu presencia de la sala anterior antes de moverte
+            if (window.currentRoom && window.currentRoom !== roomId) {
+                leavePresence(window.currentRoom);
+            }
+
             if (activeRoomTracksListener) activeRoomTracksListener(); 
             if (activeRoomDjListener) activeRoomDjListener(); 
             
             window.currentRoom = roomId;
             document.getElementById('active-room-title').innerText = roomName;
+            
+            // Registra tu presencia en la sala nueva
+            updateMyPresence();
             window.renderRooms();
 
-            // Sincronizar tracks de la subcolección de esa sala
+            // Sincronizar tracks
             const tracksRef = collection(db, "rooms", window.currentRoom, "tracks");
             const q = query(tracksRef, orderBy("createdAt", "asc"));
 
@@ -449,7 +545,6 @@
                 }
             });
 
-            // Escuchar cambios de estado del DJ de esta sala
             activeRoomDjListener = onSnapshot(doc(db, "rooms", window.currentRoom), (docSnap) => {
                 const room = docSnap.data();
                 const appWrapper = document.getElementById('main-app-wrapper');
@@ -474,7 +569,6 @@
             });
         }
 
-        // 3. AGREGAR Y ELIMINAR CANCIONES DIRECTAMENTE EN FIRESTORE
         document.getElementById('song-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const title = document.getElementById('admin-title').value.trim();
@@ -499,12 +593,9 @@
                     createdAt: Date.now()
                 });
                 document.getElementById('song-form').reset();
-            } catch (err) {
-                console.error("Error al inyectar en Firestore: ", err);
-            }
+            } catch (err) {}
         });
 
-        // Eliminar permanente en la nube
         window.removeTrack = async function(index) {
             const track = localTracks[index];
             if (track && track.docId) {
@@ -512,21 +603,20 @@
             }
         };
 
-        // Crear Salas en Firestore desde el nuevo Modal
         document.getElementById('btn-submit-modal').onclick = async () => {
             const roomName = document.getElementById('modal-room-name').value.trim();
             if (!roomName) return;
 
             const newRoomRef = await addDoc(collection(db, "rooms"), {
                 name: roomName,
-                currentDj: null
+                currentDj: null,
+                listeners: {}
             });
 
             switchRoom(newRoomRef.id, roomName);
             document.getElementById('room-modal-overlay').style.display = 'none';
         };
 
-        // LÓGICA REPARADA: El Switch DJ ahora lee 1 sola vez en lugar de provocar un bucle infinito
         document.getElementById('dj-toggle').onclick = async () => {
             if (!window.currentRoom) return;
             const roomRef = doc(db, "rooms", window.currentRoom);
@@ -546,9 +636,7 @@
                 } else {
                     await updateDoc(roomRef, { currentDj: null });
                 }
-            } catch (error) {
-                console.error("Error al cambiar modo DJ:", error);
-            }
+            } catch (error) {}
         };
     </script>
 
@@ -561,7 +649,6 @@
         let isRepeatActive = false;
         let isPlayerReady = false;
 
-        // Compartir funciones críticas al entorno global y modular
         window.renderPlaylist = renderPlaylist;
         window.loadTrack = loadTrack;
         window.toggleEqualizerAnimation = toggleEqualizerAnimation;
@@ -683,7 +770,6 @@
             htmlAudioPlayer.volume = e.target.value / 100;
         };
 
-        // Interactividad de las Perillas de la Consola DJ (Rotación Visual)
         document.querySelectorAll('.knob').forEach(knob => {
             let isDragging = false;
             let startY = 0;
@@ -706,7 +792,6 @@
             document.addEventListener('mouseup', () => { isDragging = false; });
         });
 
-        // UI Modals y Toggles
         document.getElementById('btn-open-modal').onclick = () => document.getElementById('room-modal-overlay').style.display = 'flex';
         document.getElementById('btn-close-modal').onclick = () => document.getElementById('room-modal-overlay').style.display = 'none';
         document.getElementById('btn-cancel-modal').onclick = () => document.getElementById('room-modal-overlay').style.display = 'none';
