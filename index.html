@@ -3,212 +3,239 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eternal Reapers Hub</title>
+    <title>Taberna - Eternal Reapers</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <script>const whTooltips = {colorLinks: true, iconizeLinks: true, renameLinks: true, domain: 'wotlk'};</script>
+    <script src="https://wow.zamimg.com/widgets/power.js"></script>
+
     <style>
-        :root {
-            --bg-darker: #070911;
-            --bg-main: #0b0f19;
-            --bg-panel: #121824;
-            --accent: #00a8ff;
-            --accent-glow: rgba(0, 168, 255, 0.3);
-            --border: #222d3f;
-            --text: #d1d5db;
-            --text-muted: #6b7280;
-            --dj-live: #ef4444;
-            --dj-glow: rgba(239, 68, 68, 0.4);
-            --voice-muted: #ef4444;
+/* Menú de Gestión Inmersivo */
+        .room-mgmt-menu {
+            position: absolute; background: #0b0f19; border: 1px solid var(--wow-gold);
+            border-radius: 6px; padding: 10px; z-index: 5000; box-shadow: 0 0 20px rgba(248,183,0,0.3);
+            display: none; min-width: 200px; animation: fadeIn 0.2s;
         }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: var(--bg-darker); color: var(--text); height: 100vh; overflow: hidden; }
-
-        .app-container { display: grid; grid-template-columns: 260px 1fr; grid-template-rows: 1fr 70px; height: 100vh; }
-
-        /* Panel de Perfil de Usuario con Controles de Voz */
-        .user-profile-panel {
-            display: flex; gap: 10px; align-items: center; background-color: rgba(255,255,255,0.02);
-            padding: 12px; border-radius: 6px; border: 1px solid var(--border); margin-bottom: 15px;
+        .mgmt-item {
+            padding: 8px 12px; cursor: pointer; color: #fff; font-size: 0.8rem;
+            display: flex; align-items: center; gap: 10px; border-radius: 4px;
         }
+        .mgmt-item:hover { background: rgba(248,183,0,0.2); color: var(--wow-gold); }
+        .mgmt-item.danger:hover { background: var(--danger); color: white; }
+
+        /* ========================================================= */
+        /* ESTILOS BATTLE.NET (BASE) + ADAPTACIÓN MUSICAL            */
+        /* ========================================================= */
+        @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
+        :root { 
+            --bnet-bg: #15171e; --bnet-panel: #1e2028; --bnet-sidebar: #101216; 
+            --bnet-blue: #0074e0; --bnet-blue-hover: #008afb; --bnet-text: #d2d6df; 
+            --bnet-border: #2a2e38; --bnet-text-muted: #858b99; --wow-gold: #f8b700; 
+            --danger: #b30000; --success: #00ff00; --epic: #a335ee; --legendary: #ff8000;
+            --dj-live: #ff8000; --dj-glow: rgba(255, 128, 0, 0.4); --voice-muted: #ef4444;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Open Sans', sans-serif; }
+        body { background: var(--bnet-bg); color: var(--bnet-text); display: flex; flex-direction: column; height: 100vh; overflow: hidden; position: relative;}
+        
+        #stellar-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; opacity: 0.6; }
+
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bnet-bg); border-left: 1px solid var(--bnet-border); }
+        ::-webkit-scrollbar-thumb { background: #323844; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--wow-gold); }
+
+        /* TOPBAR */
+        .bnet-topbar { height: 65px; background: rgba(16, 18, 22, 0.85); border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; flex-shrink: 0; z-index: 2000; backdrop-filter: blur(15px); box-shadow: 0 4px 20px rgba(0,0,0,0.5);}
+        .bnet-logo { display: flex; align-items: center; gap: 25px; }
+        .top-nav { display: flex; gap: 12px; }
+        .top-nav a { color: var(--bnet-text); background-color: rgba(30, 32, 40, 0.6); border: 1px solid rgba(255,255,255,0.1); text-decoration: none; font-size: 0.8rem; font-weight: 700; transition: all 0.3s; text-transform: uppercase; padding: 8px 16px; border-radius: 4px; display: flex; align-items: center; gap: 8px;}
+        .top-nav a:hover { background-color: rgba(255,255,255,0.1); border-color: var(--wow-gold); color: #fff; transform: translateY(-2px); }
+        .top-nav a.active { background-color: rgba(255, 128, 0, 0.85); color: #000; border-color: var(--legendary); box-shadow: 0 0 20px rgba(255, 128, 0, 0.5); }
+        
+        .bnet-app-body { display: flex; flex-grow: 1; height: calc(100vh - 145px); overflow: hidden; position: relative; }
+        
+        /* SIDEBAR IZQUIERDO (Usuario y Canales) */
+        .bnet-sidebar { width: 260px; background: rgba(16, 18, 22, 0.75); border-right: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; flex-shrink: 0; backdrop-filter: blur(10px); z-index: 100;}
+        .sidebar-title { font-size: 0.7rem; color: #666; padding: 15px 20px 8px; font-weight: bold; text-transform: uppercase; letter-spacing: 1.5px; display:flex; justify-content: space-between; align-items: center;}
+        
+        /* Panel Perfil Musical */
+        .user-profile-panel { display: flex; gap: 10px; align-items: center; background: rgba(0,0,0,0.4); padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .avatar-wrapper { position: relative; width: 40px; height: 40px; flex-shrink: 0; }
-        .user-avatar { width: 100%; height: 100%; border-radius: 50%; border: 1px solid var(--accent); object-fit: cover; }
-        .status-indicator { position: absolute; bottom: 0; right: 0; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--bg-darker); transition: background 0.3s; }
-        .status-indicator.online { background-color: #10b981; }
+        .user-avatar { width: 100%; height: 100%; border-radius: 50%; border: 2px solid var(--bnet-blue); object-fit: cover; }
+        .status-indicator { position: absolute; bottom: -2px; right: -2px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--bnet-sidebar); transition: background 0.3s; }
+        .status-indicator.online { background-color: var(--success); }
         .status-indicator.dj-mode { background-color: var(--dj-live); box-shadow: 0 0 8px var(--dj-live); }
         .user-info { display: flex; flex-direction: column; flex-grow: 1; overflow: hidden; }
-        .user-name { font-weight: bold; color: white; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .user-status { font-size: 0.75rem; color: var(--text-muted); transition: color 0.3s; }
+        .user-name { font-weight: bold; color: white; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-status { font-size: 0.7rem; color: var(--bnet-text-muted); }
         
-        .voice-controls { display: flex; gap: 8px; color: var(--text-muted); }
-        .voice-btn { background: none; border: none; color: inherit; cursor: pointer; transition: color 0.2s; font-size: 1rem; outline: none; }
-        .voice-btn:hover { color: white; }
-        .voice-btn.muted { color: var(--voice-muted); }
+        .voice-controls { display: flex; gap: 5px; }
+        .voice-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--bnet-text); border-radius: 4px; padding: 6px; cursor: pointer; transition: 0.2s; font-size: 0.85rem; }
+        .voice-btn:hover { background: rgba(255,255,255,0.1); color: white; }
+        .voice-btn.muted { color: var(--voice-muted); border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.1); }
 
-        /* Sidebar Estilo Discord / Battle.net */
-        .channels-sidebar { background-color: var(--bg-darker); border-right: 1px solid var(--border); padding: 15px; display: flex; flex-direction: column; }
-        .guild-header h2 { font-size: 1.1rem; color: white; letter-spacing: 1px; padding-bottom: 15px; border-bottom: 1px solid var(--border); }
-
-        .category-header { display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 5px; }
-        .category-title { font-size: 0.75rem; color: var(--text-muted); font-weight: bold; letter-spacing: 0.5px; }
-        #btn-open-modal { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 0.9rem; outline: none; transition: transform 0.2s; }
-        #btn-open-modal:hover { transform: scale(1.2); color: white; }
-
-        .channels-list { flex-grow: 1; overflow-y: auto; }
-        .channel-wrapper { margin-bottom: 8px; }
-        .channel-item { padding: 10px; border-radius: 4px; cursor: pointer; transition: background 0.2s; border-left: 3px solid transparent; display: flex; justify-content: space-between; align-items: center; }
-        .channel-item:hover { background-color: rgba(255,255,255,0.05); color: white; }
-        .channel-item.active { background-color: rgba(0, 168, 255, 0.1); border-left-color: var(--accent); color: var(--accent); }
+        .channels-list { flex-grow: 1; overflow-y: auto; padding-top: 10px; }
+        .channel-wrapper { margin-bottom: 5px; }
+        .channel-item { padding: 10px 20px; cursor: pointer; border-left: 3px solid transparent; display: flex; align-items: center; justify-content: space-between; gap: 10px; font-weight: 600; font-size: 0.85rem; color: #858b99; transition: all 0.2s; }
+        .channel-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .channel-item.active { background: linear-gradient(90deg, rgba(0,174,255,0.15), transparent); border-left-color: var(--bnet-blue); color: #fff; }
         
-        /* Lista de Usuarios dentro del Canal (Presencia) */
-        .listener-list { padding-left: 15px; margin-top: 4px; display: flex; flex-direction: column; gap: 4px; }
-        .listener-item { display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-radius: 4px; transition: background 0.2s; }
-        .listener-item:hover { background-color: rgba(255,255,255,0.03); }
-        .listener-avatar { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--border); object-fit: cover; }
-        .listener-name { font-size: 0.8rem; color: var(--text-muted); flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .listener-item.is-me .listener-name { color: white; font-weight: bold; }
-        .listener-badges { font-size: 0.7rem; color: var(--text-muted); display: flex; gap: 4px; }
-        .listener-badges .dj-icon { color: var(--dj-live); text-shadow: 0 0 5px var(--dj-live); }
-        .listener-badges .mute-icon { color: var(--voice-muted); }
+        /* Modificaciones para la tuerca de los canales */
+        .channel-name-wrapper { display: flex; align-items: center; gap: 10px; }
+        .room-settings-btn { color: var(--bnet-text-muted); cursor: pointer; transition: 0.2s; display: none; }
+        .channel-wrapper:hover .room-settings-btn { display: block; }
+        .room-settings-btn:hover { color: var(--danger); transform: scale(1.1); }
 
-        /* Contenido Principal */
-        .main-content { background-color: var(--bg-main); display: flex; flex-direction: column; overflow: hidden; }
-        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background-color: rgba(7, 9, 17, 0.5); border-bottom: 1px solid var(--border); }
-        .room-info { font-weight: bold; color: white; }
+        /* Oyentes Sidebar Derecho */
+        .listener-item { display: flex; align-items: center; gap: 10px; padding: 8px 20px; transition: background 0.2s; border-bottom: 1px solid rgba(255,255,255,0.02); }
+        .listener-item:hover { background-color: rgba(255,255,255,0.05); }
+        .listener-avatar { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--bnet-border); object-fit: cover; }
+        .listener-name { font-size: 0.8rem; color: var(--bnet-text-muted); flex-grow: 1; }
+        .listener-item.is-me .listener-name { color: var(--wow-gold); font-weight: bold; }
+        .listener-badges { font-size: 0.75rem; display: flex; gap: 5px; }
+        .dj-icon { color: var(--dj-live); text-shadow: 0 0 5px var(--dj-live); }
+        .mute-icon { color: var(--voice-muted); }
+
+        /* MAIN CONTENT */
+        .bnet-main { flex-grow: 1; display: flex; flex-direction: column; position: relative; background: var(--bnet-bg); }
+        .room-header { padding: 20px 30px; background: rgba(0,0,0,0.3); border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; }
         
-        /* Botón de Modo DJ */
-        .dj-toggle-container { display: flex; align-items: center; gap: 10px; background-color: #070911; padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); cursor: pointer; transition: all 0.3s; }
-        .dj-toggle-container:hover { border-color: var(--accent); }
-        .dj-toggle-container.active-dj { border-color: var(--dj-live); box-shadow: 0 0 10px var(--dj-glow); }
-        .dj-switch { width: 34px; height: 18px; background-color: var(--text-muted); border-radius: 10px; position: relative; transition: background 0.3s; }
+        /* DJ Toggle WoW Style */
+        .dj-toggle-container { display: flex; align-items: center; gap: 10px; background: rgba(16, 18, 22, 0.8); padding: 8px 15px; border-radius: 6px; border: 1px solid var(--bnet-border); cursor: pointer; transition: all 0.3s; }
+        .dj-toggle-container:hover { border-color: var(--wow-gold); }
+        .dj-toggle-container.active-dj { border-color: var(--dj-live); box-shadow: 0 0 15px rgba(255,128,0,0.3); background: rgba(255,128,0,0.1); }
+        .dj-switch { width: 34px; height: 18px; background-color: #333; border-radius: 10px; position: relative; transition: background 0.3s; }
         .dj-circle { width: 14px; height: 14px; background-color: white; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: left 0.3s; }
         .dj-toggle-container.active-dj .dj-switch { background-color: var(--dj-live); }
         .dj-toggle-container.active-dj .dj-circle { left: 18px; }
-        .dj-label { font-size: 0.8rem; font-weight: bold; color: var(--text-muted); transition: color 0.3s; }
+        .dj-label { font-size: 0.8rem; font-weight: bold; color: var(--bnet-text-muted); text-transform: uppercase; }
         .dj-toggle-container.active-dj .dj-label { color: var(--dj-live); }
 
-        .window-controls span { margin-left: 15px; color: var(--text-muted); cursor: pointer; }
+        .content-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 25px; overflow-y: auto; flex-grow: 1; }
+        .card { background: rgba(30, 32, 40, 0.75); border: 1px solid rgba(255,255,255,0.08); padding: 20px; border-radius: 6px; backdrop-filter: blur(10px); display: flex; flex-direction: column; }
+        .card-header { font-size: 0.85rem; color: var(--wow-gold); font-weight: bold; letter-spacing: 1px; margin-bottom: 15px; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center;}
 
-        .content-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; overflow-y: auto; height: 100%; }
-        .bnet-panel { background-color: var(--bg-panel); border: 1px solid var(--border); border-radius: 4px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.4); transition: border 0.3s; }
-        .panel-header { font-size: 0.85rem; color: var(--accent); font-weight: bold; letter-spacing: 1px; margin-bottom: 15px; }
+        /* Reproductor Visual */
+        .now-playing-box { display: flex; gap: 20px; align-items: center; position: relative; width: 100%; background: rgba(0,0,0,0.4); padding: 20px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.02);}
+        .audio-source-indicator { position: absolute; top: 10px; left: 10px; background-color: var(--bnet-blue); color: white; font-size: 0.65rem; font-weight: bold; padding: 3px 8px; border-radius: 3px; z-index: 2; text-transform: uppercase;}
+        .cover-art { width: 100px; height: 100px; background: #101216; border: 2px solid var(--bnet-border); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--bnet-blue); transition: all 0.3s; box-shadow: 0 0 20px rgba(0,0,0,0.5);}
+        .track-info h3 { font-size: 1.2rem; color: white; margin-bottom: 5px; }
+        .track-info p { font-size: 0.9rem; color: var(--bnet-text-muted); }
 
-        /* Reproductor e Indicadores Dinámicos */
-        .now-playing-box { display: flex; gap: 15px; align-items: center; position: relative; width: 100%; }
-        .audio-source-indicator { position: absolute; top: -5px; left: -5px; background-color: var(--accent); color: black; font-size: 0.7rem; font-weight: bold; padding: 2px 6px; border-radius: 3px; z-index: 2; transition: all 0.3s; }
-        .cover-art { width: 90px; height: 90px; background-color: var(--bg-darker); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--accent); position: relative; transition: border 0.3s; }
-        .track-info h3 { font-size: 1.1rem; color: white; margin-bottom: 4px; }
-        .track-info p { font-size: 0.9rem; color: var(--text-muted); }
+        /* Ecualizador */
+        .bnet-equalizer { display: none; align-items: flex-end; gap: 4px; width: 50px; height: 40px; position: absolute; right: 20px; bottom: 20px;}
+        .eq-bar { width: 6px; height: 5px; background-color: var(--bnet-blue); animation: bounce 0.4s ease infinite alternate; transform-origin: bottom; border-radius: 2px;}
+        .eq-bar:nth-child(2) { animation-delay: 0.1s; animation-duration: 0.5s; }
+        .eq-bar:nth-child(3) { animation-delay: 0.2s; animation-duration: 0.3s; }
+        .eq-bar:nth-child(4) { animation-delay: 0.05s; animation-duration: 0.4s; }
+        @keyframes bounce { 0% { transform: scaleY(1); } 100% { transform: scaleY(8); } }
 
-        /* Ecualizador Gráfico */
-        .bnet-equalizer { display: none; align-items: flex-end; gap: 3px; width: 40px; height: 30px; position: absolute; right: 10px; }
-        .eq-bar { width: 4px; height: 5px; background-color: var(--accent); animation: bounce 0.3s ease infinite alternate; transform-origin: bottom; }
-        .eq-bar:nth-child(2) { animation-delay: 0.1s; animation-duration: 0.4s; }
-        .eq-bar:nth-child(3) { animation-delay: 0.2s; animation-duration: 0.2s; }
-        .eq-bar:nth-child(4) { animation-delay: 0.05s; animation-duration: 0.5s; }
-        
-        @keyframes bounce { 0% { transform: scaleY(1); } 100% { transform: scaleY(6); } }
-
-        /* Consola de Mezclas DJ Exclusiva */
-        .dj-mixer-console { display: none; background: linear-gradient(145deg, #161d2b, #0f141f); border: 1px solid var(--dj-live); border-radius: 4px; padding: 15px; margin-bottom: 15px; box-shadow: 0 0 15px rgba(239, 68, 68, 0.2); animation: fadeIn 0.4s ease; }
-        .mixer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; text-align: center; margin-top: 10px; }
+        /* Consola DJ Quirúrgica */
+        .dj-mixer-console { display: none; background: linear-gradient(145deg, #161d2b, #0f141f); border: 1px solid var(--dj-live); border-radius: 6px; padding: 20px; margin-top: 20px; box-shadow: 0 0 20px rgba(255, 128, 0, 0.1); }
+        .mixer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; text-align: center; margin-top: 15px; }
         .knob-container { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-        .knob { width: 45px; height: 45px; background: radial-gradient(circle, #2a354d 30%, #090d14 70%); border: 2px solid var(--border); border-radius: 50%; position: relative; cursor: pointer; transition: transform 0.1s; transform: rotate(0deg); }
-        .knob::after { content: ''; width: 4px; height: 12px; background-color: var(--dj-live); position: absolute; top: 2px; left: 50%; transform: translateX(-50%); border-radius: 2px; }
-        .knob-label { font-size: 0.75rem; font-weight: bold; color: var(--text-muted); text-transform: uppercase; }
+        .knob { width: 50px; height: 50px; background: radial-gradient(circle, #2a354d 30%, #090d14 70%); border: 2px solid #444; border-radius: 50%; position: relative; cursor: pointer; transition: transform 0.1s; transform: rotate(0deg); box-shadow: inset 0 0 10px #000, 0 5px 10px rgba(0,0,0,0.5);}
+        .knob::after { content: ''; width: 4px; height: 14px; background-color: var(--dj-live); position: absolute; top: 4px; left: 50%; transform: translateX(-50%); border-radius: 2px; box-shadow: 0 0 5px var(--dj-live);}
+        .knob-label { font-size: 0.75rem; font-weight: bold; color: var(--bnet-text-muted); text-transform: uppercase; }
 
-        /* Buscador y Formulario */
-        .search-box { display: flex; gap: 10px; margin-bottom: 10px; }
-        .search-box input { flex-grow: 1; padding: 10px; background-color: var(--bg-darker); border: 1px solid var(--border); color: white; outline: none; border-radius: 4px; }
-        .search-box input:focus { border-color: var(--accent); }
-        .search-box button { padding: 0 15px; background: linear-gradient(to bottom, #0078d7, #005a9e); border: 1px solid var(--accent); color: white; cursor: pointer; border-radius: 4px; }
+        /* Formularios e Inputs BNET */
+        .bnet-input, .bnet-select { width: 100%; background: rgba(11, 12, 16, 0.8); color: #fff; border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 4px; outline: none; margin-bottom: 12px; font-size: 0.9rem; transition: 0.3s; }
+        .bnet-input:focus, .bnet-select:focus { border-color: var(--bnet-blue); box-shadow: 0 0 10px rgba(0,116,224,0.3); }
+        .btn-primary { background: var(--bnet-blue); color: #fff; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; text-transform: uppercase; transition: all 0.3s; width: 100%; }
+        .btn-primary:hover { background: var(--bnet-blue-hover); box-shadow: 0 0 15px rgba(0,116,224,0.5); transform: translateY(-2px); }
+
+        /* Tablas BNET */
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
+        th { padding: 12px; border-bottom: 2px solid rgba(255,255,255,0.05); color: var(--bnet-text-muted); font-weight: bold; text-transform: uppercase;}
+        td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.02); }
+        tr:hover { background: rgba(255,255,255,0.02); cursor: pointer; }
+        tr.active-track { background: rgba(0, 174, 255, 0.1); border-left: 3px solid var(--bnet-blue); }
+        .btn-delete-track { background: none; border: none; color: #666; cursor: pointer; transition: 0.2s; font-size: 1rem; }
+        .btn-delete-track:hover { color: var(--danger); }
+
+        /* Chat y Tabs */
+        .tab-nav { display: flex; gap: 20px; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; }
+        .tab-btn { background: none; border: none; color: var(--bnet-text-muted); font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.85rem; transition: 0.3s; }
+        .tab-btn.active { color: var(--wow-gold); }
         
-        .search-results-list { max-height: 150px; overflow-y: auto; background-color: var(--bg-darker); border-radius: 4px; margin-top: 5px; }
-        .search-result-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-        .search-result-item button { background: none; border: none; color: var(--accent); cursor: pointer; font-size: 1.1rem; outline: none; }
+        .chat-container { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+        .chat-messages { flex-grow: 1; overflow-y: auto; padding-right: 5px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+        .chat-msg { font-size: 0.85rem; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 4px; border-left: 2px solid var(--bnet-border);}
+        .chat-msg strong { color: var(--bnet-blue); }
 
-        .bnet-form input, .bnet-form select { width: 100%; padding: 10px; background-color: #070911; border: 1px solid #222d3f; color: white; outline: none; border-radius: 4px; margin-bottom: 8px; }
-        .bnet-form input:focus, .bnet-form select:focus { border-color: var(--accent); }
-        .btn-primary { width: 100%; padding: 12px; background: linear-gradient(to bottom, #0078d7, #005a9e); border: 1px solid var(--accent); color: white; font-weight: bold; cursor: pointer; border-radius: 4px; }
-        .btn-primary:hover { background: linear-gradient(to bottom, #00a8ff, #0078d7); }
-
-        /* Tablas de Cola y Chat Box */
-        .table-scroll { overflow-y: auto; flex-grow: 1; }
-        .bnet-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
-        .bnet-table th { padding: 10px; border-bottom: 2px solid var(--border); color: var(--text-muted); font-weight: normal; }
-        .bnet-table td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.02); }
-        .bnet-table tr:hover { background-color: rgba(255,255,255,0.02); cursor: pointer; }
-        .bnet-table tr.active-track { background-color: rgba(0, 168, 255, 0.05); color: var(--accent); border-left: 3px solid var(--accent); }
-        .btn-delete-track { background: none; border: none; color: var(--text-muted); cursor: pointer; transition: color 0.2s; font-size: 1rem; outline: none; }
-        .btn-delete-track:hover { color: #ef4444; }
-
-        /* Chat Estilos */
-        .chat-container { display: flex; flex-direction: column; height: 100%; overflow: hidden; gap: 10px; }
-        .chat-messages { flex-grow: 1; overflow-y: auto; padding-right: 5px; display: flex; flex-direction: column; gap: 8px; }
-        .chat-msg { font-size: 0.9rem; line-height: 1.4; padding: 6px; border-radius: 4px; background: rgba(255,255,255,0.02); }
-        .chat-msg strong { color: var(--accent); font-weight: 600; margin-right: 5px; }
-        .chat-input-wrapper { display: flex; gap: 8px; }
-        .chat-input-wrapper input { flex-grow: 1; padding: 10px; background-color: var(--bg-darker); border: 1px solid var(--border); color: white; outline: none; border-radius: 4px; }
-        .chat-input-wrapper input:focus { border-color: var(--accent); }
-
-        /* Barra de Control Inferior Potenciada */
-        .player-bar { grid-column: 1 / 3; background-color: var(--bg-darker); border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; padding: 0 30px; }
-        .controls-group { display: flex; gap: 15px; align-items: center; }
-        .player-btn { background: none; border: none; color: var(--text-muted); font-size: 1.1rem; cursor: pointer; outline: none; transition: color 0.2s; }
+        /* FOOTER REPRODUCTOR BNET */
+        .bnet-footer { height: 80px; background: rgba(16, 18, 22, 0.95); border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; padding: 0 40px; position: fixed; bottom: 0; width: 100%; z-index: 100; backdrop-filter: blur(15px); }
+        .controls-group { display: flex; gap: 20px; align-items: center; margin: 0 auto; }
+        .player-btn { background: none; border: none; color: var(--bnet-text-muted); font-size: 1.2rem; cursor: pointer; transition: 0.2s; }
         .player-btn:hover, .player-btn.fx-active { color: white; }
-        .player-btn.fx-active { color: var(--accent); text-shadow: 0 0 8px var(--accent-glow); }
-        .main-play { color: var(--accent); font-size: 1.8rem; text-shadow: 0 0 10px var(--accent-glow); transition: all 0.3s; }
-        .volume-group { display: flex; align-items: center; gap: 10px; color: var(--text-muted); }
-        .volume-group input { accent-color: var(--accent); cursor: pointer; }
+        .player-btn.fx-active { color: var(--wow-gold); text-shadow: 0 0 10px rgba(248,183,0,0.5); }
+        .main-play { color: var(--wow-gold); font-size: 2.2rem; text-shadow: 0 0 15px rgba(248,183,0,0.4); }
+        .volume-group { display: flex; align-items: center; gap: 10px; color: var(--bnet-text-muted); }
+        .volume-group input { accent-color: var(--wow-gold); cursor: pointer; }
 
-        /* Estilos Dinámicos del Modo DJ */
-        .dj-active-app .bnet-panel.current-panel { border-color: var(--dj-live); box-shadow: 0 0 15px var(--dj-glow); }
-        .dj-active-app .cover-art { border-color: var(--dj-live); color: var(--dj-live); }
-        .dj-active-app .audio-source-indicator { background-color: var(--dj-live); color: white; }
-        .dj-active-app .main-play { color: var(--dj-live); text-shadow: 0 0 10px var(--dj-glow); }
+        /* Efectos Dinámicos Modo DJ */
+        .dj-active-app .cover-art { border-color: var(--dj-live); color: var(--dj-live); box-shadow: 0 0 25px rgba(255,128,0,0.4);}
+        .dj-active-app .audio-source-indicator { background-color: var(--dj-live); }
+        .dj-active-app .main-play { color: var(--dj-live); text-shadow: 0 0 15px var(--dj-glow); }
         .dj-active-app .volume-group input { accent-color: var(--dj-live); }
         .dj-active-app .bnet-equalizer { display: flex; }
         .dj-active-app .eq-bar { background-color: var(--dj-live); }
         .dj-active-app .dj-mixer-console { display: block; }
-        .dj-active-app .player-btn.fx-active { color: var(--dj-live); text-shadow: 0 0 8px var(--dj-glow); }
 
-        /* Modals Inmersivos (Salas y Login) */
-        .bnet-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(3, 5, 10, 0.85); backdrop-filter: blur(6px); z-index: 1000; align-items: center; justify-content: center; animation: fadeIn 0.3s ease; }
-        .bnet-modal { background-color: var(--bg-panel); border: 2px solid var(--accent); border-radius: 6px; width: 400px; padding: 25px; box-shadow: 0 0 25px var(--accent-glow); animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); position: relative; }
-        .modal-close { position: absolute; top: 15px; right: 15px; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; }
-        .modal-close:hover { color: white; }
-        .modal-header { font-size: 1.1rem; color: white; font-weight: bold; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; display: flex; align-items: center; gap: 10px; }
-        .modal-header i { color: var(--accent); }
-        .modal-input { width: 100%; padding: 12px; background-color: var(--bg-darker); border: 1px solid var(--border); color: white; outline: none; border-radius: 4px; margin-bottom: 20px; font-size: 1rem; }
-        .modal-input:focus { border-color: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
-        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
-        .btn-cancel { padding: 10px 20px; background-color: transparent; border: 1px solid var(--border); color: var(--text); cursor: pointer; border-radius: 4px; }
-        .btn-cancel:hover { background-color: rgba(255,255,255,0.05); }
+        /* Modales */
+        .bnet-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 3000; align-items: center; justify-content: center; }
+        .bnet-modal { background: var(--bnet-panel); border: 1px solid var(--wow-gold); border-radius: 6px; width: 400px; padding: 25px; box-shadow: 0 15px 40px rgba(0,0,0,0.8); position: relative; }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .bnet-right-sidebar { width: 280px; background: rgba(16, 18, 22, 0.9); border-left: 1px solid rgba(255,255,255,0.05); overflow-y: auto; flex-shrink: 0; backdrop-filter: blur(5px); z-index: 50; display: flex; flex-direction: column; }
 
-        @media (max-width: 768px) {
-            .app-container { grid-template-columns: 1fr; }
-            .channels-sidebar { display: none; }
-            .content-grid { grid-template-columns: 1fr; }
-            .player-bar { grid-column: 1 / 2; }
-        }
+        /* Menú Contextual Estilo Discord */
+        .context-menu { position: absolute; background: #18191c; border: 1px solid #202225; border-radius: 4px; padding: 5px; box-shadow: 0 8px 16px rgba(0,0,0,0.8); z-index: 4000; display: none; min-width: 180px; }
+        .context-menu-item { padding: 10px 12px; color: #dcddde; font-size: 0.85rem; cursor: pointer; border-radius: 2px; transition: background 0.2s; display: flex; align-items: center; gap: 8px; font-weight: bold;}
+        .context-menu-item:hover { background: #ed4245; color: white; }
+
+        /* Toasts Notificaciones BNET (Traído de DKP) */
+        .bnet-toast-container { position: fixed; bottom: 100px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 5000; pointer-events: none; }
+        .bnet-toast { background: rgba(16, 18, 22, 0.95); border-left: 3px solid var(--bnet-blue); color: #fff; padding: 12px 20px; border-radius: 4px; display: flex; align-items: center; gap: 12px; font-size: 0.85rem; box-shadow: 0 4px 15px rgba(0,0,0,0.5); animation: slideInRight 0.3s forwards, fadeOut 0.5s forwards 4.5s; backdrop-filter: blur(5px); }
+        .bnet-toast img { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--bnet-border); }
+        .bnet-toast.offline { border-left-color: var(--bnet-text-muted); }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
     </style>
 </head>
-<body>
-    <div class="app-container" id="main-app-wrapper">
-        
-        <!-- COLUMNA 1: Canales estilo Discord -->
-        <aside class="channels-sidebar">
-            <div class="user-profile-panel">
+<body id="main-app-wrapper">
+
+    <canvas id="stellar-canvas"></canvas>
+
+    <!-- TOP NAV BNET -->
+    <header class="bnet-topbar">
+        <div class="bnet-logo">
+            <i class="fab fa-battle-net" style="color:#00aeff; font-size:2rem; text-shadow: 0 0 15px rgba(0,174,255,0.8);"></i>
+            <nav class="top-nav">
+                <a href="index.html"><i class="fas fa-home"></i> Inicio</a>
+                <a href="softreserve.html"><i class="fas fa-hand-paper"></i> SoftReserve</a>
+                <a href="dkp.html"><i class="fas fa-coins"></i> DKP System</a>
+                <a href="apply.html"><i class="fas fa-dragon"></i> Misiones Legendarias</a>
+                <a href="taberna.html" class="active"><i class="fas fa-music"></i> Gramófono Gnomo</a>
+            </nav>
+        </div>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div class="user-menu" style="display:flex; align-items:center; gap:10px;">
+                <span id="user-display-name" style="font-weight: bold;">Cargando...</span>
                 <div class="avatar-wrapper">
-                    <img src="https://i.pravatar.cc/150?img=61" alt="Avatar" class="user-avatar" id="user-display-avatar">
+                    <img id="user-display-avatar" src="https://via.placeholder.com/150" class="user-avatar">
                     <div class="status-indicator online" id="user-status-dot"></div>
                 </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="bnet-app-body">
+        
+        <!-- SIDEBAR IZQUIERDO: FRECUENCIAS (SALAS) -->
+        <aside class="bnet-sidebar">
+            <div class="user-profile-panel">
                 <div class="user-info">
-                    <div class="user-name" id="user-display-name">Cargando...</div>
-                    <div class="user-status" id="user-status-text">Desconectado</div>
+                    <div class="user-status" id="user-status-text">Conectando red mágica...</div>
                 </div>
                 <div class="voice-controls">
                     <button class="voice-btn" id="btn-toggle-mic" title="Silenciar micrófono"><i class="fa-solid fa-microphone"></i></button>
@@ -216,230 +243,229 @@
                 </div>
             </div>
 
-            <div class="guild-header">
-                <h2><i class="fa-brands fa-battle-net"></i> ETERNAL REAPERS</h2>
+            <div class="sidebar-title">
+                <span><i class="fas fa-broadcast-tower"></i> Frecuencias Arcanas</span>
+                <button id="btn-open-modal" style="background:none; border:none; color:var(--wow-gold); cursor:pointer;"><i class="fa-solid fa-plus"></i></button>
             </div>
-            
-            <div class="category-header">
-                <span class="category-title">CANALES DE VOZ Y AUDIO</span>
-                <button id="btn-open-modal" title="Crear nuevo canal"><i class="fa-solid fa-square-plus"></i></button>
-            </div>
-
             <div class="channels-list" id="rooms-container">
-                <!-- Sincronizado desde Firestore con Presencia de Usuarios -->
+                <!-- Se inyectan salas de Firebase aquí -->
             </div>
         </aside>
 
-        <!-- COLUMNA 2 y 3: Contenido Principal -->
-        <main class="main-content">
-            <header class="top-bar">
-                <div class="room-info">Estás en: <span id="active-room-title">Selecciona una sala</span></div>
-                
+        <!-- CONTENIDO PRINCIPAL: REPRODUCTOR Y TABLAS -->
+        <main class="bnet-main">
+            <header class="room-header">
+                <div style="font-weight:bold; color:#fff; font-size:1.1rem;"><i class="fas fa-volume-up" style="color:var(--bnet-blue); margin-right:8px;"></i> <span id="active-room-title">Selecciona una Sala</span></div>
                 <div class="dj-toggle-container" id="dj-toggle">
                     <div class="dj-switch"><div class="dj-circle"></div></div>
-                    <span class="dj-label" id="dj-label-text">MODO DJ OFFLINE</span>
+                    <span class="dj-label" id="dj-label-text">MAESTRO DE TABERNA OFFLINE</span>
                 </div>
-
-                <div class="window-controls"><span>—</span><span>□</span><span>✕</span></div>
             </header>
 
             <div class="content-grid">
-                <div class="panel-left">
-                    <section class="dj-mixer-console" id="dj-mixer">
-                        <div class="panel-header" style="color: var(--dj-live);"><i class="fa-solid fa-sliders"></i> CONSOLA DE MEZCLAS LIVE</div>
-                        <div class="mixer-grid">
-                            <div class="knob-container"><div class="knob" data-value="0"></div><span class="knob-label">Bajos</span></div>
-                            <div class="knob-container"><div class="knob" data-value="0"></div><span class="knob-label">Medios</span></div>
-                            <div class="knob-container"><div class="knob" data-value="0"></div><span class="knob-label">Agudos</span></div>
-                            <div class="knob-container"><div class="knob" data-value="0"></div><span class="knob-label">Efecto</span></div>
-                        </div>
-                    </section>
-
-                    <section class="bnet-panel current-panel">
+                <!-- COLUMNA IZQUIERDA: Reproductor Visual y Agregar Tracks -->
+                <div style="display:flex; flex-direction:column; gap:20px;">
+                    <div class="card">
                         <div class="now-playing-box">
-                            <div class="audio-source-indicator" id="source-badge">YT</div>
-                            <div class="cover-art" id="main-disc-icon"><i class="fa-solid fa-compact-disc fa-spin fa-3x"></i></div>
+                            <div class="audio-source-indicator" id="source-badge">--</div>
+                            <div class="cover-art" id="main-disc-icon"><i class="fa-solid fa-compact-disc fa-3x"></i></div>
                             <div class="track-info">
-                                <h3 id="track-title">Selecciona un tema</h3>
-                                <p id="track-artist">Artista</p>
+                                <h3 id="track-title">Esperando melodía...</h3>
+                                <p id="track-artist">Trovador Desconocido</p>
                             </div>
                             <div class="bnet-equalizer" id="visual-eq">
                                 <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
                             </div>
                         </div>
-                    </section>
+                    </div>
 
-                    <section class="bnet-panel search-panel">
-                        <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center;">
-                            <span>⚡ GESTIÓN DE CONTENIDO</span>
-                            <button id="toggle-admin-view" style="background: none; border: none; color: #00a8ff; cursor: pointer; font-size: 0.8rem; font-weight: bold; outline: none;">
-                                <i class="fa-solid fa-gear"></i> Modo Manual
-                            </button>
+                    <!-- Mezcladora DJ Exclusiva -->
+                    <div class="dj-mixer-console" id="dj-mixer">
+                        <div class="card-header" style="color: var(--dj-live); border-color:rgba(255,128,0,0.2);"><i class="fa-solid fa-sliders"></i> Ecualizador Arcano (LIVE)</div>
+                        <div class="mixer-grid">
+                            <div class="knob-container"><div class="knob" data-value="0"></div><span class="knob-label">Graves</span></div>
+                            <div class="knob-container"><div class="knob" data-value="0"></div><span class="knob-label">Medios</span></div>
+                            <div class="knob-container"><div class="knob" data-value="0"></div><span class="knob-label">Agudos</span></div>
+                            <div class="knob-container"><div class="knob" data-value="0"></div><span class="knob-label">Eco</span></div>
                         </div>
+                    </div>
 
-                        <div id="wrapper-search-view">
-                            <div class="search-box">
-                                <input type="text" id="search-input" placeholder="Buscar en YouTube...">
-                                <button id="btn-search"><i class="fa-solid fa-magnifying-glass"></i></button>
-                            </div>
-                            <div id="search-results" class="search-results-list"></div>
-                        </div>
-
-                        <div id="wrapper-admin-view" style="display: none;">
-                            <form id="song-form" class="bnet-form">
-                                <input type="text" id="admin-title" placeholder="Título de la canción" required>
-                                <input type="text" id="admin-artist" placeholder="Artista u Orquesta" required>
-                                <input type="text" id="admin-url" placeholder="URL o ID de YouTube / Enlace MP3" required>
-                                <select id="admin-type">
-                                    <option value="youtube">YouTube Video</option>
-                                    <option value="mp3">Archivo MP3 (Directo)</option>
-                                </select>
-                                <button type="submit" class="btn-primary">Inyectar a Firebase</button>
-                            </form>
-                        </div>
-                    </section>
+                    <div class="card">
+                        <div class="card-header"><i class="fas fa-compact-disc"></i> Inyectar Cristal de Memoria (Agregar Canción)</div>
+                        <form id="song-form">
+                            <input type="text" id="admin-title" class="bnet-input" placeholder="Título de la obra" required>
+                            <input type="text" id="admin-artist" class="bnet-input" placeholder="Bardo u Orquesta" required>
+                            <input type="text" id="admin-url" class="bnet-input" placeholder="URL o ID de YouTube / Enlace MP3" required>
+                            <select id="admin-type" class="bnet-select">
+                                <option value="youtube">Visión Gnomo (YouTube)</option>
+                                <option value="mp3">Cristal de Audio (MP3 Directo)</option>
+                            </select>
+                            <button type="submit" class="btn-primary"><i class="fas fa-plus"></i> Añadir a la Cola</button>
+                        </form>
+                    </div>
                 </div>
 
-                <div class="panel-right">
-                    <section class="bnet-panel playlist-panel" style="display: flex; flex-direction: column; height: 100%;">
-                        <!-- NUEVO: Cabecera con Pestañas Quirúrgicas -->
-                        <div class="panel-header" style="display: flex; gap: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 10px;">
-                            <span id="tab-playlist" style="cursor: pointer; color: var(--accent); transition: color 0.3s;">📋 COLA DE LA SALA</span>
-                            <span id="tab-chat" style="cursor: pointer; color: var(--text-muted); transition: color 0.3s;">💬 CHAT INTERNO</span>
-                        </div>
-                        
-                        <!-- Vista 1: Lista de Canciones -->
-                        <div id="view-playlist" class="table-scroll">
-                            <table class="bnet-table">
-                                <thead>
-                                    <tr><th>Tipo</th><th>Título</th><th>Artista</th><th style="text-align: right;">Gestionar</th></tr>
-                                </thead>
-                                <tbody id="playlist-body"></tbody>
-                            </table>
-                        </div>
+                <!-- COLUMNA DERECHA: Cola de Reproducción y Chat -->
+                <div class="card" style="height:100%;">
+                    <div class="tab-nav">
+                        <button class="tab-btn active" id="tab-playlist"><i class="fas fa-list"></i> Cola de la Sala</button>
+                        <button class="tab-btn" id="tab-chat"><i class="fas fa-comments"></i> Chat de Frecuencia</button>
+                    </div>
 
-                        <!-- Vista 2: Chat en Tiempo Real -->
-                        <div id="view-chat" class="chat-container" style="display: none;">
-                            <div id="chat-messages" class="chat-messages">
-                                <!-- Mensajes cargados por Firebase -->
-                            </div>
-                            <form id="chat-form" class="chat-input-wrapper">
-                                <input type="text" id="chat-input" placeholder="Escribe un mensaje al canal..." required autocomplete="off">
-                                <button type="submit" class="btn-primary" style="width: auto; padding: 0 15px;"><i class="fa-solid fa-paper-plane"></i></button>
-                            </form>
-                        </div>
-                    </section>
+                    <div id="view-playlist" style="overflow-y:auto; flex-grow:1;">
+                        <table>
+                            <thead><tr><th>T</th><th>Melodía</th><th>Artista</th><th style="text-align: right;"><i class="fas fa-cog"></i></th></tr></thead>
+                            <tbody id="playlist-body"></tbody>
+                        </table>
+                    </div>
+
+                    <div id="view-chat" class="chat-container" style="display:none;">
+                        <div id="chat-messages" class="chat-messages"></div>
+                        <form id="chat-form" style="display:flex; gap:10px;">
+                            <input type="text" id="chat-input" class="bnet-input" placeholder="Grita algo a la taberna..." style="margin:0; flex-grow:1;" required autocomplete="off">
+                            <button type="submit" class="btn-primary" style="width:auto; padding:0 20px;"><i class="fa-solid fa-paper-plane"></i></button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </main>
 
-        <footer class="player-bar">
-            <div class="controls-group">
-                <button class="player-btn" id="btn-shuffle"><i class="fa-solid fa-shuffle"></i></button>
-                <button class="player-btn" id="btn-prev"><i class="fa-solid fa-backward-step"></i></button>
-                <button class="player-btn main-play" id="btn-play"><i class="fa-solid fa-play"></i></button>
-                <button class="player-btn" id="btn-next"><i class="fa-solid fa-forward-step"></i></button>
-                <button class="player-btn" id="btn-repeat"><i class="fa-solid fa-repeat"></i></button>
+        <!-- SIDEBAR DERECHO: HERMANDAD Y OYENTES -->
+        <aside class="bnet-right-sidebar">
+            <div class="sidebar-title" style="padding: 15px; background:#101216; border-bottom:1px solid rgba(255,255,255,0.05); color:var(--bnet-blue);"><i class="fas fa-users"></i> Oyentes Actuales</div>
+            <div id="room-listeners-container" style="margin-bottom: 20px;">
+                <!-- Oyentes de la sala actual -->
             </div>
-            <div class="volume-group">
-                <i class="fa-solid fa-volume-low"></i>
-                <input type="range" id="volume-range" min="0" max="100" value="50">
+
+            <div class="sidebar-title" style="padding: 15px; background:#101216; border-top:1px solid rgba(255,255,255,0.05); border-bottom:1px solid rgba(255,255,255,0.05);"><i class="fab fa-battle-net"></i> Conectados Global</div>
+            <div id="guildList">
+                <!-- Lista global de hermandad -->
             </div>
-        </footer>
+        </aside>
     </div>
 
-    <!-- Modal Crear Canal -->
+    <!-- FOOTER: CONTROLES GLOBALES DEL REPRODUCTOR -->
+    <footer class="bnet-footer">
+        <div style="display:flex; align-items:center; gap:20px;">
+            <i class="fas fa-music" style="color:var(--bnet-blue); font-size:2rem; text-shadow:0 0 10px rgba(0,116,224,0.5);"></i>
+            <div style="display:flex; flex-direction:column;">
+                <span style="font-size:0.7rem; color:#858b99; text-transform:uppercase; letter-spacing:1px;">Transmisión Arcana</span>
+                <span style="font-weight:bold; color:#fff; font-size:1rem;">Radio Eternal Reapers</span>
+            </div>
+        </div>
+        
+        <div class="controls-group">
+            <button class="player-btn" id="btn-shuffle" title="Aleatorio"><i class="fa-solid fa-shuffle"></i></button>
+            <button class="player-btn" id="btn-prev" title="Anterior"><i class="fa-solid fa-backward-step"></i></button>
+            <button class="player-btn main-play" id="btn-play" title="Reproducir/Pausar"><i class="fa-solid fa-play"></i></button>
+            <button class="player-btn" id="btn-next" title="Siguiente"><i class="fa-solid fa-forward-step"></i></button>
+            <button class="player-btn" id="btn-repeat" title="Repetir"><i class="fa-solid fa-repeat"></i></button>
+        </div>
+
+        <div class="volume-group">
+            <i class="fa-solid fa-volume-low"></i>
+            <input type="range" id="volume-range" min="0" max="100" value="50">
+        </div>
+    </footer>
+
+    <!-- MODAL CREAR SALA (Modificado para Fijas/Temporales) -->
     <div class="bnet-modal-overlay" id="room-modal-overlay">
         <div class="bnet-modal">
-            <button class="modal-close" id="btn-close-modal">✕</button>
-            <div class="modal-header"><i class="fa-solid fa-satellite-dish"></i><span>CREAR CANAL DE AUDIO</span></div>
-            <input type="text" id="modal-room-name" class="modal-input" placeholder="Nombre del canal..." autofocus>
-            <div class="modal-actions">
-                <button class="btn-cancel" id="btn-cancel-modal">Cancelar</button>
-                <button class="btn-primary" id="btn-submit-modal" style="width: auto; padding: 10px 25px;">Inicializar Canal</button>
+            <button class="modal-close" id="btn-close-modal"><i class="fas fa-times"></i></button>
+            <div class="card-header"><i class="fa-solid fa-satellite-dish"></i> Establecer Nueva Frecuencia</div>
+            <input type="text" id="modal-room-name" class="bnet-input" placeholder="Nombre de la sala..." autofocus>
+            
+            <!-- Selector de Tipo de Sala -->
+            <select id="modal-room-type" class="bnet-select" style="margin-bottom: 20px;">
+                <option value="temp">⏳ Frecuencia Temporal (Se borra al vaciarse)</option>
+                <option value="fixed">🛡️ Frecuencia Oficial (Canal Fijo de Guild)</option>
+            </select>
+
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button class="btn-primary" id="btn-cancel-modal" style="background:transparent; border:1px solid #444; width:auto;">Cancelar</button>
+                <button class="btn-primary" id="btn-submit-modal" style="width:auto;">Inicializar Canal</button>
             </div>
         </div>
     </div>
 
-    <!-- NUEVO: Modal de Login Inmersivo -->
-    <div class="bnet-modal-overlay" id="login-modal-overlay">
-        <div class="bnet-modal">
-            <button class="modal-close" id="btn-close-login">✕</button>
-            <div class="modal-header"><i class="fa-solid fa-user-shield"></i><span>INICIAR SESIÓN BATTLE.NET</span></div>
-            <input type="email" id="login-email" class="modal-input" placeholder="Correo Electrónico" style="margin-bottom: 10px;">
-            <input type="password" id="login-pass" class="modal-input" placeholder="Contraseña">
-            <div class="modal-actions">
-                <button class="btn-cancel" id="btn-cancel-login">Cancelar</button>
-                <button class="btn-primary" id="btn-submit-login" style="width: auto; padding: 10px 25px;">Conectar</button>
-            </div>
-        </div>
+    <!-- Contenedor Toasts -->
+    <div class="bnet-toast-container" id="toast-container"></div>
+
+    <!-- Menú Contextual (Click Derecho) -->
+    <div class="context-menu" id="user-context-menu">
+        <div class="context-menu-item" id="btn-kick-user"><i class="fa-solid fa-phone-slash"></i> Desconectar de la Sala</div>
     </div>
 
     <div id="youtube-audio-player" style="display:none;"></div>
-    
     <script src="https://www.youtube.com/iframe_api"></script>
 
-    <!-- INTEGRACIÓN SCRIPT: CARGA DE MÓDULOS DE FIREBASE SDK -->
+    <!-- LOGICA DE FIREBASE Y CORE APP -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        // Importamos métodos de Auth para Logueo Real
-        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, doc, onSnapshot, addDoc, deleteDoc, updateDoc, query, orderBy, getDoc, deleteField } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        import { getFirestore, collection, doc, onSnapshot, addDoc, deleteDoc, updateDoc, query, orderBy, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDGELmVvBZZywbJOf6kuVKQJjKaRt6Q9ws",
-            authDomain: "eternalreapersweb.firebaseapp.com",
-            databaseURL: "https://eternalreapersweb-default-rtdb.firebaseio.com",
-            projectId: "eternalreapersweb",
-            storageBucket: "eternalreapersweb.firebasestorage.app",
-            messagingSenderId: "945508907683",
-            appId: "1:945508907683:web:b26cc3660298d4d6ba1d16",
-            measurementId: "G-7J20NR0JDM"
-        };
-
-        const app = initializeApp(firebaseConfig);
+        // NOTA: Usando tus credenciales originales
+        const app = initializeApp({ apiKey: "AIzaSyDGELmVvBZZywbJOf6kuVKQJjKaRt6Q9ws", authDomain: "eternalreapersweb.firebaseapp.com", projectId: "eternalreapersweb" });
+        const auth = getAuth(app); 
         const db = getFirestore(app);
-        const auth = getAuth(app);
 
         let localTracks = [];
         let activeRoomTracksListener = null;
         let activeRoomDjListener = null; 
-        let activeChatListener = null; // Escucha para el chat en vivo
+        let activeChatListener = null; 
         
-        let currentUserData = { name: "Invitado", uid: "local_user_" + Math.floor(Math.random()*1000) }; 
+        let currentUserData = { name: "Invitado", uid: "local_user_" + Math.floor(Math.random()*1000), role: "Invitado" }; 
         let isMicMuted = false;
         let isDeafened = false;
 
         window.currentRoom = '';
         window.getTracksList = () => localTracks;
 
-        // 1. MANEJO DE USUARIOS AUTENTICADOS (Login Real)
-        onAuthStateChanged(auth, (user) => {
+        // Función global para sincronizar pistas a Firebase
+        window.syncTrackToFirebase = async function(index) {
+            if (window.currentRoom && currentUserData.uid) {
+                try {
+                    const roomRef = doc(db, "rooms", window.currentRoom);
+                    const snap = await getDoc(roomRef);
+                    if (snap.exists() && snap.data().currentDj === currentUserData.uid) {
+                        await updateDoc(roomRef, { currentTrackPlaying: index });
+                    }
+                } catch(e){}
+            }
+        };
+
+        // ==========================================
+        // 1. MANEJO DE USUARIOS (Login Real Integrado + Roles)
+        // ==========================================
+        onAuthStateChanged(auth, async (user) => {
             const nameDisplay = document.getElementById('user-display-name');
             const statusText = document.getElementById('user-status-text');
             const avatarImg = document.getElementById('user-display-avatar');
 
             if (user) {
-                currentUserData = { name: user.displayName || user.email.split('@')[0], uid: user.uid };
+                const s = await getDoc(doc(db, "users", user.uid));
+                if(s.exists()) {
+                    const d = s.data();
+                    currentUserData = { name: d.mainName || user.displayName, uid: user.uid, avatar: d.avatarUrl || "https://i.pravatar.cc/150?img=61", role: d.role || "Miembro" };
+                } else {
+                    currentUserData = { name: user.displayName || user.email.split('@')[0], uid: user.uid, avatar: "https://i.pravatar.cc/150?img=61", role: "Miembro" };
+                }
+                
                 nameDisplay.innerText = currentUserData.name;
-                statusText.innerHTML = `En línea - <a href="#" id="auth-logout-btn" style="color:var(--dj-live); text-decoration:none;">Desconectar</a>`;
-                if(user.photoURL) avatarImg.src = user.photoURL;
+                statusText.innerHTML = `Conectado a la Red - <a href="#" id="auth-logout-btn" style="color:var(--danger); text-decoration:none;">Desconectar</a>`;
+                avatarImg.src = currentUserData.avatar;
             } else {
-                currentUserData = { name: "Invitado", uid: "invitado_" + Math.floor(Math.random()*1000) };
+                currentUserData = { name: "Invitado", uid: "invitado_" + Math.floor(Math.random()*1000), avatar: "https://i.pravatar.cc/150?img=61", role: "Invitado" };
                 nameDisplay.innerText = currentUserData.name;
-                statusText.innerHTML = `Sin conexión - <a href="#" id="auth-login-btn" style="color:var(--accent); text-decoration:none; font-weight:bold;">Iniciar Sesión</a>`;
-                avatarImg.src = "https://i.pravatar.cc/150?img=61"; // Avatar default
+                statusText.innerHTML = `Señal Perdida - <a href="index.html" style="color:var(--wow-gold); text-decoration:none; font-weight:bold;">Iniciar Sesión</a>`;
+                avatarImg.src = currentUserData.avatar;
             }
             if(window.renderRooms) window.renderRooms();
             if(window.currentRoom) updateMyPresence(); 
         });
 
-        // Controles de Interfaz de Login Dinámico
         document.addEventListener('click', async (e) => {
-            if(e.target.id === 'auth-login-btn') {
-                e.preventDefault();
-                document.getElementById('login-modal-overlay').style.display = 'flex';
-            }
             if(e.target.id === 'auth-logout-btn') {
                 e.preventDefault();
                 if(window.currentRoom) await leavePresence(window.currentRoom);
@@ -447,27 +473,7 @@
             }
         });
 
-        // Evento de Login Formulario
-        document.getElementById('btn-submit-login').onclick = async () => {
-            const email = document.getElementById('login-email').value;
-            const pass = document.getElementById('login-pass').value;
-            if(!email || !pass) return;
-            try {
-                await signInWithEmailAndPassword(auth, email, pass);
-                document.getElementById('login-modal-overlay').style.display = 'none';
-                document.getElementById('login-email').value = '';
-                document.getElementById('login-pass').value = '';
-            } catch(error) {
-                alert("⚠️ Error de credenciales: " + error.message);
-            }
-        };
-
-        // Cerrar modal login
-        const closeLoginModal = () => document.getElementById('login-modal-overlay').style.display = 'none';
-        document.getElementById('btn-close-login').onclick = closeLoginModal;
-        document.getElementById('btn-cancel-login').onclick = closeLoginModal;
-
-        // Toggle Visual de Micrófono y Cascos
+        // Controles de Voz
         document.getElementById('btn-toggle-mic').onclick = () => {
             isMicMuted = !isMicMuted;
             const btn = document.getElementById('btn-toggle-mic');
@@ -488,7 +494,9 @@
             updateMyPresence();
         };
 
-        // LÓGICA DE PRESENCIA
+        // ==========================================
+        // 2. LÓGICA DE PRESENCIA (Actualizada: DJ y Temps)
+        // ==========================================
         async function updateMyPresence() {
             if (!window.currentRoom || !currentUserData.uid) return;
             const roomRef = doc(db, "rooms", window.currentRoom);
@@ -496,7 +504,7 @@
                 await updateDoc(roomRef, {
                     [`listeners.${currentUserData.uid}`]: {
                         name: currentUserData.name,
-                        avatar: document.getElementById('user-display-avatar').src,
+                        avatar: currentUserData.avatar,
                         isMuted: isMicMuted,
                         isDeafened: isDeafened
                     }
@@ -508,7 +516,26 @@
             if (!roomId || !currentUserData.uid) return;
             const roomRef = doc(db, "rooms", roomId);
             try {
-                await updateDoc(roomRef, { [`listeners.${currentUserData.uid}`]: deleteField() });
+                const roomSnap = await getDoc(roomRef);
+                if(roomSnap.exists()) {
+                    let roomData = roomSnap.data();
+                    let currentListeners = roomData.listeners || {};
+                    delete currentListeners[currentUserData.uid];
+                    
+                    let updates = { listeners: currentListeners };
+                    
+                    // LIBERACIÓN DE DJ: Si el que se va era el DJ, soltamos el control
+                    if(roomData.currentDj === currentUserData.uid) {
+                        updates.currentDj = null;
+                    }
+                    
+                    await updateDoc(roomRef, updates);
+
+                    // SALAS TEMPORALES: Si no queda nadie y es temporal, destruimos la sala
+                    if(roomData.type === 'temp' && Object.keys(currentListeners).length === 0) {
+                        await deleteDoc(roomRef);
+                    }
+                }
             } catch (error) {}
         }
 
@@ -516,11 +543,16 @@
             if (window.currentRoom) leavePresence(window.currentRoom);
         });
 
-        // SINCRONIZACIÓN DE SALAS EN TIEMPO REAL CON PRESENCIA
+        // ==========================================
+        // 3. SALAS Y OYENTES (Sincronización)
+        // ==========================================
         let currentSnapshotRooms = [];
         window.renderRooms = function() {
             const container = document.getElementById('rooms-container');
+            const listenersContainer = document.getElementById('room-listeners-container');
             container.innerHTML = '';
+            
+            if(window.currentRoom) listenersContainer.innerHTML = '';
 
             currentSnapshotRooms.forEach(room => {
                 const wrapper = document.createElement('div');
@@ -529,44 +561,49 @@
                 const div = document.createElement('div');
                 div.className = `channel-item ${room.id === window.currentRoom ? 'active' : ''}`;
                 div.onclick = () => switchRoom(room.id, room.name);
+                
+                const iconType = room.type === 'temp' ? '<i class="fa-regular fa-clock" style="color:var(--bnet-text-muted);"></i>' : '<i class="fa-solid fa-volume-high"></i>';
+                
+                // La tuerca de configuración (Solo dispara la eliminación de la sala)
+                // Busca esto y cámbialo:
+const deleteBtnHtml = `<i class="fa-solid fa-cog room-settings-btn" title="Gestionar Sala" onclick="showRoomMgmt(event, '${room.id}')"></i>`;
 
-                let htmlContent = `<span><i class="fa-solid fa-volume-high"></i> ${room.name}</span>`;
-                div.innerHTML = htmlContent;
+                div.innerHTML = `<div class="channel-name-wrapper">${iconType} <span>${room.name}</span></div> ${deleteBtnHtml}`;
                 wrapper.appendChild(div);
 
-                if (room.listeners && Object.keys(room.listeners).length > 0) {
-                    const listenerList = document.createElement('div');
-                    listenerList.className = 'listener-list';
-
+                // Si es la sala actual, dibuja los listeners en el panel derecho
+                if (room.id === window.currentRoom && room.listeners && Object.keys(room.listeners).length > 0) {
                     Object.keys(room.listeners).forEach(uid => {
                         const user = room.listeners[uid];
                         const isMe = uid === currentUserData.uid;
                         const isDj = room.currentDj === uid;
                         
+                        // Añadimos oncontextmenu para abrir el click derecho
                         let userHtml = `
-                            <div class="listener-item ${isMe ? 'is-me' : ''}">
+                            <div class="listener-item ${isMe ? 'is-me' : ''}" oncontextmenu="showUserContextMenu(event, '${uid}')">
                                 <img src="${user.avatar}" class="listener-avatar">
                                 <span class="listener-name">${user.name}</span>
                                 <div class="listener-badges">
                         `;
-                        
-                        if (isDj) userHtml += `<i class="fa-solid fa-crown dj-icon" title="DJ Activo"></i>`;
-                        if (user.isMuted) userHtml += `<i class="fa-solid fa-microphone-slash mute-icon" title="Silenciado"></i>`;
-                        if (user.isDeafened) userHtml += `<i class="fa-solid fa-headphones mute-icon" title="Ensordecido"></i>`;
-                        
+                        if (isDj) userHtml += `<i class="fa-solid fa-crown dj-icon" title="Trovador/DJ Activo"></i>`;
+                        if (user.isMuted) userHtml += `<i class="fa-solid fa-microphone-slash mute-icon"></i>`;
+                        if (user.isDeafened) userHtml += `<i class="fa-solid fa-headphones mute-icon"></i>`;
                         userHtml += `</div></div>`;
-                        listenerList.insertAdjacentHTML('beforeend', userHtml);
+                        listenersContainer.insertAdjacentHTML('beforeend', userHtml);
                     });
-                    wrapper.appendChild(listenerList);
                 }
-
                 container.appendChild(wrapper);
             });
+            
+            // Si hay un DJ, se maneja en el DJ listener, pero evitamos borrar todo si no hay usuarios reales
+            if(window.currentRoom && listenersContainer.innerHTML === '') {
+                listenersContainer.innerHTML = '<div style="padding:10px 20px; color:#555; font-size:0.8rem; font-style:italic;">Nadie escuchando...</div>';
+            }
         };
 
         onSnapshot(collection(db, "rooms"), (snapshot) => {
             if (snapshot.empty) {
-                addDoc(collection(db, "rooms"), { name: "Sala de Raids ⚔️", currentDj: null, listeners: {} });
+                addDoc(collection(db, "rooms"), { name: "Taberna Principal 🍺", type: "fixed", currentDj: null, listeners: {} });
                 return;
             }
 
@@ -582,12 +619,12 @@
             }
         });
 
-        // Cambio de Sala Quirúrgico (Incluye lectura del Chat del Canal)
+        // Cambio Quirúrgico de Sala
         function switchRoom(roomId, roomName) {
             if (window.currentRoom && window.currentRoom !== roomId) leavePresence(window.currentRoom);
             if (activeRoomTracksListener) activeRoomTracksListener(); 
             if (activeRoomDjListener) activeRoomDjListener(); 
-            if (activeChatListener) activeChatListener(); // Limpiar el chat de la sala vieja
+            if (activeChatListener) activeChatListener(); 
             
             window.currentRoom = roomId;
             document.getElementById('active-room-title').innerText = roomName;
@@ -602,7 +639,7 @@
                 snapshot.forEach(docSnap => localTracks.push({ docId: docSnap.id, ...docSnap.data() }));
                 
                 if (window.renderPlaylist) window.renderPlaylist();
-                if (localTracks.length > 0 && currentTrackIndex === 0 && window.loadTrack) window.loadTrack(0);
+                if (localTracks.length > 0 && window.currentTrackIndex === 0 && window.loadTrack) window.loadTrack(0, true);
             });
 
             // Sincronizar Chat del Canal Exclusivo
@@ -615,43 +652,72 @@
                     const time = new Date(msg.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                     chatBox.innerHTML += `
                         <div class="chat-msg">
-                            <span style="font-size:0.7rem; color:var(--text-muted); margin-right:5px;">[${time}]</span>
+                            <span style="font-size:0.7rem; color:var(--bnet-text-muted); margin-right:5px;">[${time}]</span>
                             <strong>${msg.userName}:</strong>
-                            <span style="color:var(--text)">${msg.text}</span>
+                            <span style="color:var(--bnet-text)">${msg.text}</span>
                         </div>
                     `;
                 });
                 chatBox.scrollTop = chatBox.scrollHeight;
             });
 
+            // Sincronizar DJ Mode, Bot y Canción en curso
             activeRoomDjListener = onSnapshot(doc(db, "rooms", window.currentRoom), (docSnap) => {
                 const room = docSnap.data();
+                if (!room) return;
+                
                 const appWrapper = document.getElementById('main-app-wrapper');
                 const statusDot = document.getElementById('user-status-dot');
-                const statusText = document.getElementById('user-status-text');
                 const labelText = document.getElementById('dj-label-text');
+                const listenersContainer = document.getElementById('room-listeners-container');
 
-                if (room && room.currentDj === currentUserData.uid) {
+                // 1. Manejo del Modo DJ visual
+                if (room.currentDj === currentUserData.uid) {
                     appWrapper.classList.add('dj-active-app');
                     statusDot.className = 'status-indicator dj-mode';
-                    labelText.innerText = "MODO DJ TRANSMITIENDO";
+                    labelText.innerText = "TRANSMITIENDO EN VIVO";
                 } else {
                     appWrapper.classList.remove('dj-active-app');
                     statusDot.className = 'status-indicator online';
-                    labelText.innerText = "MODO DJ OFFLINE";
+                    labelText.innerText = "MAESTRO DE TABERNA OFFLINE";
                     if (window.toggleEqualizerAnimation) window.toggleEqualizerAnimation(false);
+                }
+
+                // 2. Sincronización de Canción para los oyentes
+                if (room.currentTrackPlaying !== undefined && room.currentTrackPlaying !== window.currentTrackIndex && room.currentDj !== currentUserData.uid) {
+                    if (window.loadTrack) window.loadTrack(room.currentTrackPlaying, true);
+                }
+
+                // 3. Inyectar el Bardo Bot (Bot de Música) en la lista si hay un DJ activo
+                const existingBot = document.getElementById('bardo-bot-visual');
+                if (existingBot) existingBot.remove();
+
+                if (room.currentDj) {
+                    // Quitamos el texto de "Nadie escuchando" si estaba puesto por defecto
+                    if(listenersContainer.innerHTML.includes('Nadie escuchando')) listenersContainer.innerHTML = '';
+                    
+                    let botHtml = `
+                        <div class="listener-item" id="bardo-bot-visual" style="background: rgba(0, 174, 255, 0.05); border-left: 2px solid var(--bnet-blue);">
+                            <img src="https://wow.zamimg.com/images/wow/icons/large/inv_misc_flute_01.jpg" class="listener-avatar" style="border-color: var(--bnet-blue);">
+                            <span class="listener-name" style="color:var(--bnet-blue); font-weight:bold;">Trovador Bot 🎵</span>
+                            <div class="listener-badges">
+                                <i class="fas fa-volume-up" style="color:var(--bnet-blue);"></i>
+                            </div>
+                        </div>`;
+                    listenersContainer.insertAdjacentHTML('afterbegin', botHtml);
                 }
             });
         }
 
-        // Lógica de Envío de Mensajes del Chat Interno
+        // ==========================================
+        // 4. CHAT E INYECCIÓN DE PISTAS
+        // ==========================================
         document.getElementById('chat-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const input = document.getElementById('chat-input');
             const text = input.value.trim();
             if (!text || !window.currentRoom) return;
 
-            // Inyectamos el mensaje directo a la subcolección de Firebase de esta sala
             try {
                 await addDoc(collection(db, "rooms", window.currentRoom, "messages"), {
                     uid: currentUserData.uid,
@@ -673,7 +739,7 @@
             let finalId = rawUrl;
             if (type === 'youtube') {
                 if (window.parseYouTubeTarget) finalId = window.parseYouTubeTarget(rawUrl);
-                if (finalId.length !== 11) { alert('⚠️ ID inválido.'); return; }
+                if (finalId.length !== 11) { alert('⚠️ Enlace o ID de YouTube inválido.'); return; }
             }
 
             try {
@@ -689,15 +755,28 @@
             if (track && track.docId) await deleteDoc(doc(db, "rooms", window.currentRoom, "tracks", track.docId));
         };
 
+        // Crear Nueva Sala Modal (Lógica Actualizada)
+        document.getElementById('btn-open-modal').onclick = () => document.getElementById('room-modal-overlay').style.display = 'flex';
+        const closeRoomModal = () => document.getElementById('room-modal-overlay').style.display = 'none';
+        document.getElementById('btn-close-modal').onclick = closeRoomModal;
+        document.getElementById('btn-cancel-modal').onclick = closeRoomModal;
+
         document.getElementById('btn-submit-modal').onclick = async () => {
             const roomName = document.getElementById('modal-room-name').value.trim();
+            const roomType = document.getElementById('modal-room-type').value; // 'temp' o 'fixed'
             if (!roomName) return;
-
-            const newRoomRef = await addDoc(collection(db, "rooms"), { name: roomName, currentDj: null, listeners: {} });
+            
+            const newRoomRef = await addDoc(collection(db, "rooms"), { 
+                name: roomName, 
+                type: roomType, 
+                currentDj: null, 
+                listeners: {} 
+            });
             switchRoom(newRoomRef.id, roomName);
-            document.getElementById('room-modal-overlay').style.display = 'none';
+            closeRoomModal();
         };
 
+        // Toggle DJ
         document.getElementById('dj-toggle').onclick = async () => {
             if (!window.currentRoom) return;
             const roomRef = doc(db, "rooms", window.currentRoom);
@@ -710,13 +789,136 @@
                 else await updateDoc(roomRef, { currentDj: null });
             } catch (error) {}
         };
+
+        // ==========================================
+        // 5. LISTA GLOBAL Y TOASTS DE CONEXIÓN
+        // ==========================================
+        let knownUsersOnlineStatus = {};
+
+        function showToast(title, avatarUrl, isOnline) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `bnet-toast ${isOnline ? '' : 'offline'}`;
+            const actionText = isOnline ? 'ha entrado a la red.' : 'se ha desconectado.';
+            const color = isOnline ? 'var(--bnet-blue)' : 'var(--bnet-text-muted)';
+            toast.innerHTML = `<img src="${avatarUrl || 'https://via.placeholder.com/150'}"> <div><strong style="color:${color}">${title}</strong> ${actionText}</div>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 5000);
+        }
+
+        onSnapshot(query(collection(db, "users"), orderBy("mainName", "asc")), (snap) => {
+            const list = document.getElementById('guildList'); list.innerHTML = '';
+            snap.forEach(d => {
+                const u = d.data();
+                const uid = d.id;
+
+                // Lógica de Notificaciones (Toasts)
+                if (knownUsersOnlineStatus[uid] !== undefined) {
+                    if (!knownUsersOnlineStatus[uid] && u.isOnline) showToast(u.mainName || u.alts[0].name, u.avatarUrl, true);
+                    else if (knownUsersOnlineStatus[uid] && !u.isOnline) showToast(u.mainName || u.alts[0].name, u.avatarUrl, false);
+                }
+                knownUsersOnlineStatus[uid] = u.isOnline;
+
+                if(u.alts && u.alts.length > 0) {
+                    list.innerHTML += `
+                    <div class="listener-item">
+                        <img src="${u.avatarUrl || 'https://via.placeholder.com/150'}" class="listener-avatar" style="border-color:${u.isOnline ? 'var(--success)' : '#555'};">
+                        <div>
+                            <div style="font-size:0.8rem; font-weight:bold; color:#fff;">${u.alts[0].name}</div>
+                            <div style="font-size:0.65rem; color:var(--bnet-text-muted);">${u.role}</div>
+                        </div>
+                    </div>`;
+                }
+            });
+        });
+
+        // ==========================================
+        // 6. HERRAMIENTAS DE ADMINISTRADOR
+        // ==========================================
+        
+        let activeRoomId = null;
+
+        // Mostrar menú en la tuerca
+        window.showRoomMgmt = function(e, roomId) {
+            e.stopPropagation();
+            activeRoomId = roomId;
+            const menu = document.getElementById('room-mgmt-menu');
+            menu.style.display = 'block';
+            menu.style.left = (e.pageX - 150) + 'px';
+            menu.style.top = (e.pageY + 10) + 'px';
+        };
+
+        // Acciones del menú
+        window.mgmtAction = async function(action) {
+            const menu = document.getElementById('room-mgmt-menu');
+            menu.style.display = 'none';
+            if(!activeRoomId) return;
+
+            const roomRef = doc(db, "rooms", activeRoomId);
+            const userDoc = await getDoc(doc(db, "users", currentUserData.uid));
+            const role = userDoc.exists() ? userDoc.data().role : '';
+            const authorized = ['Guild Master', 'GM', 'Administrador', 'Oficial', 'Admin'].includes(role);
+
+            if(!authorized) return alert("⚔️ Permisos insuficientes.");
+
+            if(action === 'delete') {
+                if(confirm("¿Eliminar sala permanentemente?")) await deleteDoc(roomRef);
+            } else if(action === 'clear') {
+                await updateDoc(roomRef, { listeners: {} });
+            } else if(action === 'toggle-lock') {
+                const snap = await getDoc(roomRef);
+                const isLocked = snap.data().locked || false;
+                await updateDoc(roomRef, { locked: !isLocked });
+            } else if(action === 'protect') {
+                await updateDoc(roomRef, { protected: true });
+                alert("Sala protegida contra borrado.");
+            }
+        };
+
+        // Cerrar menú al hacer clic fuera
+        document.addEventListener('click', () => { document.getElementById('room-mgmt-menu').style.display = 'none'; });
+
+        // Lógica del Menú Contextual (Discord Style)
+        const ctxMenu = document.getElementById('user-context-menu');
+        let selectedUserForKick = null;
+
+        document.addEventListener('click', () => { ctxMenu.style.display = 'none'; });
+
+        window.showUserContextMenu = function(e, uid) {
+            e.preventDefault();
+            if (currentUserData.role !== 'Guild Master' && currentUserData.role !== 'Oficial') return; // Bloquear menú a usuarios normales
+            
+            selectedUserForKick = uid;
+            ctxMenu.style.display = 'block';
+            ctxMenu.style.left = e.pageX + 'px';
+            ctxMenu.style.top = e.pageY + 'px';
+        };
+
+        document.getElementById('btn-kick-user').onclick = async () => {
+            if (!window.currentRoom || !selectedUserForKick) return;
+            const roomRef = doc(db, "rooms", window.currentRoom);
+            const roomSnap = await getDoc(roomRef);
+            
+            if (roomSnap.exists()) {
+                let roomData = roomSnap.data();
+                let currentListeners = roomData.listeners || {};
+                delete currentListeners[selectedUserForKick]; // Lo sacamos del objeto
+                
+                let updates = { listeners: currentListeners };
+                if (roomData.currentDj === selectedUserForKick) updates.currentDj = null; // Le quitamos el DJ si lo tenía
+                
+                await updateDoc(roomRef, updates);
+            }
+            ctxMenu.style.display = 'none';
+        };
     </script>
 
-    <!-- LÓGICA DE CONTROLES MULTIMEDIA E INTERFAZ -->
+    <!-- LÓGICA MULTIMEDIA E INTERFAZ (UI NATIVA) -->
     <script>
         const htmlAudioPlayer = new Audio();
+        let player = null;
         let currentMotor = 'none';
-        let currentTrackIndex = 0;
+        window.currentTrackIndex = 0; // Expuesto globalmente para el snapshot
         let isShuffleActive = false;
         let isRepeatActive = false;
         let isPlayerReady = false;
@@ -726,26 +928,22 @@
         window.toggleEqualizerAnimation = toggleEqualizerAnimation;
         window.parseYouTubeTarget = parseYouTubeTarget;
 
-        // Lógica de Navegación de Pestañas (COLA vs CHAT)
+        // Pestañas
         const tabPlaylist = document.getElementById('tab-playlist');
         const tabChat = document.getElementById('tab-chat');
         const viewPlaylist = document.getElementById('view-playlist');
         const viewChat = document.getElementById('view-chat');
 
         tabPlaylist.onclick = () => {
-            viewPlaylist.style.display = 'block';
-            viewChat.style.display = 'none';
-            tabPlaylist.style.color = 'var(--accent)';
-            tabChat.style.color = 'var(--text-muted)';
+            viewPlaylist.style.display = 'block'; viewChat.style.display = 'none';
+            tabPlaylist.classList.add('active'); tabChat.classList.remove('active');
         };
 
         tabChat.onclick = () => {
-            viewPlaylist.style.display = 'none';
-            viewChat.style.display = 'flex';
-            tabChat.style.color = 'var(--accent)';
-            tabPlaylist.style.color = 'var(--text-muted)';
+            viewPlaylist.style.display = 'none'; viewChat.style.display = 'flex';
+            tabChat.classList.add('active'); tabPlaylist.classList.remove('active');
             const chatBox = document.getElementById('chat-messages');
-            chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll abajo
+            chatBox.scrollTop = chatBox.scrollHeight;
         };
 
         function renderPlaylist() {
@@ -753,30 +951,39 @@
             tbody.innerHTML = '';
             const tracks = window.getTracksList ? window.getTracksList() : [];
 
+            if(tracks.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#555;">La cola está vacía. Añade un cristal de memoria.</td></tr>';
+                return;
+            }
+
             tracks.forEach((track, index) => {
                 const tr = document.createElement('tr');
-                if (index === currentTrackIndex) tr.classList.add('active-track');
+                if (index === window.currentTrackIndex) tr.classList.add('active-track');
                 
                 const icon = track.type === 'youtube' 
                     ? '<i class="fa-brands fa-youtube" style="color:#ff0000"></i>' 
-                    : '<i class="fa-solid fa-file-audio" style="color:#00a8ff"></i>';
+                    : '<i class="fa-solid fa-file-audio" style="color:var(--bnet-blue)"></i>';
                 
                 tr.innerHTML = `
-                    <td>${icon}</td><td>${track.title}</td><td>${track.artist}</td>
+                    <td>${icon}</td><td style="font-weight:bold;">${track.title}</td><td>${track.artist}</td>
                     <td style="text-align: right;">
                         <button class="btn-delete-track" onclick="event.stopPropagation(); removeTrack(${index})"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 `;
-                tr.onclick = () => loadTrack(index);
+                tr.onclick = () => loadTrack(index, false); // Clic manual avisa a Firebase
                 tbody.appendChild(tr);
             });
         }
 
-        function loadTrack(index) {
+        // Lógica actualizada: Envía sync si no viene como auto-actualización
+        function loadTrack(index, fromSync = false) {
             const tracks = window.getTracksList ? window.getTracksList() : [];
             if (!tracks || tracks.length === 0) return;
 
-            currentTrackIndex = index;
+            // Evitar ciclo infinito
+            if(window.currentTrackIndex === index && currentMotor !== 'none') return;
+
+            window.currentTrackIndex = index;
             const track = tracks[index];
 
             if(isPlayerReady && player && typeof player.pauseVideo === 'function') player.pauseVideo();
@@ -785,42 +992,52 @@
             document.getElementById('track-title').innerText = track.title;
             document.getElementById('track-artist').innerText = track.artist;
             const badge = document.getElementById('source-badge');
+            const disc = document.getElementById('main-disc-icon');
 
             if (track.type === 'youtube') {
                 currentMotor = 'youtube';
-                badge.innerText = 'YT';
-                badge.style.backgroundColor = '#ff0000';
+                badge.innerText = 'YouTube'; badge.style.backgroundColor = '#ff0000';
+                disc.innerHTML = '<i class="fa-brands fa-youtube fa-3x"></i>';
+                
                 if (isPlayerReady && player) {
                     player.cueVideoById(track.id);
                     player.playVideo();
                 }
             } else {
                 currentMotor = 'mp3';
-                badge.innerText = 'MP3';
-                badge.style.backgroundColor = '#00a8ff';
+                badge.innerText = 'MP3/Audio'; badge.style.backgroundColor = 'var(--bnet-blue)';
+                disc.innerHTML = '<i class="fa-solid fa-compact-disc fa-spin fa-3x"></i>';
+                
                 htmlAudioPlayer.src = track.id;
-                htmlAudioPlayer.play();
+                htmlAudioPlayer.play().catch(e => console.log("Autoplay bloqueado por el navegador, requiere clic del usuario."));
+                
                 document.querySelector('#btn-play i').className = 'fa-solid fa-pause';
-                document.getElementById('main-disc-icon').innerHTML = '<i class="fa-solid fa-compact-disc fa-spin fa-3x"></i>';
                 toggleEqualizerAnimation(true);
             }
             renderPlaylist();
+
+            // Sincronizar con todos los oyentes si fui yo quien hizo clic
+            if (!fromSync && window.syncTrackToFirebase) {
+                window.syncTrackToFirebase(index);
+            }
         }
 
         window.onYouTubeIframeAPIReady = function() {
             player = new YT.Player('youtube-audio-player', {
-                height: '0', width: '0',
-                videoId: '',
-                playerVars: { 'enablejsapi': 1 },
+                height: '0', width: '0', videoId: '',
+                playerVars: { 'enablejsapi': 1, 'autoplay': 1 },
                 events: {
                     'onReady': () => { isPlayerReady = true; },
                     'onStateChange': (e) => {
                         const playIcon = document.querySelector('#btn-play i');
+                        const disc = document.querySelector('#main-disc-icon i');
                         if (e.data === YT.PlayerState.PLAYING) {
                             playIcon.className = 'fa-solid fa-pause';
+                            disc.classList.add('fa-spin');
                             toggleEqualizerAnimation(true);
                         } else {
                             playIcon.className = 'fa-solid fa-play';
+                            disc.classList.remove('fa-spin');
                             toggleEqualizerAnimation(false);
                         }
                         if (e.data === YT.PlayerState.ENDED) handleTrackEnded();
@@ -830,33 +1047,49 @@
         }
 
         document.getElementById('btn-play').onclick = () => {
+            const tracks = window.getTracksList ? window.getTracksList() : [];
+            if(tracks.length === 0) return;
+
             if (currentMotor === 'youtube' && isPlayerReady && player) {
                 if (player.getPlayerState() === YT.PlayerState.PLAYING) player.pauseVideo(); else player.playVideo();
             } else if (currentMotor === 'mp3') {
                 const playIcon = document.querySelector('#btn-play i');
-                if (htmlAudioPlayer.paused) { htmlAudioPlayer.play(); playIcon.className = 'fa-solid fa-pause'; } else { htmlAudioPlayer.pause(); playIcon.className = 'fa-solid fa-play'; }
+                const disc = document.querySelector('#main-disc-icon i');
+                if (htmlAudioPlayer.paused) { 
+                    htmlAudioPlayer.play(); 
+                    playIcon.className = 'fa-solid fa-pause'; 
+                    disc.classList.add('fa-spin');
+                    toggleEqualizerAnimation(true);
+                } else { 
+                    htmlAudioPlayer.pause(); 
+                    playIcon.className = 'fa-solid fa-play'; 
+                    disc.classList.remove('fa-spin');
+                    toggleEqualizerAnimation(false);
+                }
+            } else if (currentMotor === 'none') {
+                loadTrack(0, false);
             }
         };
 
         function handleTrackEnded() {
             const tracks = window.getTracksList ? window.getTracksList() : [];
-            if (isRepeatActive) loadTrack(currentTrackIndex);
-            else if (isShuffleActive) loadTrack(Math.floor(Math.random() * tracks.length));
+            if (isRepeatActive) loadTrack(window.currentTrackIndex, false);
+            else if (isShuffleActive) loadTrack(Math.floor(Math.random() * tracks.length), false);
             else {
-                let nextIdx = currentTrackIndex + 1;
-                if (nextIdx < tracks.length) loadTrack(nextIdx);
+                let nextIdx = window.currentTrackIndex + 1;
+                if (nextIdx < tracks.length) loadTrack(nextIdx, false);
             }
         }
         htmlAudioPlayer.addEventListener('ended', handleTrackEnded);
 
         document.getElementById('btn-next').onclick = () => {
             const tracks = window.getTracksList ? window.getTracksList() : [];
-            let nextIdx = currentTrackIndex + 1;
-            if (nextIdx < tracks.length) loadTrack(nextIdx);
+            let nextIdx = window.currentTrackIndex + 1;
+            if (nextIdx < tracks.length) loadTrack(nextIdx, false);
         };
         document.getElementById('btn-prev').onclick = () => {
-            let prevIdx = currentTrackIndex - 1;
-            if (prevIdx >= 0) loadTrack(prevIdx);
+            let prevIdx = window.currentTrackIndex - 1;
+            if (prevIdx >= 0) loadTrack(prevIdx, false);
         };
 
         document.getElementById('volume-range').oninput = (e) => {
@@ -864,17 +1097,22 @@
             htmlAudioPlayer.volume = e.target.value / 100;
         };
 
+        document.getElementById('btn-shuffle').onclick = () => { isShuffleActive = !isShuffleActive; document.getElementById('btn-shuffle').classList.toggle('fx-active', isShuffleActive); };
+        document.getElementById('btn-repeat').onclick = () => { isRepeatActive = !isRepeatActive; document.getElementById('btn-repeat').classList.toggle('fx-active', isRepeatActive); };
+
+        function toggleEqualizerAnimation(start) {
+            document.querySelectorAll('.eq-bar').forEach(bar => bar.style.animationPlayState = start ? 'running' : 'paused');
+        }
+
+        // Lógica de Mezcladora DJ Visual (Knobs)
         document.querySelectorAll('.knob').forEach(knob => {
             let isDragging = false;
             let startY = 0;
             let currentRotation = 0;
 
             knob.addEventListener('mousedown', (e) => {
-                isDragging = true;
-                startY = e.clientY;
-                e.preventDefault();
+                isDragging = true; startY = e.clientY; e.preventDefault();
             });
-
             document.addEventListener('mousemove', (e) => {
                 if (!isDragging) return;
                 const deltaY = startY - e.clientY;
@@ -882,32 +1120,40 @@
                 currentRotation = Math.max(-135, Math.min(135, currentRotation + deltaY * 2));
                 knob.style.transform = `rotate(${currentRotation}deg)`;
             });
-
             document.addEventListener('mouseup', () => { isDragging = false; });
         });
 
-        document.getElementById('btn-open-modal').onclick = () => document.getElementById('room-modal-overlay').style.display = 'flex';
-        document.getElementById('btn-close-modal').onclick = () => document.getElementById('room-modal-overlay').style.display = 'none';
-        document.getElementById('btn-cancel-modal').onclick = () => document.getElementById('room-modal-overlay').style.display = 'none';
-        document.getElementById('btn-shuffle').onclick = () => { isShuffleActive = !isShuffleActive; document.getElementById('btn-shuffle').classList.toggle('fx-active', isShuffleActive); };
-        document.getElementById('btn-repeat').onclick = () => { isRepeatActive = !isRepeatActive; document.getElementById('btn-repeat').classList.toggle('fx-active', isRepeatActive); };
-
-        document.getElementById('toggle-admin-view').onclick = () => {
-            const sView = document.getElementById('wrapper-search-view');
-            const aView = document.getElementById('wrapper-admin-view');
-            if (aView.style.display === 'none') { aView.style.display = 'block'; sView.style.display = 'none'; } else { aView.style.display = 'none'; sView.style.display = 'block'; }
-        };
-
-        function toggleEqualizerAnimation(start) {
-            document.querySelectorAll('.eq-bar').forEach(bar => bar.style.animationPlayState = start ? 'running' : 'paused');
-        }
-
+        // Utilidades Visuales
         function parseYouTubeTarget(input) {
             let cleanInput = input.replace("music.youtube.com", "youtube.com");
             const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=||shorts\/)([^#\&\?]*).*/;
             const match = cleanInput.match(regExp);
             return (match && match[2].length === 11) ? match[2] : cleanInput;
         }
+
+        // Fondo Estelar
+        const canvas = document.getElementById('stellar-canvas'); const ctx = canvas.getContext('2d');
+        let particles = [];
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resize); resize();
+        class Star {
+            constructor() { this.x = Math.random()*canvas.width; this.y = Math.random()*canvas.height; this.size = Math.random()*1.5; this.speedY = -(Math.random()*0.2+0.05); }
+            up() { this.y += this.speedY; if(this.y < 0) { this.y = canvas.height; this.x = Math.random()*canvas.width; } }
+            draw() { ctx.fillStyle = "rgba(255, 128, 0, "+Math.random()*0.4+")"; ctx.beginPath(); ctx.arc(this.x,this.y,this.size,0,Math.PI*2); ctx.fill(); }
+        }
+        for(let i=0; i<40; i++) particles.push(new Star());
+        function anim() { ctx.clearRect(0,0,canvas.width,canvas.height); particles.forEach(p=>{ p.up(); p.draw(); }); requestAnimationFrame(anim); }
+        anim();
+        
+        // Pausar animacion al inicio por defecto
+        toggleEqualizerAnimation(false);
     </script>
+<!-- Menú de Gestión de Sala -->
+    <div class="room-mgmt-menu" id="room-mgmt-menu">
+        <div class="mgmt-item" onclick="mgmtAction('clear')"><i class="fas fa-broom"></i> Limpiar Oyentes</div>
+        <div class="mgmt-item" onclick="mgmtAction('toggle-lock')"><i class="fas fa-lock"></i> Bloquear/Desbloquear</div>
+        <div class="mgmt-item" onclick="mgmtAction('protect')"><i class="fas fa-shield-alt"></i> Proteger Canal</div>
+        <div class="mgmt-item danger" onclick="mgmtAction('delete')"><i class="fas fa-trash"></i> Eliminar Sala</div>
+    </div>
 </body>
 </html>
