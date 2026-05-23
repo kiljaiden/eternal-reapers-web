@@ -297,9 +297,10 @@
                             <input type="text" id="admin-artist" class="bnet-input" placeholder="Bardo u Orquesta" required>
                             <input type="text" id="admin-url" class="bnet-input" placeholder="URL o ID de YouTube / Enlace MP3" required>
                             <select id="admin-type" class="bnet-select">
-                                <option value="youtube">Visión Gnomo (YouTube)</option>
-                                <option value="mp3">Cristal de Audio (MP3 Directo)</option>
-                            </select>
+    <option value="youtube">Visión Gnomo (YouTube)</option>
+    <option value="mp3">Cristal de Audio (MP3 Directo)</option>
+    <option value="radio">Radio en Vivo (Stream)</option> <!-- Nueva opción -->
+</select>
                             <button type="submit" class="btn-primary"><i class="fas fa-plus"></i> Añadir a la Cola</button>
                         </form>
                     </div>
@@ -961,8 +962,10 @@ const deleteBtnHtml = `<i class="fa-solid fa-cog room-settings-btn" title="Gesti
                 if (index === window.currentTrackIndex) tr.classList.add('active-track');
                 
                 const icon = track.type === 'youtube' 
-                    ? '<i class="fa-brands fa-youtube" style="color:#ff0000"></i>' 
-                    : '<i class="fa-solid fa-file-audio" style="color:var(--bnet-blue)"></i>';
+    ? '<i class="fa-brands fa-youtube" style="color:#ff0000"></i>' 
+    : (track.type === 'radio' 
+        ? '<i class="fa-solid fa-tower-broadcast" style="color:#8a2be2"></i>' 
+        : '<i class="fa-solid fa-file-audio" style="color:var(--bnet-blue)"></i>');
                 
                 tr.innerHTML = `
                     <td>${icon}</td><td style="font-weight:bold;">${track.title}</td><td>${track.artist}</td>
@@ -1003,7 +1006,18 @@ const deleteBtnHtml = `<i class="fa-solid fa-cog room-settings-btn" title="Gesti
                     player.cueVideoById(track.id);
                     player.playVideo();
                 }
-            } else {
+            } else if (track.type === 'radio') { // NUEVO: Lógica para Radio
+    currentMotor = 'radio';
+    badge.innerText = 'RADIO';
+    badge.style.backgroundColor = '#8a2be2'; // Color morado místico para radio
+    disc.innerHTML = '<i class="fa-solid fa-broadcast-tower fa-3x"></i>';
+    
+    htmlAudioPlayer.src = track.id; // El ID aquí es el enlace del stream
+    htmlAudioPlayer.play().catch(e => console.log("Radio requiere interacción manual."));
+    
+    document.querySelector('#btn-play i').className = 'fa-solid fa-pause';
+    toggleEqualizerAnimation(true);
+} else {
                 currentMotor = 'mp3';
                 badge.innerText = 'MP3/Audio'; badge.style.backgroundColor = 'var(--bnet-blue)';
                 disc.innerHTML = '<i class="fa-solid fa-compact-disc fa-spin fa-3x"></i>';
