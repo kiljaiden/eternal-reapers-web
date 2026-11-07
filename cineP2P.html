@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cine P2P - Transmisión Descentralizada</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cinema: {
+                            900: '#0b0f19',
+                            800: '#111827',
+                            700: '#1f2937',
+                            600: '#374151',
+                            accent: '#e50914',
+                            accentHover: '#b20710'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- PeerJS CDN para señalización WebRTC automática y gratuita -->
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #111827; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 3px; }
+    </style>
+</head>
+<body class="bg-cinema-900 text-gray-100 min-h-screen flex flex-col selection:bg-cinema-accent selection:text-white">
+
+    <!-- Navbar -->
+    <header class="border-b border-gray-800 bg-cinema-800/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-cinema-accent p-2.5 rounded-xl shadow-lg shadow-cinema-accent/30 text-white">
+                    <i class="fa-solid fa-film text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight">CineP2P <span class="text-cinema-accent text-xs px-2 py-0.5 bg-cinema-accent/10 rounded-full border border-cinema-accent/30">Descentralizado</span></h1>
+                    <p class="text-xs text-gray-400">Streaming directo de PC a PC mediante WebRTC</p>
+                </div>
+            </div>
+            <div id="connection-badge" class="flex items-center space-x-2 bg-gray-900/80 px-3 py-1.5 rounded-full border border-gray-700 text-xs font-medium">
+                <span class="w-2.5 h-2.5 rounded-full bg-yellow-500 animate-pulse" id="status-dot"></span>
+                <span id="status-text" class="text-gray-300">Desconectado de la red</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Columna Izquierda/Central: Reproductor y Controles (Ocupa 2 columnas en lg) -->
+        <div class="lg:col-span-2 flex flex-col space-y-4">
+            
+            <!-- Contenedor del Video -->
+            <div class="relative w-full aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-gray-800 flex items-center justify-center group">
+                <video id="cinema-video" class="w-full h-full object-contain" playsinline controls></video>
+                
+                <!-- Overlay de Carga / Pantalla de Bienvenida -->
+                <div id="video-overlay" class="absolute inset-0 bg-cinema-900/90 flex flex-col items-center justify-center p-6 text-center transition-opacity duration-300">
+                    <div class="w-16 h-16 rounded-2xl bg-cinema-800 border border-gray-700 flex items-center justify-center text-cinema-accent mb-4 shadow-inner">
+                        <i class="fa-solid fa-clapperboard text-3xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-1">Sala de Cine P2P Lista</h3>
+                    <p class="text-sm text-gray-400 max-w-md mb-6">Selecciona un rol a continuación: actúa como Anfitrión cargando tu archivo de video local o conéctate como Espectador usando el código de la sala.</p>
+                    
+                    <div class="flex flex-wrap justify-center gap-3">
+                        <button onclick="switchRole('host')" class="px-5 py-2.5 bg-cinema-accent hover:bg-cinema-accentHover text-white font-medium rounded-xl shadow-lg shadow-cinema-accent/20 transition flex items-center space-x-2">
+                            <i class="fa-solid fa-server"></i>
+                            <span>Ser Anfitrión (Host)</span>
+                        </button>
+                        <button onclick="switchRole('guest')" class="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 font-medium rounded-xl transition flex items-center space-x-2">
+                            <i class="fa-solid fa-user-group"></i>
+                            <span>Unirme a Sala</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Barra de Progreso de Transferencia (Visible solo para Host/Guest durante carga pesada de chunks) -->
+                <div id="transfer-progress-bar" class="absolute bottom-0 left-0 right-0 h-1.5 bg-gray-800 hidden">
+                    <div id="progress-fill" class="h-full bg-cinema-accent w-0 transition-all duration-150"></div>
+                </div>
+            </div>
+
+            <!-- Panel de Estadísticas y Sincronización P2P -->
+            <div class="bg-cinema-800/50 border border-gray-800 rounded-2xl p-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+                <div class="bg-gray-900/50 p-3 rounded-xl border border-gray-800/80">
+                    <span class="text-xs text-gray-400 block mb-1">Velocidad / Chunk</span>
+                    <span id="stat-speed" class="text-sm font-semibold text-cinema-accent">0 KB/s</span>
+                </div>
+                <div class="bg-gray-900/50 p-3 rounded-xl border border-gray-800/80">
+                    <span class="text-xs text-gray-400 block mb-1">Datos Recibidos</span>
+                    <span id="stat-received" class="text-sm font-semibold text-white">0 MB</span>
+                </div>
+                <div class="bg-gray-900/50 p-3 rounded-xl border border-gray-800/80">
+                    <span class="text-xs text-gray-400 block mb-1">Pares Conectados</span>
+                    <span id="stat-peers" class="text-sm font-semibold text-white">0</span>
+                </div>
+                <div class="bg-gray-900/50 p-3 rounded-xl border border-gray-800/80">
+                    <span class="text-xs text-gray-400 block mb-1">Latencia Sync</span>
+                    <span id="stat-latency" class="text-sm font-semibold text-green-400">0 ms</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Derecha: Controles de Sala, Host y Espectador -->
+        <div class="flex flex-col space-y-4">
+            
+            <!-- Panel de Configuración de Roles -->
+            <div id="role-panel" class="bg-cinema-800/60 border border-gray-800 rounded-2xl p-5 shadow-xl flex flex-col space-y-5">
+                <div class="flex items-center justify-between border-b border-gray-700/50 pb-3">
+                    <h2 class="font-bold text-base flex items-center space-x-2">
+                        <i class="fa-solid fa-sliders text-cinema-accent"></i>
+                        <span>Panel de Control</span>
+                    </h2>
+                    <span id="current-role-badge" class="text-xs px-2.5 py-1 bg-gray-700 text-gray-300 rounded-lg font-medium">Seleccionar Modo</span>
+                </div>
+
+                <!-- CONTROLES PARA ANFITRIÓN (HOST) -->
+                <div id="host-controls" class="space-y-4 hidden">
+                    <div class="bg-cinema-900/60 p-4 rounded-xl border border-gray-800 space-y-3">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400">1. Seleccionar Archivo de Video</label>
+                        <label class="flex flex-col items-center justify-center border-2 border-dashed border-gray-700 hover:border-cinema-accent rounded-xl p-4 cursor-pointer transition bg-gray-900/40 group">
+                            <i class="fa-solid fa-cloud-arrow-up text-2xl text-gray-400 group-hover:text-cinema-accent mb-2"></i>
+                            <span id="file-label" class="text-xs text-gray-300 text-center font-medium">Haz clic para elegir MP4, MKV, WebM</span>
+                            <input type="file" id="video-file-input" accept="video/*" class="hidden" onchange="handleVideoSelected(event)">
+                        </label>
+                    </div>
+
+                    <div class="bg-cinema-900/60 p-4 rounded-xl border border-gray-800 space-y-2">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400">2. Código de tu Sala P2P</label>
+                        <div class="flex items-center space-x-2">
+                            <input type="text" id="host-room-id" readonly class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-xs text-gray-300 font-mono select-all" placeholder="Generando...">
+                            <button onclick="copyRoomId()" class="bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded-lg text-xs font-medium transition text-white">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-gray-400">Comparte este código con tus amigos para que se conecten directamente a tu PC.</p>
+                    </div>
+                </div>
+
+                <!-- CONTROLES PARA ESPECTADOR (GUEST) -->
+                <div id="guest-controls" class="space-y-4 hidden">
+                    <div class="bg-cinema-900/60 p-4 rounded-xl border border-gray-800 space-y-3">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400">Unirse a la Sala del Host</label>
+                        <div class="space-y-2">
+                            <input type="text" id="guest-room-id-input" placeholder="Pega aquí el ID de la sala..." class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-cinema-accent font-mono">
+                            <button onclick="connectToHost()" class="w-full bg-cinema-accent hover:bg-cinema-accentHover text-white py-2.5 rounded-lg text-xs font-semibold transition shadow-lg shadow-cinema-accent/20 flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-plug"></i>
+                                <span>Conectar al Cine</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Instrucciones / Estado de Transmisión -->
+                <div id="info-box" class="bg-gray-900/40 p-3 rounded-xl border border-gray-800 text-xs text-gray-400 leading-relaxed">
+                    💡 Selecciona si deseas transmitir tus propios archivos de video o unirte a la sesión remota de otra persona en la red.
+                </div>
+            </div>
+
+            <!-- Panel de Chat / Sincronización en Directo -->
+            <div class="bg-cinema-800/60 border border-gray-800 rounded-2xl p-4 shadow-xl flex-1 flex flex-col min-h-[220px]">
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3 flex items-center space-x-2">
+                    <i class="fa-solid fa-comments text-cinema-accent"></i>
+                    <span>Chat y Sincronización</span>
+                </h3>
+                <div id="chat-messages" class="flex-1 bg-cinema-900/60 rounded-xl p-3 border border-gray-800 overflow-y-auto max-h-48 custom-scrollbar space-y-2 text-xs mb-3">
+                    <div class="text-gray-500 text-center italic">Esperando conexión de pares...</div>
+                </div>
+                <div class="flex space-x-2">
+                    <input type="text" id="chat-input" placeholder="Escribe un mensaje..." onkeypress="handleChatKeyPress(event)" class="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-cinema-accent">
+                    <button onclick="sendChatMessage()" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg text-xs transition">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-800 bg-cinema-800/30 text-center py-4 text-xs text-gray-400">
+        CineP2P &bull; Sistema WebRTC descentralizado sin servidores intermedios de almacenamiento.
+    </footer>
+
+    <!-- Sistema de Notificación Personalizada (Reemplaza alert) -->
+    <div id="notification-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-cinema-800 border border-gray-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center space-y-4 animate-in fade-in zoom-in duration-200">
+            <div id="modal-icon" class="w-12 h-12 rounded-full bg-cinema-accent/20 text-cinema-accent flex items-center justify-center mx-auto text-xl">
+                <i class="fa-solid fa-circle-exclamation"></i>
+            </div>
+            <h4 id="modal-title" class="text-base font-bold text-white">Aviso</h4>
+            <p id="modal-message" class="text-xs text-gray-300 leading-relaxed"></p>
+            <button onclick="closeModal()" class="w-full bg-cinema-accent hover:bg-cinema-accentHover text-white py-2.5 rounded-xl text-xs font-semibold transition">
+                Entendido
+            </button>
+        </div>
+    </div>
+
+    <!-- Lógica de la Aplicación PeerJS & WebRTC -->
+    <script>
+        let peer = null;
+        let connections = []; // Conexiones activas (Host puede tener varios invitados, Guest tiene 1 conexión con Host)
+        let currentRole = null;
+        let videoFile = null;
+        let fileChunks = [];
+        let CHUNK_SIZE = 64 * 1024; // 64KB por fragmento de WebRTC data channel
+        let totalChunks = 0;
+        let receivedChunks = {};
+        let totalBytesReceived = 0;
+        let startTime = 0;
+
+        const videoElement = document.getElementById('cinema-video');
+        const videoOverlay = document.getElementById('video-overlay');
+        const statusDot = document.getElementById('status-dot');
+        const statusText = document.getElementById('status-text');
+
+        // Funciones de UI y Notificaciones
+        function showNotification(title, message, isError = false) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-message').textContent = message;
+            const iconDiv = document.getElementById('modal-icon');
+            if(isError) {
+                iconDiv.className = "w-12 h-12 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center mx-auto text-xl";
+                iconDiv.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i>';
+            } else {
+                iconDiv.className = "w-12 h-12 rounded-full bg-cinema-accent/20 text-cinema-accent flex items-center justify-center mx-auto text-xl";
+                iconDiv.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+            }
+            document.getElementById('notification-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('notification-modal').classList.add('hidden');
+        }
+
+        function switchRole(role) {
+            currentRole = role;
+            document.getElementById('role-panel').classList.remove('hidden');
+            document.getElementById('current-role-badge').textContent = role === 'host' ? 'Anfitrión (Host)' : 'Espectador (Guest)';
+            
+            if (role === 'host') {
+                document.getElementById('host-controls').classList.remove('hidden');
+                document.getElementById('guest-controls').classList.add('hidden');
+                initHostPeer();
+            } else {
+                document.getElementById('host-controls').classList.add('hidden');
+                document.getElementById('guest-controls').classList.remove('hidden');
+                initGuestPeer();
+            }
+        }
+
+        // Inicializar nodo PeerJS para el Anfitrión
+        function initHostPeer() {
+            updateStatus('connecting', 'Conectando con red de señalización...');
+            // Genera un ID aleatorio amigable para la sala
+            const customId = 'cine-' + Math.random().toString(36).substring(2, 8);
+            
+            peer = new Peer(customId, {
+                debug: 1
+            });
+
+            peer.on('open', (id) => {
+                document.getElementById('host-room-id').value = id;
+                updateStatus('connected', `Sala activa: ${id}`);
+                addSystemChatMessage(`Tu sala P2P está lista. Comparte el código.`);
+            });
+
+            peer.on('connection', (conn) => {
+                setupConnectionListeners(conn);
+                connections.push(conn);
+                updatePeerCount();
+                addSystemChatMessage(`Nuevo espectador conectado (${conn.peer.slice(-4)})`);
+                
+                // Si el host ya tiene un archivo cargado, enviamos la meta-información inicial
+                if (videoFile) {
+                    conn.send({
+                        type: 'meta',
+                        name: videoFile.name,
+                        size: videoFile.size,
+                        typeFile: videoFile.type,
+                        totalChunks: totalChunks
+                    });
+                }
+            });
+
+            peer.on('error', (err) => {
+                console.error(err);
+                updateStatus('error', 'Error en red P2P');
+                showNotification('Error de Conexión', 'No se pudo establecer la conexión con el servidor de señalización de PeerJS.', true);
+            });
+        }
+
+        // Inicializar nodo PeerJS para el Espectador
+        function initGuestPeer() {
+            updateStatus('connecting', 'Preparando nodo espectador...');
+            peer = new Peer({ debug: 1 });
+
+            peer.on('open', (id) => {
+                updateStatus('connected', 'Nodo listo para unirse');
+            });
+
+            peer.on('error', (err) => {
+                console.error(err);
+                updateStatus('error', 'Error de red P2P');
+            });
+        }
+
+        function connectToHost() {
+            const roomId = document.getElementById('guest-room-id-input').value.trim();
+            if (!roomId) {
+                showNotification('Atención', 'Introduce el código de la sala del anfitrión.', true);
+                return;
+            }
+
+            updateStatus('connecting', `Conectando con ${roomId}...`);
+            const conn = peer.connect(roomId);
+            setupConnectionListeners(conn);
+            connections = [conn];
+        }
+
+        function setupConnectionListeners(conn) {
+            conn.on('open', () => {
+                updateStatus('connected', `Conectado al Cine P2P`);
+                document.getElementById('stat-peers').textContent = connections.length;
+                if (currentRole === 'guest') {
+                    addSystemChatMessage(`Conexión establecida con éxito con el Anfitrión.`);
+                }
+            });
+
+            conn.on('data', (data) => {
+                handleIncomingData(data, conn);
+            });
+
+            conn.on('close', () => {
+                updateStatus('disconnected', 'Conexión cerrada');
+                addSystemChatMessage(`Un usuario se ha desconectado.`);
+                connections = connections.filter(c => c !== conn);
+                document.getElementById('stat-peers').textContent = connections.length;
+            });
+        }
+
+        // Manejo de Archivo de Video Seleccionado por el Host
+        function handleVideoSelected(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            videoFile = file;
+            document.getElementById('file-label').textContent = file.name;
+            videoElement.src = URL.createObjectURL(file);
+            videoOverlay.classList.add('opacity-0', 'pointer-events-none');
+            
+            addSystemChatMessage(`Video cargado localmente: ${file.name} (${(file.size / (1024*1024)).toFixed(2)} MB)`);
+
+            // Preparar chunks
+            totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+            
+            // Notificar a todos los peers conectados la meta información
+            connections.forEach(conn => {
+                conn.send({
+                    type: 'meta',
+                    name: file.name,
+                    size: file.size,
+                    typeFile: file.type,
+                    totalChunks: totalChunks
+                });
+            });
+
+            // Iniciar lectura progresiva del archivo para enviarlo por DataChannel
+            readAndSendFileChunks();
+        }
+
+        function readAndSendFileChunks() {
+            let offset = 0;
+            let chunkIndex = 0;
+            startTime = Date.now();
+            
+            document.getElementById('transfer-progress-bar').classList.remove('hidden');
+            const progressFill = document.getElementById('progress-fill');
+
+            function readNextChunk() {
+                const slice = videoFile.slice(offset, offset + CHUNK_SIZE);
+                const reader = new FileReader();
+                
+                reader.onload = (e) => {
+                    const buffer = e.target.result;
+                    
+                    // Enviar a todos los invitados conectados
+                    connections.forEach(conn => {
+                        conn.send({
+                            type: 'chunk',
+                            index: chunkIndex,
+                            buffer: buffer
+                        });
+                    });
+
+                    offset += buffer.byteLength;
+                    chunkIndex++;
+
+                    // Actualizar barra de progreso del host
+                    const percent = (chunkIndex / totalChunks) * 100;
+                    progressFill.style.width = percent + '%';
+                    
+                    // Actualizar estadísticas de velocidad aproximada
+                    const elapsed = (Date.now() - startTime) / 1000;
+                    const speed = (offset / 1024 / elapsed).toFixed(1);
+                    document.getElementById('stat-speed').textContent = speed + ' KB/s';
+
+                    if (chunkIndex < totalChunks) {
+                        // Leer siguiente fragmento con leve respiro para no saturar el canal de datos
+                        setTimeout(readNextChunk, 5);
+                    } else {
+                        addSystemChatMessage(`Transmisión completa de todos los fragmentos al canal P2P.`);
+                        setTimeout(() => {
+                            document.getElementById('transfer-progress-bar').classList.add('hidden');
+                        }, 2000);
+                    }
+                };
+
+                reader.readAsArrayBuffer(slice);
+            }
+
+            readNextChunk();
+        }
+
+        // Recepción de Datos vía DataChannel (Espectador)
+        let incomingFileMeta = null;
+        function handleIncomingData(data, conn) {
+            if (data.type === 'meta') {
+                incomingFileMeta = data;
+                receivedChunks = {};
+                totalBytesReceived = 0;
+                document.getElementById('transfer-progress-bar').classList.remove('hidden');
+                addSystemChatMessage(`El Anfitrión está compartiendo: ${data.name} (${(data.size / (1024*1024)).toFixed(2)} MB)`);
+            } else if (data.type === 'chunk' && incomingFileMeta) {
+                receivedChunks[data.index] = data.buffer;
+                totalBytesReceived += data.buffer.byteLength;
+
+                const receivedCount = Object.keys(receivedChunks).length;
+                const percent = (receivedCount / incomingFileMeta.totalChunks) * 100;
+                document.getElementById('progress-fill').style.width = percent + '%';
+                document.getElementById('stat-received').textContent = (totalBytesReceived / (1024*1024)).toFixed(1) + ' MB';
+
+                // Si ya recibimos todos los fragmentos, ensamblar el Blob de video
+                if (receivedCount === incomingFileMeta.totalChunks) {
+                    const sortedBuffers = [];
+                    for (let i = 0; i < incomingFileMeta.totalChunks; i++) {
+                        sortedBuffers.push(receivedChunks[i]);
+                    }
+                    const completeBlob = new Blob(sortedBuffers, { type: incomingFileMeta.typeFile });
+                    videoElement.src = URL.createObjectURL(completeBlob);
+                    videoOverlay.classList.add('opacity-0', 'pointer-events-none');
+                    document.getElementById('transfer-progress-bar').classList.add('hidden');
+                    
+                    addSystemChatMessage(`¡Video ensamblado y listo para reproducir desde tu navegador!`);
+                    showNotification('Descarga P2P Completa', 'El video se ha transferido íntegramente desde el ordenador del anfitrión mediante WebRTC.');
+                }
+            } else if (data.type === 'sync') {
+                // Sincronización de reproducción de video (Play/Pause/Seek)
+                if (Math.abs(videoElement.currentTime - data.currentTime) > 0.8) {
+                    videoElement.currentTime = data.currentTime;
+                }
+                if (data.paused && !videoElement.paused) {
+                    videoElement.pause();
+                } else if (!data.paused && videoElement.paused) {
+                    videoElement.play().catch(e => console.log('Autoplay bloqueado:', e));
+                }
+            } else if (data.type === 'chat') {
+                addChatMessage('Host', data.message);
+            }
+        }
+
+        // Sincronización de eventos de reproducción (Si el Host manipula el video)
+        videoElement.addEventListener('play', () => {
+            if (currentRole === 'host') broadcastSync();
+        });
+        videoElement.addEventListener('pause', () => {
+            if (currentRole === 'host') broadcastSync();
+        });
+        videoElement.addEventListener('seeked', () => {
+            if (currentRole === 'host') broadcastSync();
+        });
+
+        function broadcastSync() {
+            connections.forEach(conn => {
+                conn.send({
+                    type: 'sync',
+                    currentTime: videoElement.currentTime,
+                    paused: videoElement.paused
+                });
+            });
+        }
+
+        // Sistema de Chat P2P
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            addChatMessage('Tú', msg);
+            connections.forEach(conn => {
+                conn.send({
+                    type: 'chat',
+                    message: msg
+                });
+            });
+            input.value = '';
+        }
+
+        function handleChatKeyPress(e) {
+            if (e.key === 'Enter') sendChatMessage();
+        }
+
+        function addChatMessage(sender, message) {
+            const chatMessages = document.getElementById('chat-messages');
+            if (chatMessages.querySelector('.italic')) {
+                chatMessages.innerHTML = '';
+            }
+            const div = document.createElement('div');
+            div.innerHTML = `<span class="font-semibold text-cinema-accent">${sender}:</span> <span class="text-gray-200">${escapeHtml(message)}</span>`;
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addSystemChatMessage(message) {
+            const chatMessages = document.getElementById('chat-messages');
+            if (chatMessages.querySelector('.italic')) {
+                chatMessages.innerHTML = '';
+            }
+            const div = document.createElement('div');
+            div.className = "text-gray-400 italic text-[11px]";
+            div.textContent = `[Sistema] ${message}`;
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function updateStatus(state, text) {
+            statusText.textContent = text;
+            if (state === 'connected') {
+                statusDot.className = "w-2.5 h-2.5 rounded-full bg-green-500";
+            } else if (state === 'connecting') {
+                statusDot.className = "w-2.5 h-2.5 rounded-full bg-yellow-500 animate-pulse";
+            } else {
+                statusDot.className = "w-2.5 h-2.5 rounded-full bg-red-500";
+            }
+        }
+
+        function copyRoomId() {
+            const copyText = document.getElementById('host-room-id');
+            copyText.select();
+            document.execCommand('copy');
+            showNotification('Copiado', 'El código de la sala se ha copiado al portapapeles.');
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+    </script>
+</body>
+</html>
