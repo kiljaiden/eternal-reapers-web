@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cine P2P - Transmisión en Vivo</title>
+  <title>Cine P2P - Modo Teatro</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <style>
@@ -17,10 +17,46 @@
     ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
   </style>
 </head>
-<body class="min-h-screen flex flex-col p-4 gap-4 max-w-7xl mx-auto">
+<body id="appBody" class="min-h-screen flex flex-col p-4 gap-4 max-w-7xl mx-auto">
+
+  <!-- MODAL DE INGRESO GLOBAL (Nombre + Rol) -->
+  <div id="entryModal" class="fixed inset-0 z-50 bg-[#0b0f19]/95 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-[#111827] border border-gray-800 rounded-2xl max-w-md w-full p-6 shadow-2xl">
+      <div class="flex flex-col items-center text-center mb-6">
+        <div class="w-14 h-14 rounded-2xl bg-red-600/20 border border-red-500/30 flex items-center justify-center text-3xl mb-3">
+          🎬
+        </div>
+        <h2 class="text-2xl font-bold text-white">Bienvenido a Cine P2P</h2>
+        <p class="text-sm text-gray-400 mt-1">Ingresa tu nombre y elige cómo deseas entrar a la sala.</p>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5">Tu Nombre / Apodo</label>
+          <input id="userNameInput" type="text" placeholder="Ej: Jaiden" maxlength="20" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-red-500" />
+        </div>
+
+        <div id="modalRoomField" class="hidden">
+          <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1.5">Código de Sala (Detectado)</label>
+          <input id="modalRoomInput" type="text" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-gray-300 font-mono focus:outline-none focus:border-red-500" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 pt-2">
+          <button onclick="enterApp('host')" class="py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl shadow-lg transition cursor-pointer flex flex-col items-center gap-1">
+            <span class="text-lg">🖥️</span>
+            <span class="text-sm">Ser Anfitrión</span>
+          </button>
+          <button onclick="enterApp('guest')" class="py-3 px-4 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-xl border border-gray-700 transition cursor-pointer flex flex-col items-center gap-1">
+            <span class="text-lg">🍿</span>
+            <span class="text-sm">Espectador</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- FILA 1: CABECERA -->
-  <header class="flex flex-wrap items-center justify-between bg-[#111827] border border-gray-800 rounded-xl px-5 py-3 shadow-lg">
+  <header id="appHeader" class="flex flex-wrap items-center justify-between bg-[#111827] border border-gray-800 rounded-xl px-5 py-3 shadow-lg">
     <div class="flex items-center gap-3">
       <div class="w-9 h-9 rounded-lg bg-red-600/20 border border-red-500/30 flex items-center justify-center text-red-500 font-bold text-lg">
         🎬
@@ -30,9 +66,18 @@
         <p id="nowPlayingTitle" class="text-xs text-gray-400">Sin reproducción activa</p>
       </div>
     </div>
+
+    <!-- Barra rápida de conexión para Espectador en Modo Cine -->
+    <div id="guestQuickConnect" class="hidden items-center gap-2">
+      <input id="roomCodeInput" type="text" placeholder="Código de sala (ej: cine-xxxx)" class="bg-gray-900 border border-gray-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-red-500 w-44" />
+      <button onclick="connectToHost()" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-lg transition cursor-pointer">
+        Conectar
+      </button>
+    </div>
+
     <div class="flex items-center gap-3">
-      <span id="roleBadge" class="px-3 py-1 text-xs font-semibold rounded-full bg-gray-800 text-gray-300 border border-gray-700">
-        Sin rol
+      <span id="userDisplayBadge" class="px-3 py-1 text-xs font-semibold rounded-full bg-gray-800 text-gray-200 border border-gray-700">
+        Usuario
       </span>
       <span id="connectionStatus" class="px-3 py-1 text-xs font-semibold rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
         Desconectado
@@ -40,55 +85,38 @@
     </div>
   </header>
 
-  <!-- FILA 2: REPRODUCTOR Y CHAT -->
-  <main class="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1">
-    <!-- Reproductor (2 columnas) -->
-    <section class="lg:col-span-2 flex flex-col bg-[#111827] border border-gray-800 rounded-xl overflow-hidden shadow-lg">
-      <div class="relative w-full aspect-video bg-black flex items-center justify-center">
-        <video id="videoPlayer" class="w-full h-full object-contain" controls playsinline></video>
-
-        <!-- Modal de Bienvenida (Bloqueante sobre el reproductor) -->
-        <div id="welcomeModal" class="absolute inset-0 z-20 bg-[#0b0f19]/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
-          <div class="w-14 h-14 rounded-2xl bg-red-600/20 border border-red-500/30 flex items-center justify-center text-3xl mb-4">
-            🎬
-          </div>
-          <h2 class="text-2xl font-bold text-white mb-2">Bienvenido a tu Cine P2P</h2>
-          <p class="text-sm text-gray-400 max-w-md mb-6">
-            Elige tu rol para comenzar. Como <strong class="text-white">Anfitrión</strong> transmites tus videos en vivo; como <strong class="text-white">Espectador</strong> te unes al instante a la transmisión.
-          </p>
-          <div class="flex flex-wrap gap-3 justify-center">
-            <button onclick="selectRole('host')" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-lg transition cursor-pointer">
-              🖥️ Ser Anfitrión (Host)
-            </button>
-            <button onclick="selectRole('guest')" class="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-lg border border-gray-700 transition cursor-pointer">
-              👥 Unirme a Sala
-            </button>
-          </div>
-        </div>
+  <!-- FILA 2: REPRODUCTOR Y CHAT (Se adapta a Modo Cine Twitch para Espectador) -->
+  <main id="mainContainer" class="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1">
+    
+    <!-- Reproductor -->
+    <section id="playerSection" class="lg:col-span-2 flex flex-col bg-[#111827] border border-gray-800 rounded-xl overflow-hidden shadow-lg">
+      <div class="relative w-full flex-1 bg-black flex items-center justify-center min-h-[300px]">
+        <video id="videoPlayer" class="w-full h-full object-contain max-h-[82vh]" controls playsinline></video>
 
         <!-- Overlay de estado para Espectador -->
-        <div id="guestOverlay" class="hidden absolute inset-0 z-10 bg-black/80 flex flex-col items-center justify-center p-4 text-center pointer-events-none">
-          <p id="guestOverlayText" class="text-sm text-gray-300 font-medium">Esperando conexión con la sala...</p>
+        <div id="guestOverlay" class="hidden absolute inset-0 z-10 bg-black/85 flex flex-col items-center justify-center p-4 text-center pointer-events-none">
+          <div class="w-12 h-12 rounded-full border-2 border-red-500/40 border-t-red-500 animate-spin mb-3"></div>
+          <p id="guestOverlayText" class="text-sm text-gray-300 font-medium">Ingresa el código de sala arriba para ver la transmisión en vivo.</p>
         </div>
       </div>
 
-      <div class="flex items-center justify-between px-4 py-2.5 bg-[#0f1523] border-t border-gray-800 text-xs text-gray-400">
-        <span>🛡️ Transmisión WebRTC En Vivo (Sin descarga previa)</span>
+      <div class="flex items-center justify-between px-4 py-2 bg-[#0f1523] border-t border-gray-800 text-xs text-gray-400">
+        <span>🛡️ Transmisión WebRTC Directa</span>
         <span id="liveIndicator" class="text-gray-500 font-medium">● En espera</span>
       </div>
     </section>
 
-    <!-- Chat de Sala (1 columna) -->
-    <aside class="flex flex-col bg-[#111827] border border-gray-800 rounded-xl overflow-hidden shadow-lg h-[400px] lg:h-auto">
+    <!-- Chat de Sala (Estilo Twitch al costado) -->
+    <aside id="chatSection" class="flex flex-col bg-[#111827] border border-gray-800 rounded-xl overflow-hidden shadow-lg h-[420px] lg:h-auto">
       <div class="flex items-center justify-between px-4 py-3 border-b border-gray-800 bg-[#0f1523]">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-gray-300">💬 Chat de la Sala</h3>
+        <h3 class="text-xs font-bold uppercase tracking-wider text-gray-300">💬 Chat en Vivo</h3>
         <span id="peerCountBadge" class="text-xs px-2 py-0.5 rounded bg-gray-800 text-gray-400">0 conectados</span>
       </div>
-      <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-2 text-sm">
-        <p class="text-xs text-gray-500 italic">[Sistema] Selecciona un rol para iniciar.</p>
+      <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-2.5 text-sm">
+        <p class="text-xs text-gray-500 italic">[Sistema] Bienvenido al chat de la sala.</p>
       </div>
       <form onsubmit="sendChat(event)" class="p-3 border-t border-gray-800 bg-[#0f1523] flex gap-2">
-        <input id="chatInput" type="text" placeholder="Escribe un mensaje..." class="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500" />
+        <input id="chatInput" type="text" placeholder="Enviar un mensaje..." class="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500" />
         <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition cursor-pointer">
           Enviar
         </button>
@@ -96,27 +124,26 @@
     </aside>
   </main>
 
-  <!-- FILA 3: CONTROLES, INVITACIÓN Y MONITOR -->
-  <footer class="grid grid-cols-1 md:grid-cols-3 gap-4">
-    <!-- Panel 1: Modo, Playlist (Solo Host) o Conexión (Espectador) -->
+  <!-- FILA 3: CONTROLES EXCLUSIVOS DEL HOST (Se oculta en Modo Cine del Espectador) -->
+  <footer id="hostFooter" class="hidden grid-cols-1 md:grid-cols-3 gap-4">
+    <!-- Panel 1: Playlist del Host -->
     <div class="bg-[#111827] border border-gray-800 rounded-xl p-4 shadow-lg flex flex-col gap-3">
       <div class="flex items-center justify-between border-b border-gray-800 pb-2">
         <h3 class="text-xs font-bold uppercase tracking-wider text-gray-300">🎛️ Controles y Playlist</h3>
       </div>
 
-      <!-- Controles Host -->
-      <div id="hostControls" class="hidden flex-col gap-3">
+      <div class="flex flex-col gap-3">
         <div>
           <label class="block text-xs text-gray-400 mb-1">Agregar videos a la cola (MP4 / WebM):</label>
           <input id="videoFilesInput" type="file" accept="video/*" multiple onchange="addVideosToPlaylist(event)" class="w-full text-xs text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-600 file:text-white hover:file:bg-red-700 cursor-pointer" />
         </div>
         <div>
           <label class="block text-xs text-gray-400 mb-1">Subtítulos opcionales (.vtt):</label>
-          <input id="subtitleInput" type="file" accept=".vtt" onchange="loadSubtitle(event)" class="w-full text-xs text-gray-400 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-gray-800 file:text-gray-200 hover:file:bg-gray-700 cursor-pointer" />
+          <input id="subtitleInput" type="file" accept=".vtt" onchange="loadSubtitle(event)" class="w-full text-xs text-gray-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-gray-800 file:text-gray-200 hover:file:bg-gray-700 cursor-pointer" />
         </div>
         <div class="mt-1">
           <div class="flex items-center justify-between mb-1">
-            <span class="text-xs font-semibold text-gray-300">Cola de Reproducción (Solo Host)</span>
+            <span class="text-xs font-semibold text-gray-300">Cola de Reproducción</span>
             <button onclick="playNextInQueue()" class="text-xs text-red-400 hover:text-red-300 cursor-pointer">Siguiente ⏭️</button>
           </div>
           <ul id="playlistContainer" class="max-h-28 overflow-y-auto space-y-1 text-xs bg-gray-900/70 p-2 rounded-lg border border-gray-800">
@@ -124,19 +151,6 @@
           </ul>
         </div>
       </div>
-
-      <!-- Controles Espectador -->
-      <div id="guestControls" class="hidden flex-col gap-3">
-        <div>
-          <label class="block text-xs text-gray-400 mb-1">Código de Sala del Anfitrión:</label>
-          <input id="roomCodeInput" type="text" placeholder="Ej: cine-abcd" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500" />
-        </div>
-        <button onclick="connectToHost()" class="w-full py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition cursor-pointer">
-          🔌 Entrar al Cine en Vivo
-        </button>
-      </div>
-
-      <p id="noRoleHint" class="text-xs text-gray-500">Selecciona tu rol en la pantalla principal para habilitar los controles.</p>
     </div>
 
     <!-- Panel 2: Enlace de Invitación -->
@@ -152,7 +166,7 @@
         </div>
       </div>
       <p class="text-xs text-gray-500">
-        Comparte el enlace copiado. Quienes entren verán la película en el punto exacto donde se esté reproduciendo.
+        Comparte este enlace. Quienes entren verán la película en vivo en el punto exacto donde se esté reproduciendo.
       </p>
     </div>
 
@@ -165,12 +179,12 @@
           <span id="streamStateText" class="text-sm font-bold text-gray-300">Inactivo</span>
         </div>
         <div class="bg-gray-900/70 border border-gray-800 rounded-lg p-2.5">
-          <span class="block text-[11px] text-gray-400">Pares Conectados</span>
+          <span class="block text-[11px] text-gray-400">Espectadores</span>
           <span id="connectedPeersCount" class="text-sm font-bold text-white">0</span>
         </div>
       </div>
       <p class="text-xs text-gray-500">
-        Tecnología: <span class="text-gray-300">PeerJS + MediaStream</span>. El video fluye directo de navegador a navegador.
+        Transmisión directa de navegador a navegador sin servidores intermedios.
       </p>
     </div>
   </footer>
@@ -178,8 +192,9 @@
   <script>
     let peer = null;
     let role = null;
-    let connections = []; // DataChannels
-    let mediaCalls = [];  // MediaStreams activos
+    let userName = 'Anónimo';
+    let connections = [];
+    let mediaCalls = [];
     let hostConnection = null;
 
     let playlist = [];
@@ -188,31 +203,61 @@
 
     const videoEl = document.getElementById('videoPlayer');
 
-    // Detectar si viene un ?room= en la URL
+    // Detectar si viene ?room= en la URL
     window.addEventListener('DOMContentLoaded', () => {
       const params = new URLSearchParams(window.location.search);
       const roomParam = params.get('room');
       if (roomParam) {
+        document.getElementById('modalRoomField').classList.remove('hidden');
+        document.getElementById('modalRoomInput').value = roomParam;
         document.getElementById('roomCodeInput').value = roomParam;
       }
     });
 
-    function selectRole(selectedRole) {
+    function enterApp(selectedRole) {
+      const nameVal = document.getElementById('userNameInput').value.trim();
+      userName = nameVal || (selectedRole === 'host' ? 'Anfitrión' : 'Espectador');
       role = selectedRole;
-      document.getElementById('welcomeModal').classList.add('hidden');
-      document.getElementById('noRoleHint').classList.add('hidden');
-      document.getElementById('roleBadge').textContent = role === 'host' ? 'Anfitrión (Host)' : 'Espectador';
+
+      // Ocultar modal de ingreso
+      document.getElementById('entryModal').classList.add('hidden');
+      document.getElementById('userDisplayBadge').textContent = `${userName} (${role === 'host' ? 'Host' : 'Espectador'})`;
 
       if (role === 'host') {
-        document.getElementById('hostControls').classList.remove('hidden');
-        document.getElementById('hostControls').classList.add('flex');
+        document.getElementById('hostFooter').classList.remove('hidden');
+        document.getElementById('hostFooter').classList.add('grid');
         initHostPeer();
       } else {
-        document.getElementById('guestControls').classList.remove('hidden');
-        document.getElementById('guestControls').classList.add('flex');
-        document.getElementById('guestOverlay').classList.remove('hidden');
+        // Activar Modo Cine estilo Twitch para el Espectador
+        activateTwitchTheaterMode();
+        const modalRoom = document.getElementById('modalRoomInput').value.trim();
+        if (modalRoom) {
+          document.getElementById('roomCodeInput').value = modalRoom;
+        }
         initGuestPeer();
       }
+    }
+
+    function activateTwitchTheaterMode() {
+      const body = document.getElementById('appBody');
+      body.className = 'h-screen flex flex-col bg-black overflow-hidden';
+
+      const header = document.getElementById('appHeader');
+      header.className = 'flex flex-wrap items-center justify-between bg-[#0e0e10] border-b border-gray-800 px-4 py-2 shrink-0';
+
+      document.getElementById('guestQuickConnect').classList.remove('hidden');
+      document.getElementById('guestQuickConnect').classList.add('flex');
+
+      const main = document.getElementById('mainContainer');
+      main.className = 'flex-1 flex flex-col lg:flex-row overflow-hidden';
+
+      const playerSection = document.getElementById('playerSection');
+      playerSection.className = 'flex-1 flex flex-col bg-black overflow-hidden';
+
+      const chatSection = document.getElementById('chatSection');
+      chatSection.className = 'w-full lg:w-[340px] xl:w-[380px] flex flex-col bg-[#18181b] border-t lg:border-t-0 lg:border-l border-gray-800 h-[35vh] lg:h-auto shrink-0';
+
+      document.getElementById('guestOverlay').classList.remove('hidden');
     }
 
     // --- LÓGICA DEL ANFITRIÓN (HOST) ---
@@ -223,7 +268,7 @@
       peer.on('open', (id) => {
         document.getElementById('myRoomId').value = id;
         updateStatus('Sala Activa', 'bg-green-500/10 text-green-400 border-green-500/20');
-        appendChat('Sistema', `Sala creada con código: ${id}`);
+        appendChat('Sistema', `Sala creada. Código: ${id}`);
       });
 
       peer.on('connection', (conn) => {
@@ -231,11 +276,9 @@
         updatePeerCounters();
 
         conn.on('open', () => {
-          appendChat('Sistema', 'Un espectador se unió a la sala.');
           if (currentIndex >= 0 && playlist[currentIndex]) {
             conn.send({ type: 'title', title: playlist[currentIndex].name });
           }
-          // Si ya hay video reproduciéndose, enviarle el stream en vivo de inmediato
           if (activeStream) {
             const call = peer.call(conn.peer, activeStream);
             mediaCalls.push(call);
@@ -243,8 +286,11 @@
         });
 
         conn.on('data', (data) => {
-          if (data.type === 'chat') {
-            appendChat('Espectador', data.message);
+          if (data.type === 'join') {
+            appendChat('Sistema', `${data.name} se unió a la sala.`);
+            broadcastData({ type: 'system', message: `${data.name} se unió a la sala.` }, conn.peer);
+          } else if (data.type === 'chat') {
+            appendChat(data.sender, data.message);
             broadcastData(data, conn.peer);
           }
         });
@@ -259,13 +305,9 @@
     function addVideosToPlaylist(event) {
       const files = Array.from(event.target.files);
       if (!files.length) return;
-
       playlist.push(...files);
       renderPlaylist();
-
-      if (currentIndex === -1) {
-        playVideoAtIndex(0);
-      }
+      if (currentIndex === -1) playVideoAtIndex(0);
     }
 
     function renderPlaylist() {
@@ -284,9 +326,8 @@
       if (index < 0 || index >= playlist.length) return;
       currentIndex = index;
       const file = playlist[index];
-      const url = URL.createObjectURL(file);
+      videoEl.src = URL.createObjectURL(file);
 
-      videoEl.src = url;
       videoEl.play().then(() => {
         captureAndStream();
       }).catch(err => console.warn('Haz clic en Play para iniciar:', err));
@@ -316,8 +357,6 @@
     function captureAndStream() {
       const stream = videoEl.captureStream ? videoEl.captureStream() : videoEl.mozCaptureStream();
       activeStream = stream;
-
-      // Llamar a todos los espectadores ya conectados
       connections.forEach(conn => {
         if (conn.open) {
           const call = peer.call(conn.peer, activeStream);
@@ -334,15 +373,13 @@
         const vttContent = e.target.result;
         applySubtitleTrack(vttContent);
         broadcastData({ type: 'subtitle', vtt: vttContent });
-        appendChat('Sistema', 'Subtítulos cargados y enviados a la sala.');
+        appendChat('Sistema', 'Subtítulos cargados.');
       };
       reader.readAsText(file);
     }
 
     function applySubtitleTrack(vttText) {
-      const existing = videoEl.querySelectorAll('track');
-      existing.forEach(t => t.remove());
-
+      videoEl.querySelectorAll('track').forEach(t => t.remove());
       const blob = new Blob([vttText], { type: 'text/vtt' });
       const track = document.createElement('track');
       track.kind = 'subtitles';
@@ -356,15 +393,12 @@
     // --- LÓGICA DEL ESPECTADOR (GUEST) ---
     function initGuestPeer() {
       peer = new Peer();
-      peer.on('open', (id) => {
-        document.getElementById('myRoomId').value = id;
-        updateStatus('Listo para unirte', 'bg-blue-500/10 text-blue-400 border-blue-500/20');
-        // Si ya había un código en la URL, conectar automáticamente
+      peer.on('open', () => {
+        updateStatus('Listo', 'bg-blue-500/10 text-blue-400 border-blue-500/20');
         const code = document.getElementById('roomCodeInput').value.trim();
         if (code) connectToHost();
       });
 
-      // Recibir la transmisión en vivo del Host
       peer.on('call', (call) => {
         call.answer();
         call.on('stream', (remoteStream) => {
@@ -375,8 +409,6 @@
           document.getElementById('guestOverlay').classList.add('hidden');
           document.getElementById('liveIndicator').textContent = '🔴 EN VIVO';
           document.getElementById('liveIndicator').className = 'text-red-500 font-bold';
-          document.getElementById('streamStateText').textContent = 'Recibiendo';
-          document.getElementById('streamStateText').className = 'text-sm font-bold text-green-400';
         });
       });
     }
@@ -389,16 +421,18 @@
       hostConnection = peer.connect(hostId);
 
       hostConnection.on('open', () => {
-        updateStatus('Conectado al Cine', 'bg-green-500/10 text-green-400 border-green-500/20');
-        document.getElementById('connectedPeersCount').textContent = '1';
+        updateStatus('En Vivo', 'bg-green-500/10 text-green-400 border-green-500/20');
         document.getElementById('peerCountBadge').textContent = 'Conectado';
         document.getElementById('guestOverlayText').textContent = 'Conectado. Esperando que el anfitrión inicie la película...';
-        appendChat('Sistema', `Conectado a la sala ${hostId}.`);
+        hostConnection.send({ type: 'join', name: userName });
+        appendChat('Sistema', `Te uniste a la sala ${hostId}.`);
       });
 
       hostConnection.on('data', (data) => {
         if (data.type === 'chat') {
-          appendChat(data.sender || 'Sala', data.message);
+          appendChat(data.sender, data.message);
+        } else if (data.type === 'system') {
+          appendChat('Sistema', data.message);
         } else if (data.type === 'title') {
           document.getElementById('nowPlayingTitle').textContent = `Viendo en vivo: ${data.title}`;
         } else if (data.type === 'subtitle') {
@@ -407,12 +441,10 @@
       });
     }
 
-    // --- UTILIDADES COMUNES ---
+    // --- UTILIDADES ---
     function broadcastData(data, excludePeerId = null) {
       connections.forEach(conn => {
-        if (conn.open && conn.peer !== excludePeerId) {
-          conn.send(data);
-        }
+        if (conn.open && conn.peer !== excludePeerId) conn.send(data);
       });
     }
 
@@ -422,13 +454,12 @@
       const msg = input.value.trim();
       if (!msg) return;
 
-      const senderName = role === 'host' ? 'Anfitrión' : 'Espectador';
-      appendChat('Tú', msg);
+      appendChat(userName, msg);
 
       if (role === 'host') {
-        broadcastData({ type: 'chat', sender: 'Anfitrión', message: msg });
+        broadcastData({ type: 'chat', sender: userName, message: msg });
       } else if (hostConnection && hostConnection.open) {
-        hostConnection.send({ type: 'chat', sender: 'Espectador', message: msg });
+        hostConnection.send({ type: 'chat', sender: userName, message: msg });
       }
       input.value = '';
     }
@@ -436,8 +467,9 @@
     function appendChat(sender, text) {
       const box = document.getElementById('chatMessages');
       const p = document.createElement('p');
-      p.className = 'text-gray-300 break-words';
-      p.innerHTML = `<strong class="text-red-400">${sender}:</strong> ${text}`;
+      p.className = 'text-gray-300 break-words leading-snug';
+      const colorClass = sender === 'Sistema' ? 'text-gray-400 italic' : 'text-red-400 font-semibold';
+      p.innerHTML = `<span class="${colorClass}">${sender}:</span> ${text}`;
       box.appendChild(p);
       box.scrollTop = box.scrollHeight;
     }
