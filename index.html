@@ -41,7 +41,7 @@ body.role-host .guest-only{display:none!important}
 .codebox{margin-top:11px;display:flex;align-items:center;gap:8px;background:var(--panel2);border:1px dashed var(--line2);border-radius:9px;padding:8px 11px}
 .codebox .lbl{font-family:var(--mono);font-size:8.5px;letter-spacing:2px;color:var(--dim)}
 .codebox .code{font-family:var(--mono);font-size:15px;font-weight:600;color:var(--acc2);letter-spacing:1px;flex:1;overflow:hidden;text-overflow:ellipsis}
-.codebox button{background:var(--panel3);border:1px solid var(--line2);color:var(--mut);border-radius:6px;padding:4px 8px;font-size:11px;transition:.15s}
+.codebox button{background:var(--panel3);border:1px solid var(--line2);color:var(--mut);border-radius:6px;padding:4px 8px;font-size:11px}
 .codebox button:hover{color:var(--ink);border-color:var(--acc)}
 .p2p-tag{margin-top:9px;display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:9.5px;
   color:var(--acc2);background:rgba(229,72,77,.08);border:1px solid rgba(229,72,77,.3);padding:4px 9px;border-radius:6px}
@@ -78,10 +78,11 @@ body.role-host .guest-only{display:none!important}
 .me .st i.off{background:var(--dim)}
 .me .pts{font-family:var(--mono);font-size:10px;color:var(--silver);background:var(--panel3);border:1px solid var(--line2);
   padding:2px 8px;border-radius:10px;margin-left:auto}
+.me .rank{font-size:10px;color:var(--acc2);font-weight:700;display:block;margin-top:2px}
 .rolebadge{font-family:var(--mono);font-size:8.5px;letter-spacing:1px;padding:2px 7px;border-radius:5px}
 .rolebadge.host{background:rgba(229,72,77,.15);color:var(--acc2);border:1px solid rgba(229,72,77,.45)}
 .rolebadge.guest{background:rgba(228,228,231,.08);color:var(--silver);border:1px solid rgba(228,228,231,.3)}
-.me-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
+.me-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
 .mbtn{border:1px solid var(--line2);background:var(--panel2);color:var(--mut);border-radius:9px;padding:8px 2px;
   font-size:15px;transition:.15s;display:flex;flex-direction:column;gap:2px;align-items:center}
 .mbtn small{font-family:var(--mono);font-size:7.5px}
@@ -110,7 +111,7 @@ body.role-host .guest-only{display:none!important}
   background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='22' y='36' width='10' height='28' rx='4' fill='%23e5484d'/%3E%3Crect x='45' y='20' width='10' height='60' rx='4' fill='%23e5484d'/%3E%3Crect x='68' y='30' width='10' height='40' rx='4' fill='%23a1a1aa'/%3E%3C/svg%3E") center/110px no-repeat}
 .stage video,.stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000;z-index:1}
 #stageLocal{position:absolute;inset:0;z-index:2;visibility:hidden}
-#stageLocal video,#stageLocal canvas{position:absolute;inset:0;width:100%;height:100%;background:#000;object-fit:contain}
+#stageLocal video{position:absolute;inset:0;width:100%;height:100%;background:#000;object-fit:contain}
 .ov-top{position:absolute;top:0;left:0;right:0;z-index:6;display:flex;justify-content:space-between;padding:12px 15px;
   background:linear-gradient(180deg,rgba(0,0,0,.55),transparent);pointer-events:none}
 .ov-top .chips{display:flex;gap:7px}
@@ -137,6 +138,7 @@ body.role-host .guest-only{display:none!important}
   background:rgba(10,10,12,.82);border:1px solid var(--line2);padding:8px 13px;border-radius:9px;font-size:13px;font-weight:600}
 .share-tag.on{display:flex}
 .share-tag .dot{width:8px;height:8px;border-radius:50%;background:var(--live);animation:blink 1.1s infinite}
+.share-tag .tagstop{background:var(--live);border:0;color:#fff;font-weight:700;font-size:11px;border-radius:6px;padding:4px 8px}
 .ctrl{position:absolute;left:0;right:0;bottom:0;z-index:6;display:flex;align-items:center;gap:11px;
   padding:30px 14px 11px;background:linear-gradient(0deg,rgba(0,0,0,.82),transparent);opacity:0;transition:.3s}
 .stage:hover .ctrl{opacity:1}
@@ -151,7 +153,6 @@ body.role-host .guest-only{display:none!important}
   color:#111;font-weight:700;font-size:13px;border:0;border-radius:22px;padding:9px 18px}
 .unmute.on{display:block}
 #zapFx{position:absolute;inset:0;z-index:9;background:#000;opacity:0;pointer-events:none}
-/* grid de cámaras estilo Discord */
 #confGrid{position:absolute;inset:0;z-index:3;display:none;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
   gap:8px;padding:10px;overflow:auto;background:#0a0a0c}
 .ctile{position:relative;background:#141417;border:1px solid var(--line2);border-radius:10px;overflow:hidden;
@@ -163,6 +164,9 @@ body.role-host .guest-only{display:none!important}
 .ctile .cmic{opacity:.3;font-size:10px;margin-left:auto}
 .ctile.micon .cmic{opacity:1}
 .ctile.speaking{border-color:var(--acc);box-shadow:0 0 0 2px rgba(229,72,77,.4)}
+.ctile .cstop{position:absolute;top:6px;right:6px;z-index:4;background:rgba(255,45,45,.9);border:0;color:#fff;
+  border-radius:6px;font-size:11px;padding:3px 7px;display:none}
+.ctile:hover .cstop{display:block}
 .cempty{grid-column:1/-1;align-self:center;justify-self:center;text-align:center;color:var(--dim);font-size:13px}
 .veil{position:absolute;inset:0;z-index:10;display:flex;flex-direction:column;gap:14px;align-items:center;justify-content:center;background:rgba(8,8,10,.9);text-align:center;padding:24px}
 .veil[hidden]{display:none}
@@ -203,7 +207,7 @@ body.role-host .guest-only{display:none!important}
 .rtab.on{color:var(--ink)}
 .rtab.on::after{content:"";position:absolute;left:20%;right:20%;bottom:-1px;height:2px;background:var(--acc);border-radius:2px}
 .rtab .n{font-family:var(--mono);font-size:10px;color:var(--acc2)}
-.chat-ctrl{border-bottom:1px solid var(--line);padding:11px 12px;display:flex;flex-direction:column;gap:9px;background:var(--panel2);max-height:46vh;overflow-y:auto}
+.chat-ctrl{border-bottom:1px solid var(--line);padding:11px 12px;display:flex;flex-direction:column;gap:9px;background:var(--panel2);max-height:44vh;overflow-y:auto}
 .cc-sec{display:flex;flex-direction:column;gap:6px}
 .cc-label{font-family:var(--mono);font-size:8.5px;letter-spacing:2px;color:var(--dim);display:flex;align-items:center;gap:8px}
 .cc-label .pts{margin-left:auto;color:var(--silver);font-size:10px;background:var(--panel3);border:1px solid var(--line2);padding:2px 8px;border-radius:10px}
@@ -233,19 +237,27 @@ body.role-host .guest-only{display:none!important}
 .msg .h time{font-family:var(--mono);font-size:9.5px;color:var(--dim)}
 .msg p{font-size:13.5px;color:#c9c9ce;margin-top:2px;line-height:1.45;word-break:break-word}
 .msg.sys{text-align:center;color:var(--dim);font-family:var(--mono);font-size:10.5px;padding:4px}
-.msg.bet{background:var(--panel2);border:1px solid rgba(229,72,77,.35);margin:6px 0}
+.msg.dm{border:1px dashed rgba(229,72,77,.45);background:rgba(229,72,77,.05)}
+.msg.bet{background:var(--panel2);border:1px solid rgba(229,72,77,.35);margin:6px 0;overflow:hidden}
 .msg.bet .bq{font-weight:700;font-size:13.5px;display:flex;gap:8px;align-items:center}
-.msg.bet .bq .mono{font-size:9px;color:var(--dim)}
-.msg.bet .bopts{display:flex;flex-direction:column;gap:5px;margin-top:8px}
+.msg.bet .bq .mono{font-size:9px;color:var(--dim);margin-left:auto}
+.msg.bet .bbar{height:3px;background:#2b2b31;border-radius:2px;margin:7px 0 4px;overflow:hidden}
+.msg.bet .bbar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--live));transition:width 1s linear}
+.msg.bet .bopts{display:flex;flex-direction:column;gap:5px;margin-top:6px}
 .bopt{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line2);border-radius:8px;
   padding:7px 10px;font-size:12.5px;color:var(--mut);text-align:left;transition:.15s}
 .bopt:hover{color:var(--ink);border-color:var(--acc)}
 .bopt .pot{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--silver)}
+.bopt .odds{font-family:var(--mono);font-size:9.5px;color:var(--acc2)}
 .bopt.mine{border-color:var(--acc);color:var(--acc2)}
-.bopt.win{border-color:var(--silver);color:var(--ink);background:rgba(228,228,231,.08)}
+.bopt.win{border-color:var(--silver);color:var(--ink);background:rgba(228,228,231,.1);box-shadow:0 0 18px rgba(229,72,77,.35)}
+.bopt.pulse{animation:pulse2 .5s}
+@keyframes pulse2{50%{transform:scale(1.03);border-color:var(--acc)}}
 .bsettle{display:flex;gap:5px;margin-top:7px}
 .bsettle button{flex:1;background:var(--panel3);border:1px solid var(--line2);color:var(--mut);border-radius:7px;padding:5px;font-size:11px}
 .bsettle button:hover{color:var(--ink);border-color:var(--acc)}
+.qspin{display:inline-block;animation:qsp .9s linear infinite}
+@keyframes qsp{to{transform:rotate(360deg)}}
 .chat-input{display:flex;gap:8px;padding:12px 13px;border-top:1px solid var(--line);position:relative}
 .chat-input input{flex:1;background:var(--bg);border:1px solid var(--line2);border-radius:10px;color:var(--ink);
   padding:11px 13px;font-size:13.5px;outline:none}
@@ -262,9 +274,15 @@ body.role-host .guest-only{display:none!important}
 .prow{display:flex;align-items:center;gap:11px;padding:7px 8px;border-radius:9px}
 .prow:hover{background:rgba(255,255,255,.03)}
 .prow .nm{font-weight:600;font-size:13.5px;display:flex;gap:7px;align-items:center}
-.prow .tags{display:flex;gap:5px;margin-left:auto}
+.prow .tags{display:flex;gap:5px;margin-left:auto;align-items:center}
 .ptag{font-size:13px;opacity:.3}
 .ptag.on{opacity:1}
+.dmbtn{background:none;border:1px solid var(--line2);border-radius:6px;font-size:11px;padding:2px 6px;color:var(--dim);opacity:0}
+.prow:hover .dmbtn{opacity:1}
+.dmbtn.on{opacity:1;border-color:var(--acc);color:var(--acc2)}
+.dmbtn:hover{color:var(--acc2)}
+.hist{font-family:var(--mono);font-size:10.5px;color:var(--mut);line-height:1.9}
+.hist .w{color:var(--silver)}.hist .l{color:var(--live)}
 
 .overlay{position:fixed;inset:0;z-index:100;background:rgba(5,5,7,.86);backdrop-filter:blur(6px);
   display:grid;place-items:center;padding:20px;opacity:0;pointer-events:none;transition:.25s}
@@ -316,12 +334,6 @@ body.role-host .guest-only{display:none!important}
 .emoji-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
 .em{font-size:17px;width:38px;height:38px;border-radius:9px;border:1px solid var(--line2);background:var(--panel2)}
 .em.on{border-color:var(--acc);background:rgba(229,72,77,.15)}
-.annbar{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);z-index:95;display:none;align-items:center;gap:8px;
-  background:rgba(15,15,18,.96);border:1px solid var(--line2);border-radius:14px;padding:9px 14px}
-.annbar .cl{width:22px;height:22px;border-radius:50%;border:2px solid transparent}
-.annbar .cl.on{border-color:#fff;transform:scale(1.15)}
-.annbar .tb{background:var(--panel2);border:1px solid var(--line2);color:var(--mut);border-radius:8px;padding:6px 10px;font-size:12px}
-.annbar .tb.on{background:rgba(255,45,45,.16);border-color:var(--live);color:var(--live)}
 #toasts{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:300;display:flex;flex-direction:column;gap:8px;align-items:center}
 .toast{background:var(--panel3);border:1px solid var(--line2);border-left:3px solid var(--acc);padding:10px 20px;border-radius:10px;font-size:13px;box-shadow:0 16px 40px rgba(0,0,0,.55);animation:tin .3s}
 .toast.err{border-left-color:var(--live)}
@@ -345,11 +357,10 @@ body.role-host .guest-only{display:none!important}
       <h2>Televisión social<br><em>sin servidores</em> de por medio.</h2>
       <ul class="feat">
         <li><span>📺</span> Proyecta canales HLS, MP4 o YouTube para toda la sala</li>
-        <li><span>🖥</span> Comparte pantalla con marcadores y láser; el anfitrión autoriza</li>
-        <li><span>🎬</span> Transmite video de tu PC: nadie lo descarga, todos lo ven en vivo</li>
-        <li><span>🎥</span> Videoconferencia en cuadros estilo Discord con anillo de voz</li>
-        <li><span>🎰</span> Apuestas en el chat y puntos por mantenerte viendo</li>
-        <li><span>🔒</span> Salas privadas con código único y contraseña opcional</li>
+        <li><span>🎬</span> Transmite video de tu PC; el anfitrión autoriza y puede cortarlo</li>
+        <li><span>🎥</span> Videoconferencia en cuadros estilo Discord; el anfitrión la cierra</li>
+        <li><span>🎰</span> Apuestas en vivo, rangos, historial y puntos por ver</li>
+        <li><span>🔒</span> Salas privadas con código, contraseña y chat privado</li>
       </ul>
       <p class="in2-brand">ONDA BY COMUNIDAD WARGAMES · TELEVISIÓN SOCIAL P2P</p>
     </div>
@@ -405,14 +416,14 @@ body.role-host .guest-only{display:none!important}
         <div class="txt">
           <div class="nm"><span id="meName">—</span><span class="rolebadge guest" id="roleBadge">ESPECTADOR</span></div>
           <div class="st"><i id="meDot" class="off"></i><span id="meStatus">Esperando…</span></div>
+          <span class="rank" id="rankMe">🌱 Novato</span>
         </div>
         <span class="pts" id="ptsMe">🪙 0</span>
       </div>
       <div class="me-btns">
         <button class="mbtn" id="bMic" title="Micrófono (M)">🎙<small>MIC</small></button>
         <button class="mbtn deaf" id="bDeaf" title="Silenciar todo (D)">🎧<small>SALIDA</small></button>
-        <button class="mbtn" id="bCam" title="Cámara (requiere aprobación si no eres anfitrión)">🎥<small>CAM</small></button>
-        <button class="mbtn" id="bScreenH" title="Compartir / detener pantalla">🖥<small>PANT.</small></button>
+        <button class="mbtn" id="bCam" title="Cámara (el anfitrión autoriza)">🎥<small>CAM</small></button>
       </div>
     </div>
   </aside>
@@ -434,10 +445,7 @@ body.role-host .guest-only{display:none!important}
         <div id="stageShare" style="display:none;position:absolute;inset:0;z-index:2">
           <video id="shareVideo" autoplay playsinline></video>
         </div>
-        <div id="stageLocal">
-          <video id="monVid" controls playsinline hidden></video>
-          <canvas id="monCv" hidden></canvas>
-        </div>
+        <div id="stageLocal"><video id="monVid" controls playsinline hidden></video></div>
         <div id="confGrid"></div>
         <div id="zapFx"></div>
         <div id="reactLayer"></div>
@@ -450,7 +458,7 @@ body.role-host .guest-only{display:none!important}
         </div>
         <div class="watchbar" id="watchbar"><span class="wdot"></span><span id="watchTxt"></span><button id="watchBtn">👁 Ver ahora</button></div>
         <div class="local-tag" id="localTag"><span class="dot"></span><span id="localTagTxt"></span><button id="localStop">⏹ Detener</button></div>
-        <div class="share-tag" id="shareTag"><span class="dot"></span><span id="shareTagTxt"></span></div>
+        <div class="share-tag" id="shareTag"></div>
         <button class="unmute" id="unmute">🔊 Activar sonido</button>
         <div class="ctrl" id="ctrl">
           <button class="cbtn" id="btnPlay"><svg viewBox="0 0 24 24"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg></button>
@@ -485,6 +493,7 @@ body.role-host .guest-only{display:none!important}
         <div class="cc-row">
           <button class="ccbtn" id="cAddCh">📺 Canal</button>
           <button class="ccbtn danger" id="cCut">⏹ Cortar canal</button>
+          <button class="ccbtn danger" id="cCloseConf">📴 Cerrar videollamada</button>
         </div>
         <div class="cc-row" id="tvStrip"></div>
       </div>
@@ -495,7 +504,6 @@ body.role-host .guest-only{display:none!important}
       <div class="cc-sec">
         <div class="cc-label">📤 TU TRANSMISIÓN · EL ANFITRIÓN AUTORIZA</div>
         <div class="cc-row">
-          <button class="ccbtn" id="cScreen">🖥 Pantalla</button>
           <button class="ccbtn" id="cVideo">🎬 Video</button>
           <button class="ccbtn cam" id="cCam">🎥 Cámara</button>
           <button class="ccbtn danger" id="cStopAll">⏹ Todo</button>
@@ -511,10 +519,10 @@ body.role-host .guest-only{display:none!important}
         </div>
         <div class="cc-row">
           <button class="ccbtn" id="qCara">🪙 Cara x2</button>
-          <button class="ccbtn" id="qCruz"> Cruz x2</button>
+          <button class="ccbtn" id="qCruz">🪙 Cruz x2</button>
           <button class="ccbtn" id="qAlto">🎲 Alto x2</button>
           <button class="ccbtn" id="qBajo">🎲 Bajo x2</button>
-          <button class="ccbtn" id="qRuleta">⚡ Ruleta x5</button>
+          <button class="ccbtn" id="qRuleta">⚡ x5</button>
         </div>
         <div class="cc-row host-only">
           <button class="ccbtn" id="newBetBtn">📊 Nueva apuesta de evento</button>
@@ -538,17 +546,6 @@ body.role-host .guest-only{display:none!important}
       <div id="emoPop"></div>
     </div>
   </aside>
-</div>
-
-<div class="annbar" id="annbar">
-  <span class="mono" style="font-size:9px;color:var(--dim)">MARCADORES</span>
-  <button class="cl on" data-c="#ff2d2d" style="background:#ff2d2d"></button>
-  <button class="cl" data-c="#e4e4e7" style="background:#e4e4e7"></button>
-  <button class="cl" data-c="#a1a1aa" style="background:#a1a1aa"></button>
-  <button class="cl" data-c="#ffffff" style="background:#ffffff"></button>
-  <button class="tb" id="annLaser">🔦 Láser</button>
-  <button class="tb" id="annUndo">↩ Deshacer</button>
-  <button class="tb" id="annClear">🧹 Limpiar</button>
 </div>
 
 <div class="overlay" id="signalOv">
@@ -584,27 +581,32 @@ body.role-host .guest-only{display:none!important}
 <input type="file" id="filePick" accept="video/*" hidden>
 <button id="unlockPill">🔊 Toca aquí para activar el audio de la sala</button>
 <div id="toasts"></div>
-<video id="screenVid" autoplay muted playsinline style="display:none"></video>
 
 <script>
 /* ═══════════ BASE ═══════════ */
 const $=s=>document.querySelector(s);
+const E=h=>String.fromCodePoint(parseInt(h,16)); /* emojis por codepoint: nunca vacíos */
 const toast=(m,err)=>{const t=document.createElement('div');t.className='toast'+(err?' err':'');t.textContent=m;
   $('#toasts').appendChild(t);setTimeout(()=>{t.style.opacity=0;t.style.transition='.4s';setTimeout(()=>t.remove(),400)},3600);};
 const initials=n=>n.trim().split(/\s+/).slice(0,2).map(w=>(w[0]||'').toUpperCase()).join('')||'?';
 const hhmm=()=>new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'});
 const slugify=s=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
-/* tema rojo/gris */
 const AVA_COLORS=['linear-gradient(135deg,#e5484d,#7f1d1d)','linear-gradient(135deg,#f4f4f5,#71717a)',
  'linear-gradient(135deg,#ff6b6b,#450a0a)','linear-gradient(135deg,#a1a1aa,#27272a)',
  'linear-gradient(135deg,#dc2626,#18181b)','linear-gradient(135deg,#e4e4e7,#3f3f46)'];
 const NAME_COLORS=['#ff6b6b','#e4e4e7','#f87171','#a3a3a3','#ef4444','#d4d4d8'];
 const avaBg=i=>AVA_COLORS[(i||0)%AVA_COLORS.length];
 const nameCol=i=>NAME_COLORS[(i||0)%NAME_COLORS.length];
+const RANKS=[[0,'🌱 Novato'],[150,'🎯 Aficionado'],[400,'🎖 Regular'],[900,'🛡 Veterano'],[2000,'👑 Leyenda Wargames']];
+function rankOf(p){let r=RANKS[0],next=null;
+  for(let i=0;i<RANKS.length;i++){if(p>=RANKS[i][0])r=RANKS[i];}
+  const idx=RANKS.findIndex(x=>x[1]===r[1]);next=RANKS[idx+1]||null;
+  return{name:r[1],next,prog:next?Math.min(100,Math.round((p-r[0])/(next[0]-r[0])*100)):100};}
 
 const ME={name:localStorage.getItem('onda_name')||'',color:parseInt(localStorage.getItem('onda_color'))||0,
-  mic:false,deaf:false,pts:parseInt(localStorage.getItem('onda_pts'))||100};
-let ROLE='host',CODE='',started=false,AC=null,betAmt=10,myPendingApproval=null;
+  mic:false,deaf:false,pts:parseInt(localStorage.getItem('onda_pts'))||100,
+  hist:JSON.parse(localStorage.getItem('onda_hist')||'[]')};
+let ROLE='host',CODE='',started=false,AC=null,betAmt=10,myPendingApproval=null,dmTo=null,followingMove=false;
 
 const RTC={iceServers:[
   {urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302','stun:stun2.l.google.com:19302']},
@@ -612,16 +614,18 @@ const RTC={iceServers:[
    username:'openrelayproject',credential:'openrelayproject'}]};
 const PEEROPTS={config:RTC,debug:0};
 
-/* ══ UNA SALA FIJA + PERSONALIZADAS ══ */
 const BASE_ROOMS=[{slug:'general',ic:'📡',name:'General',topic:'Sala principal de la comunidad'}];
 let USER_ROOMS=JSON.parse(localStorage.getItem('onda_rooms')||'[]');
 let PWDS=JSON.parse(localStorage.getItem('onda_pwds')||'{}');
 let ROOMS=[...BASE_ROOMS,...USER_ROOMS];
 let roomCounts={};
 
-/* ═══════════ PUNTOS ═══════════ */
 function savePts(){localStorage.setItem('onda_pts',ME.pts);
-  $('#ptsMe').textContent='🪙 '+ME.pts;$('#ptsChip').textContent='🪙 '+ME.pts;}
+  $('#ptsMe').textContent='🪙 '+ME.pts;$('#ptsChip').textContent='🪙 '+ME.pts;
+  const r=rankOf(ME.pts);
+  $('#rankMe').textContent=r.name+(r.next?` · ${r.prog}% → ${r.next[1]}`:' · MAX');}
+function pushHist(txt,win,delta){ME.hist.unshift({txt,win,delta,ts:Date.now()});
+  ME.hist=ME.hist.slice(0,30);localStorage.setItem('onda_hist',JSON.stringify(ME.hist));}
 setInterval(()=>{if(started&&!document.hidden&&$('#stage')&&!$('#stage').classList.contains('idle')){
   ME.pts+=2;savePts();}},15000);
 
@@ -635,12 +639,12 @@ $('#roleSeg').onclick=e=>{const b=e.target.closest('[data-role]');if(!b)return;R
   $('#hostFields').style.display=ROLE==='host'?'block':'none';
   $('#guestFields').style.display=ROLE==='guest'?'block':'none';
   $('#segHint').textContent=ROLE==='host'
-    ?'Creas la sala, proyectas y autorizas las transmisiones pendientes.'
+    ?'Creas la sala, proyectas, autorizas transmisiones y cortas cualquier video o videollamada.'
     :'Entras con el código del anfitrión; tus transmisiones requieren su aprobación.';};
 $('#quickRooms').innerHTML=BASE_ROOMS.map(r=>`<button class="qr" data-q="${r.slug}">${r.ic} ${r.slug}</button>`).join('');
 $('#quickRooms').onclick=e=>{const b=e.target.closest('[data-q]');if(b)$('#gCode').value=b.dataset.q;};
-const EMOJIS=['🏟️','🎬','','📺','','⚽','🎲','🎵','🔥'];
-let pickEmoji='🏟️',pickEmoji2='🎬';
+const EMOJIS=[E('1F3DF'),E('1F3AC'),E('1F3AE'),E('1F4FA'),E('1F37F'),E('26BD'),E('1F3B2'),E('1F3B5'),E('1F525')];
+let pickEmoji=EMOJIS[0],pickEmoji2=EMOJIS[1];
 const fillEmo=(id,sel,cb)=>{$(id).innerHTML=EMOJIS.map(e=>`<button class="em ${e===sel?'on':''}" data-e="${e}">${e}</button>`).join('');
   $(id).onclick=e=>{const b=e.target.closest('[data-e]');if(!b)return;cb(b.dataset.e);
     $(id).querySelectorAll('.em').forEach(x=>x.classList.toggle('on',x===b));};};
@@ -679,7 +683,7 @@ $('#introGo').onclick=()=>{
 const PREFIX='onda-p2p-';
 const hostId=()=>PREFIX+CODE;
 let peer=null,hostConn=null,conns=new Map(),members=new Map(),
-    myCalls={mic:[],screen:[],video:[],canal:[],cam:[]},myStreams={},shares=new Map(),analysers=new Map(),
+    myCalls={mic:[],video:[],canal:[],cam:[]},myStreams={},shares=new Map(),analysers=new Map(),
     hostMedia=new Map(),featured={type:'idle'},lastShareKey=null,
     approvals=new Map(),canalStream=null,chanName=null,localName='',lastErrToast=0,
     claimTries=0,joinAttempt=0,bets=new Map();
@@ -696,11 +700,11 @@ function nameOf(id){if(id===myPeerId())return ME.name;const m=members.get(id);re
 
 function cleanupPeer(){
   Object.values(myCalls).flat().forEach(c=>{try{c.close()}catch(e){}});
-  myCalls={mic:[],screen:[],video:[],canal:[],cam:[]};
+  myCalls={mic:[],video:[],canal:[],cam:[]};
   Object.values(myStreams).forEach(s=>{try{s.getTracks().forEach(t=>t.stop())}catch(e){}});myStreams={};
   [...shares.keys()].forEach(k=>teardown(k));
   if(canalStream){canalStream.getTracks().forEach(t=>t.stop());canalStream=null;}
-  stopScreenLocal();stopVideoLocal();
+  stopVideoLocal();
   members.clear();conns.clear();hostMedia.clear();approvals.clear();renderApprovals();
   if(peer){try{peer.destroy()}catch(e){}}peer=null;hostConn=null;
   renderPeople();renderFilmstrip();updateWatchbar();}
@@ -709,7 +713,7 @@ function enterRoom(code){
   const prev=CODE;
   if(prev&&prev!==code&&ROLE==='host'&&peer&&conns.size){
     try{broadcast({t:'move',to:code})}catch(e){}}
-  CODE=code;joinAttempt=0;cleanupPeer();
+  CODE=code;joinAttempt=0;dmTo=null;updateDmUI();cleanupPeer();
   const r=ROOMS.find(x=>x.slug===code);
   $('#roomName').textContent=r?r.name:code;$('#roomTopic').textContent=r?r.topic:'Sala por código';
   $('#codeTxt').textContent=code;$('#codeTxtG').textContent=code;
@@ -732,7 +736,6 @@ function claimHost(){
       if(claimTries<4){claimTries++;setTimeout(claimHost,700);}
       else{claimTries=0;connectToHost();}}
     else if(e.type==='network'||e.type==='server-error'){setStatus('Sin broker P2P');errToast('No se alcanzó el servidor de handshake');}});}
-/* ══ FIX: reintentos del espectador al seguir al anfitrión ══ */
 function connectToHost(){
   setStatus('Buscando al anfitrión…');
   peer=new Peer(PEEROPTS);
@@ -740,7 +743,9 @@ function connectToHost(){
     hostConn=peer.connect(hostId(),{metadata:{name:ME.name,color:ME.color,pwd:PWDS[CODE]||''}});
     hostConn.on('open',()=>{joinAttempt=0;setStatus('Conectado','ok');onReady();});
     hostConn.on('data',onData);
-    hostConn.on('close',()=>{setStatus('Anfitrión se fue');toast('El anfitrión cerró la sala');
+    hostConn.on('close',()=>{
+      if(followingMove)return;
+      setStatus('Anfitrión se fue');toast('El anfitrión cerró la sala');
       members.clear();renderPeople();featured={type:'idle'};renderStage();});});
   peer.on('call',onIncomingCall);
   peer.on('disconnected',()=>{try{peer.reconnect()}catch(e){}});
@@ -767,12 +772,13 @@ function onIncomingConn(conn){
     for(const[,hm]of hostMedia){if(!hm.pending)try{peer.call(conn.peer,hm.stream,{metadata:hm.meta})}catch(e){}}
     try{conn.send({t:'sync',chan:chanName?{name:chanName,yt:currentYT||null}:null})}catch(e){}});}
 function memberLeft(id){const m=members.get(id);if(!m)return;
-  members.delete(id);conns.delete(id);
-  [...approvals.keys()].forEach(k=>{if(k.startsWith(id+':')){approvals.delete(k);}});renderApprovals();
-  ['mic','screen','video','canal','cam'].forEach(k=>teardown(id+':'+k));
+  members.delete(id);conns.delete(id);if(dmTo===id){dmTo=null;updateDmUI();}
+  [...approvals.keys()].forEach(k=>{if(k.startsWith(id+':'))approvals.delete(k);});renderApprovals();
+  ['mic','video','canal','cam'].forEach(k=>teardown(id+':'+k));
   broadcastRoster();sysMsg(`${m.name} salió de la sala`);}
 function hostRelay(d,from){
   if(!d||!d.t)return;
+  if(d.t==='dm'){addChat(d,true);return;} /* privado: NO se reenvía */
   const relay=()=>{for(const[pid,c]of conns)if(pid!==from)try{c.send(d)}catch(e){}};
   if(d.t==='chat'){relay();addChat(d);}
   else if(d.t==='state'){const m=members.get(from);if(m){m.mic=!!d.mic;m.share=!!d.share;}broadcastRoster();}
@@ -787,7 +793,9 @@ function broadcastRoster(){
 function onData(d){
   if(!d||!d.t)return;
   if(d.t==='denied'){toast('Contraseña incorrecta para esta sala',true);cleanupPeer();setStatus('Acceso denegado');return;}
-  if(d.t==='move'){toast(`👑 El anfitrión movió la sala a #${d.to}`);setTimeout(()=>enterRoom(d.to),400);return;}
+  if(d.t==='move'){followingMove=true;toast(`👑 El anfitrión movió la sala a #${d.to}`);
+    setTimeout(()=>{followingMove=false;enterRoom(d.to);},400);return;}
+  if(d.t==='dm'){addChat(d,true);return;}
   if(d.t==='roster'){members.clear();d.members.forEach(m=>{if(m.id!==peer.id)members.set(m.id,m);});
     renderPeople();renderRooms();roomCounts[CODE]=d.members.length;
     $('#chipPeers').textContent='👥 '+d.members.length;}
@@ -800,7 +808,8 @@ function onData(d){
   else if(d.t==='react')spawnReact(d.e);
   else if(d.t==='betOpen'||d.t==='betPlace'||d.t==='betSettle')applyBet(d);
   else if(d.t==='approve'){
-    if(myPendingApproval===d.kind){myPendingApproval=null;syncBtnStates();toast('✓ El anfitrión aprobó tu transmisión');}}
+    if(myPendingApproval===d.kind){myPendingApproval=null;syncBtnStates();renderStage();
+      toast('✓ El anfitrión aprobó tu transmisión');}}
   else if(d.t==='deny'){
     if(myPendingApproval===d.kind||myStreams[d.kind]){myPendingApproval=null;stopMy(d.kind);
       toast('El anfitrión rechazó tu transmisión',true);}}
@@ -811,7 +820,7 @@ function onData(d){
       $('#chipCat').textContent='—';$('#chipLive').classList.remove('on');
       if(featured.type==='tv'){featured=lastShareKey?{type:'share',key:lastShareKey}:{type:'idle'};renderStage();}}}}
 
-/* ═══════════ MEDIA CORE (con pendientes) ═══════════ */
+/* ═══════════ MEDIA CORE ═══════════ */
 function onIncomingCall(call){
   let got=false;
   const md0=call.metadata||{};
@@ -830,7 +839,7 @@ function onIncomingCall(call){
       else relayToOthers(key,stream,md,call.peer);}});
   call.on('close',()=>{clearTimeout(wd);
     if(ROLE==='host'&&approvals.has(key0)){approvals.delete(key0);renderApprovals();}
-    if(md0.kind)teardown(key0);});
+    teardown(key0);});
   call.on('error',()=>{clearTimeout(wd);errToast('Fallo WebRTC recibiendo un stream');});
   try{call.answer();}catch(e){errToast('No se pudo responder la llamada WebRTC');}}
 function relayToOthers(key,stream,md,skip){
@@ -850,7 +859,7 @@ function replaceSource(key,stream,meta){
     a.play().catch(()=>showUnlock());entry.el=a;watchAudio(key,stream,meta.owner);}
   else if(meta.kind==='cam'){
     watchAudio(key,stream,meta.owner);
-    if(!meta.pending){
+    if(!meta.pending||meta.local){
       if(meta.local){featured={type:'conf'};renderStage();}
       else if(featured.type==='idle'||featured.type==='conf'){featured={type:'conf'};renderStage();
         toast(`🎥 ${meta.ownerName} está en la videoconferencia`);}}
@@ -875,7 +884,7 @@ function teardown(key){
   if(kind==='cam'){renderConfGrid();
     if(camCount()===0&&featured.type==='conf'){
       featured=lastShareKey?{type:'share',key:lastShareKey}:(current?{type:'tv'}:{type:'idle'});needRender=true;}}
-  if(featured.type==='local'&&!myStreams.video&&!myStreams.screen){
+  if(featured.type==='local'&&!myStreams.video){
     featured=current?{type:'tv'}:(lastShareKey?{type:'share',key:lastShareKey}:{type:'idle'});needRender=true;}
   renderFilmstrip();renderPeople();updateWatchbar();syncBtnStates();
   if(needRender)renderStage();}
@@ -883,17 +892,17 @@ function camCount(){return [...shares.values()].filter(e=>e.kind==='cam'&&!e.pen
 function updateWatchbar(){
   const e=lastShareKey&&shares.get(lastShareKey);
   if(e&&!e.local&&!e.pending&&!(featured.type==='share'&&featured.key===lastShareKey)){
-    $('#watchTxt').textContent=`${e.ownerName} está ${e.kind==='screen'?'compartiendo pantalla':e.kind==='video'?'transmitiendo video':'proyectando'}`;
+    $('#watchTxt').textContent=`${e.ownerName} está ${e.kind==='video'?'transmitiendo video':'proyectando'}`;
     $('#watchbar').classList.add('on');}
   else $('#watchbar').classList.remove('on');}
 $('#watchBtn').onclick=()=>{if(lastShareKey)feature(lastShareKey);};
 
-/* ═══════════ AUTORIZACIONES ═══════════ */
+/* ═══════════ AUTORIZACIONES + CONTROL DEL HOST ═══════════ */
 function renderApprovals(){
   const list=[...approvals.entries()];
   $('#approvals').innerHTML=list.length
     ?`<div class="alabel">⏳ AUTORIZACIONES PENDIENTES</div>`+list.map(([key,a])=>`
-      <div class="appcard">⏳ <b>${a.ownerName}</b> · ${a.kind==='screen'?'🖥 pantalla':a.kind==='video'?'🎬 video':' cámara'}
+      <div class="appcard">⏳ <b>${a.ownerName}</b> · ${a.kind==='video'?'🎬 video':'🎥 cámara'}
         <button class="prev" data-pv="${key}">👁 Ver</button>
         <button class="yes" data-ap="${key}">✓ Aprobar</button>
         <button class="no" data-dn="${key}">✕</button></div>`).join('')
@@ -901,14 +910,13 @@ function renderApprovals(){
 $('#approvals').addEventListener('click',e=>{
   const pv=e.target.closest('[data-pv]'),ap=e.target.closest('[data-ap]'),dn=e.target.closest('[data-dn]');
   if(pv){feature(pv.dataset.pv);toast('👁 Vista previa privada (solo tú la ves)');}
-  if(ap){approveShare(ap.dataset.ap);}
-  if(dn){denyShare(dn.dataset.dn);}});
+  if(ap)approveShare(ap.dataset.ap);
+  if(dn)denyShare(dn.dataset.dn);});
 function approveShare(key){
   const e=shares.get(key);if(!e)return;
   e.pending=false;approvals.delete(key);renderApprovals();
   const hm=hostMedia.get(key);if(hm)hm.pending=false;
-  const md={kind:e.kind,owner:e.owner,ownerName:e.ownerName};
-  relayToOthers(key,e.stream,md,e.owner);
+  relayToOthers(key,e.stream,{kind:e.kind,owner:e.owner,ownerName:e.ownerName},e.owner);
   send0(e.owner,{t:'approve',kind:e.kind});
   if(e.kind==='cam'){renderConfGrid();if(featured.type==='idle'||featured.type==='conf'){featured={type:'conf'};renderStage();}}
   else{lastShareKey=key;featured={type:'share',key};renderStage();}
@@ -921,6 +929,23 @@ function denyShare(key){
   approvals.delete(key);renderApprovals();
   teardown(key);
   sysMsg(`✕ Rechazaste a ${e.ownerName} (${e.kind})`);}
+/* host corta cualquier video ajeno o cámara */
+function hostStopKey(key){
+  const e=shares.get(key);if(!e)return;
+  const[owner,kind]=key.split(':');
+  if(owner===myPeerId()){stopMy(kind);return;}
+  send0(owner,{t:'stopShare',kind});
+  try{if(e.srcCall)e.srcCall.close();}catch(x){}
+  teardown(key);
+  toast(`⏹ Cortaste la transmisión de ${e.ownerName}`);}
+function closeConf(){
+  broadcast({t:'stopShare',kind:'cam'});
+  [...shares.keys()].forEach(k=>{if(k.endsWith(':cam')){
+    const[owner]=k.split(':');if(owner!==myPeerId()){try{shares.get(k).srcCall&&shares.get(k).srcCall.close();}catch(x){}}
+    teardown(k);}});
+  if(myStreams.cam)stopMy('cam');
+  toast('📴 Videollamada cerrada para toda la sala');}
+$('#cCloseConf').onclick=closeConf;
 
 /* ═══════════ ESCENARIO ═══════════ */
 function renderStage(){
@@ -929,53 +954,49 @@ function renderStage(){
   let eff=featured.type;
   if(eff==='tv'&&!current)eff='idle';
   if(eff==='share'&&!shares.has(featured.key))eff='idle';
-  if(eff==='local'&&!myStreams.video&&!myStreams.screen)eff='idle';
+  if(eff==='local'&&!myStreams.video)eff='idle';
   if(eff!=='tv'){$('#veil').hidden=true;$('#errVeil').hidden=true;}
   $('#stageTV').style.visibility=(eff==='tv')?'visible':'hidden';
   $('#stageLocal').style.visibility=(eff==='local')?'visible':'hidden';
   $('#stageShare').style.display=(eff==='share')?'block':'none';
   cg.style.display=(eff==='conf')?'grid':'none';
   $('#localTag').classList.remove('on');
-  $('#annbar').style.display='none';
-  if(eff==='conf'){stage.classList.add('conf');renderConfGrid();
-    $('#shareTag').classList.remove('on');$('#shareVideo').srcObject=null;}
+  const st=$('#shareTag');st.classList.remove('on');st.innerHTML='';
+  if(eff==='conf'){stage.classList.add('conf');renderConfGrid();$('#shareVideo').srcObject=null;}
   else if(eff==='local'){stage.classList.add('local');
-    $('#monVid').hidden=!myStreams.video;$('#monCv').hidden=!myStreams.screen;
+    $('#monVid').hidden=false;
     $('#localTag').classList.add('on');
-    const pend=myPendingApproval?' · ⏳ esperando autorización':'';
-    $('#localTagTxt').textContent=myStreams.video?('🎬 Transmitiendo: '+localName+pend):('🖥 Compartiendo pantalla — dibuja encima'+pend);
-    if(myStreams.screen)$('#annbar').style.display='flex';
-    $('#shareTag').classList.remove('on');$('#shareVideo').srcObject=null;}
+    const pend=myPendingApproval==='video'?' · ⏳ esperando autorización':'';
+    $('#localTagTxt').textContent='🎬 Transmitiendo: '+localName+pend;}
   else if(eff==='share'){const e=shares.get(featured.key);
     stage.classList.add('share');
     const v=$('#shareVideo');v.srcObject=e.stream;v.muted=e.local||ME.deaf;tryPlayVideo(v);
-    $('#shareTag').classList.add('on');
-    $('#shareTagTxt').textContent=`${e.kind==='canal'?'Proyectando canal':e.kind==='screen'?'Compartiendo pantalla':'Transmitiendo video'} · ${e.local?'Tú':e.ownerName}`;}
-  else if(eff==='tv'){$('#shareTag').classList.remove('on');$('#shareVideo').srcObject=null;}
-  else{stage.classList.add('idle');$('#shareTag').classList.remove('on');$('#shareVideo').srcObject=null;}
+    st.classList.add('on');
+    st.innerHTML=`<span class="dot"></span><span>${e.kind==='canal'?'Proyectando canal':'Transmitiendo video'} · ${e.local?'Tú':e.ownerName}</span>`+
+      (ROLE==='host'&&!e.local?`<button class="tagstop" data-ts="${featured.key}">⏹ Cortar</button>`:'');}
+  else if(eff==='tv'){$('#shareVideo').srcObject=null;}
+  else{stage.classList.add('idle');$('#shareVideo').srcObject=null;}
   updateWatchbar();renderFilmstrip();}
-$('#localStop').onclick=()=>{if(myStreams.video)stopMy('video');else if(myStreams.screen)stopMy('screen');};
+$('#shareTag').addEventListener('click',e=>{const b=e.target.closest('[data-ts]');if(b)hostStopKey(b.dataset.ts);});
+$('#localStop').onclick=()=>{if(myStreams.video)stopMy('video');};
 function feature(key){featured={type:'share',key};renderStage();}
 function renderFilmstrip(){
   const vid=[...shares.entries()].filter(([,e])=>e.kind!=='mic'&&e.kind!=='cam'&&!e.pending);
   const cc=camCount();
   const confTile=cc?`<button class="ftile ${featured.type==='conf'?'on':''}" data-f="conf">
     <span class="dot"></span>🎥 CÁMARAS <small>${cc} · VER</small></button>`:'';
-  const localTile=(myStreams.video||myStreams.screen)?`<button class="ftile ${featured.type==='local'?'on':''}" data-f="local">
-    <span class="dot"></span>${myStreams.video?'🎬':''} Tu transmisión <small>ESCENARIO</small></button>`:'';
+  const localTile=myStreams.video?`<button class="ftile ${featured.type==='local'?'on':''}" data-f="local">
+    <span class="dot"></span>🎬 Tu transmisión <small>ESCENARIO</small></button>`:'';
   $('#filmstrip').innerHTML=confTile+localTile+vid.map(([k,e])=>{
-    const lbl=e.kind==='screen'?'PANTALLA':e.kind==='video'?'VIDEO':e.kind==='canal'?'CANAL':'STREAM';
+    const lbl=e.kind==='video'?'VIDEO':e.kind==='canal'?'CANAL':'STREAM';
     const canStop=(ROLE==='host'&&!e.local)||e.local;
     const stopBtn=canStop?`<button class="stopx" data-stop="${k}" title="Detener">⏹</button>`:'';
     return `<button class="ftile ${featured.key===k?'on':''}" data-f="${k}">
-      <span class="dot"></span>${e.kind==='screen'?'🖥':e.kind==='video'?'🎬':''} ${e.local?'Tú':e.ownerName}
+      <span class="dot"></span>${e.kind==='video'?'🎬':'📺'} ${e.local?'Tú':e.ownerName}
       <small>${lbl} · VER</small>${stopBtn}</button>`;}).join('');}
 $('#filmstrip').addEventListener('click',e=>{
   const st=e.target.closest('[data-stop]');
-  if(st){e.stopPropagation();const k=st.dataset.stop;const[owner,kind]=k.split(':');
-    if(owner===myPeerId())stopMy(kind);
-    else{send0(owner,{t:'stopShare',kind});teardown(k);toast('Transmisión cortada por el anfitrión');}
-    return;}
+  if(st){e.stopPropagation();hostStopKey(st.dataset.stop);return;}
   const b=e.target.closest('[data-f]');if(!b)return;
   if(b.dataset.f==='conf'){featured={type:'conf'};renderStage();}
   else if(b.dataset.f==='local'){featured={type:'local'};renderStage();}
@@ -1006,46 +1027,41 @@ setInterval(()=>{if(!started)return;
 function syncBtnStates(){
   $('#bMic').classList.toggle('on',ME.mic);$('#bMic').classList.toggle('stop',ME.mic);
   $('#bDeaf').classList.toggle('on',ME.deaf);
-  const sh=!!myStreams.screen, vd=!!myStreams.video, cm=!!myStreams.cam;
-  const cs=$('#cScreen'),cv=$('#cVideo');
-  cs.classList.toggle('on',sh||myPendingApproval==='screen');cs.classList.toggle('stop',sh);
+  const vd=!!myStreams.video, cm=!!myStreams.cam;
+  const cv=$('#cVideo');
   cv.classList.toggle('on',vd||myPendingApproval==='video');cv.classList.toggle('stop',vd);
-  cs.textContent=myPendingApproval==='screen'?'⏳ Esperando…':(sh?'🖥 Detener':'🖥 Pantalla');
   cv.textContent=myPendingApproval==='video'?'⏳ Esperando…':(vd?'🎬 Detener':'🎬 Video');
-  const bs=$('#bScreenH');if(bs){bs.classList.toggle('on',sh);bs.classList.toggle('stop',sh);}
   ['#cCam','#bCam'].forEach(s=>{const el=$(s);if(el)el.classList.toggle('on',cm||myPendingApproval==='cam');});
   $('#cCam').textContent=myPendingApproval==='cam'?'⏳ Esperando…':(cm?'🎥 Apagar':'🎥 Cámara');
-  $('#bCam').classList.toggle('stop',cm);
-  $('#confCount')&&($('#confCount').textContent=camCount());}
+  $('#bCam').classList.toggle('stop',cm);}
 function stopAllMine(){
   let n=0;myPendingApproval=null;
-  ['screen','video','cam','mic'].forEach(k=>{if(myStreams[k]){stopMy(k);n++;}});
+  ['video','cam','mic'].forEach(k=>{if(myStreams[k]){stopMy(k);n++;}});
   toast(n?`⏹ Detuviste ${n} transmisión${n>1?'es':''}`:'No tienes transmisiones activas');}
 function updateMyState(){if(ROLE==='host')broadcastRoster();else send({t:'state',mic:ME.mic,share:ME.share});renderPeople();}
 function sendOut(kind,stream,extra){
-  const pending=ROLE!=='host';
+  const pending=(ROLE!=='host')&&kind!=='mic'; /* mic siempre directo */
   const meta={kind,owner:myPeerId(),ownerName:ME.name,pending,...(extra||{})};
-  myCalls[kind]=[];
+  myCalls[kind]=myCalls[kind]||[];myCalls[kind]=[];
   const push=c=>{c.on('error',()=>errToast('Fallo WebRTC enviando '+kind));myCalls[kind].push(c);};
   if(ROLE==='host'){
     hostMedia.set(myPeerId()+':'+kind,{stream,meta,pending:false});
     for(const[pid]of conns){try{push(peer.call(pid,stream,{metadata:meta}))}catch(e){}}
     if(kind!=='mic')replaceSource(myPeerId()+':'+kind,stream,{...meta,local:true,pending:false});
   }else{
-    myPendingApproval=kind;
+    if(pending)myPendingApproval=kind;
     try{push(peer.call(hostId(),stream,{metadata:meta}))}catch(e){errToast('No se pudo enviar el stream');}
-    if(kind!=='mic')replaceSource(myPeerId()+':'+kind,stream,{...meta,local:true,pending:true});
-    toast('⏳ Transmisión enviada — esperando autorización del anfitrión');}
+    if(kind!=='mic')replaceSource(myPeerId()+':'+kind,stream,{...meta,local:true,pending});
+    if(pending)toast('⏳ Transmisión enviada — esperando autorización del anfitrión');}
   ME.share=true;updateMyState();syncBtnStates();renderStage();}
 function stopMy(kind){
   if(myPendingApproval===kind)myPendingApproval=null;
   if(kind==='video')stopVideoLocal();
-  else if(kind==='screen')stopScreenLocal();
   else if(myStreams[kind]){myStreams[kind].getTracks().forEach(t=>t.stop());delete myStreams[kind];}
   (myCalls[kind]||[]).forEach(c=>{try{c.close()}catch(e){}});myCalls[kind]=[];
   if(ROLE==='host')hostMedia.delete(myPeerId()+':'+kind);
   teardown(myPeerId()+':'+kind);
-  ME.share=!!(myStreams.screen||myStreams.video||canalStream);
+  ME.share=!!(myStreams.video||canalStream);
   updateMyState();syncBtnStates();}
 async function toggleMic(){
   if(ME.deaf){toast('Estás ensordecido 🎧 — quítalo primero',true);return;}
@@ -1063,7 +1079,7 @@ function toggleDeaf(){
   if(current)video.muted=ME.deaf;
   syncBtnStates();toast(ME.deaf?'🎧 Salida silenciada':'🔊 Audio activado');}
 
-/* ═══════════ CÁMARAS (cuadros estilo Discord) ═══════════ */
+/* ═══════════ CÁMARAS ═══════════ */
 async function toggleCam(){
   if(myStreams.cam){stopMy('cam');toast('🎥 Cámara apagada');return;}
   try{
@@ -1072,66 +1088,26 @@ async function toggleCam(){
     if(!ME.mic)toggleMic();}
   catch(e){toast('No se pudo acceder a la cámara',true);}}
 function renderConfGrid(){
-  const cams=[...shares.entries()].filter(([,e])=>e.kind==='cam'&&!e.pending);
+  const cams=[...shares.entries()].filter(([,e])=>e.kind==='cam'&&(!e.pending||e.local));
   const micOn=new Set();if(ME.mic)micOn.add(myPeerId());members.forEach(m=>{if(m.mic)micOn.add(m.id);});
   $('#confGrid').innerHTML=cams.map(([k,e])=>{
     const self=e.local;const owner=self?myPeerId():e.owner;
+    const stopBtn=ROLE==='host'&&!self?`<button class="cstop" data-cs="${owner}">⏹</button>`:'';
     return `<div class="ctile ${micOn.has(owner)?'micon':''}" data-owner="${owner}">
-      <div class="cvid"><video data-k="${k}" autoplay playsinline ${self?'muted data-self':''}></video></div>
+      <div class="cvid"><video data-k="${k}" autoplay playsinline ${self?'muted data-self':''}></video>${stopBtn}</div>
       <div class="cbar">${self?'Tú':e.ownerName}<i class="cmic">🎙</i></div></div>`;}).join('')
    ||`<div class="cempty">🎥</div>`;
   cams.forEach(([k,e])=>{const v=$('#confGrid').querySelector(`video[data-k="${k}"]`);
     if(v){v.srcObject=e.stream;tryPlayVideo(v);}});}
-
-/* ═══════════ PANTALLA ═══════════ */
-let strokes=[],curStroke=null,annColor='#ff2d2d',laserOn=false,annRaf=null;
-const screenVid=$('#screenVid'),monCv=$('#monCv'),monVid=$('#monVid');
-$('#annbar').querySelectorAll('.cl').forEach(b=>b.onclick=()=>{annColor=b.dataset.c;laserOn=false;
-  $('#annbar').querySelectorAll('.cl').forEach(x=>x.classList.toggle('on',x===b));$('#annLaser').classList.remove('on');});
-$('#annLaser').onclick=()=>{laserOn=!laserOn;$('#annLaser').classList.toggle('on',laserOn);};
-$('#annUndo').onclick=()=>strokes.pop();
-$('#annClear').onclick=()=>{strokes=[];};
-function annLoop(){
-  if(!myStreams.screen)return;
-  const ctx=monCv.getContext('2d');
-  if(screenVid.readyState>=2)ctx.drawImage(screenVid,0,0,monCv.width,monCv.height);
-  const now=Date.now();
-  strokes=strokes.filter(s=>!s.laser||now-s.t<900);
-  for(const s of strokes){
-    if(s.laser){const p=s.points[s.points.length-1];if(!p)continue;
-      const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,26);
-      g.addColorStop(0,'rgba(255,45,45,.95)');g.addColorStop(1,'rgba(255,45,45,0)');
-      ctx.fillStyle=g;ctx.beginPath();ctx.arc(p.x,p.y,26,0,7);ctx.fill();continue;}
-    ctx.strokeStyle=s.color;ctx.lineWidth=s.size;ctx.lineCap='round';ctx.lineJoin='round';
-    ctx.beginPath();s.points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();}
-  annRaf=requestAnimationFrame(annLoop);}
-function annPos(e){const r=monCv.getBoundingClientRect();
-  return{x:(e.clientX-r.left)*(monCv.width/r.width),y:(e.clientY-r.top)*(monCv.height/r.height)};}
-monCv.addEventListener('pointerdown',e=>{monCv.setPointerCapture(e.pointerId);
-  curStroke={color:laserOn?'#ff2d2d':annColor,size:laserOn?0:5,laser:laserOn,points:[annPos(e)],t:Date.now()};strokes.push(curStroke);});
-monCv.addEventListener('pointermove',e=>{if(curStroke){curStroke.points.push(annPos(e));curStroke.t=Date.now();}});
-monCv.addEventListener('pointerup',()=>curStroke=null);
-monCv.addEventListener('pointerleave',()=>curStroke=null);
-async function doScreen(){
-  if(!navigator.mediaDevices.getDisplayMedia)return toast('Tu navegador no soporta compartir pantalla',true);
-  try{const disp=await navigator.mediaDevices.getDisplayMedia({video:{frameRate:30},audio:true});
-    screenVid.srcObject=disp;await screenVid.play();
-    const st=disp.getVideoTracks()[0].getSettings();
-    monCv.width=st.width||1280;monCv.height=st.height||720;
-    strokes=[];annLoop();
-    const out=monCv.captureStream(30);
-    disp.getAudioTracks().forEach(t=>out.addTrack(t));
-    myStreams.screen=out;myStreams.screen._disp=disp;
-    disp.getVideoTracks()[0].addEventListener('ended',()=>{if(myStreams.screen)stopMy('screen');});
-    sendOut('screen',out);}
-  catch(e){/* canceló */}}
-function stopScreenLocal(){
-  if(annRaf)cancelAnimationFrame(annRaf);annRaf=null;
-  if(myStreams.screen&&myStreams.screen._disp)myStreams.screen._disp.getTracks().forEach(t=>t.stop());
-  screenVid.srcObject=null;monCv.hidden=true;}
-async function toggleScreen(){if(myStreams.screen){stopMy('screen');toast('🖥 Pantalla detenida');return;}await doScreen();}
+$('#confGrid').addEventListener('click',e=>{
+  const b=e.target.closest('[data-cs]');if(!b)return;
+  const owner=b.dataset.cs;
+  send0(owner,{t:'stopShare',kind:'cam'});
+  teardown(owner+':cam');
+  toast('⏹ Cámara cortada por el anfitrión');});
 
 /* ═══════════ VIDEO PC ═══════════ */
+const monVid=$('#monVid');
 function pickVideo(){if(myStreams.video){stopMy('video');toast('🎬 Transmisión detenida');return;}$('#filePick').click();}
 function stopVideoLocal(){
   if(myStreams.video&&myStreams.video._url)URL.revokeObjectURL(myStreams.video._url);
@@ -1144,7 +1120,7 @@ async function startVideo(f){
   monVid.src=url;localName=f.name;
   try{await monVid.play();}catch(err){toast('No se pudo reproducir el archivo',true);return;}
   let s;try{s=monVid.captureStream?monVid.captureStream():monVid.mozCaptureStream();}
-  catch(err){toast('Tu navegador no soporta capturar video — usa pantalla',true);return;}
+  catch(err){toast('Tu navegador no soporta capturar video',true);return;}
   s._url=url;myStreams.video=s;
   sendOut('video',s);}
 
@@ -1214,14 +1190,14 @@ function cutCanal(silent){
   (myCalls.canal||[]).forEach(c=>{try{c.close()}catch(e){}});myCalls.canal=[];
   if(ROLE==='host')hostMedia.delete(myPeerId()+':canal');
   teardown(myPeerId()+':canal');
-  ME.share=!!(myStreams.screen||myStreams.video);updateMyState();syncBtnStates();
+  ME.share=!!(myStreams.video);updateMyState();syncBtnStates();
   if(!silent)toast('⏹ Proyección cortada');}
 function cutProjection(){
   cutCanal();current=null;currentYT=null;chanName=null;
   broadcast({t:'chan',name:null,yt:null});
   $('#chipCat').textContent='—';$('#chipLive').classList.remove('on');
   renderTvStrip();
-  featured=lastShareKey?{type:'share',key:lastShareKey}:(myStreams.video||myStreams.screen?{type:'local'}:{type:'idle'});
+  featured=lastShareKey?{type:'share',key:lastShareKey}:(myStreams.video?{type:'local'}:{type:'idle'});
   renderStage();}
 function embedYT(src,name){
   current={id:'yt',type:'yt',name:name||'YouTube'};currentYT=src;
@@ -1244,21 +1220,32 @@ $('#vol').oninput=e=>{video.volume=e.target.value;if(!ME.deaf)video.muted=false;
 $('#btnFs').onclick=()=>document.fullscreenElement?document.exitFullscreen():$('#stage').requestFullscreen();
 setInterval(()=>{$('#timecode').textContent=(!current||current.type==='yt')?'':(current.live?'● EN VIVO':(video.duration?new Date(video.currentTime*1000).toISOString().substr(14,5):''));},700);
 
-/* ═══════════ APUESTAS ═══════════ */
+/* ═══════════ APUESTAS INMERSIVAS ═══════════ */
 $('#amtRow').onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;betAmt=+b.dataset.a;
   document.querySelectorAll('.amt').forEach(x=>x.classList.toggle('on',x===b));};
+function burst(n){for(let i=0;i<n;i++)setTimeout(()=>spawnReact(REACTS[Math.random()*REACTS.length|0]),i*90);}
 function quickBet(type){
   const amt=betAmt;
   if(ME.pts<amt)return toast('Puntos insuficientes 🪙',true);
-  ME.pts-=amt;
-  let win=false,det='';
-  if(type==='cara'||type==='cruz'){const r=Math.random()<.5?'cara':'cruz';win=(r===type);det=`salió ${r}`;}
-  else if(type==='alto'||type==='bajo'){const d=1+Math.floor(Math.random()*6);
-    win=(type==='alto'?d>=4:d<=3);det=`salió ${d}`;}
-  else{const r=Math.floor(Math.random()*5);win=(r===0);det=`ruleta ${r+1}/5`;}
-  if(win){ME.pts+=amt*(type==='ruleta'?5:2);}
-  savePts();
-  sysMsg(`${type==='ruleta'?'⚡':'🎲'} Apuesta ${type.toUpperCase()} · ${det} · ${win?`+${amt*(type==='ruleta'?5:2)} 🪙`:`-${amt} 🪙`}`);}
+  ME.pts-=amt;savePts();
+  const icon=type==='ruleta'?E('26A1'):(type==='cara'||type==='cruz'?E('1FA99'):E('1F3B2'));
+  const card=document.createElement('div');card.className='msg bet';
+  card.innerHTML=`<div class="bq"><span class="qspin">${icon}</span> Apostando ${amt} 🪙 a ${type.toUpperCase()}…</div>`;
+  $('#chat').appendChild(card);$('#chat').scrollTop=1e9;
+  setTimeout(()=>{
+    let win=false,det='';
+    if(type==='cara'||type==='cruz'){const r=Math.random()<.5?'cara':'cruz';win=(r===type);det=`salió ${r}`;}
+    else if(type==='alto'||type==='bajo'){const d=1+Math.floor(Math.random()*6);win=(type==='alto'?d>=4:d<=3);det=`dado ${d}`;}
+    else{const r=Math.floor(Math.random()*5);win=(r===0);det=`ruleta ${r+1}/5`;}
+    const gain=win?amt*(type==='ruleta'?5:2):0;
+    if(win){ME.pts+=gain;savePts();burst(8);}
+    pushHist(`${type} ${amt}🪙`,win,gain-amt);
+    card.innerHTML=`<div class="bq">${win?'🏆':'💀'} ${type.toUpperCase()} · ${det}
+      <span class="mono" style="color:${win?'var(--silver)':'var(--live)'}">${win?`+${gain} 🪙`:`-${amt} 🪙`}</span></div>
+      <div class="bopts"><div class="bopt ${win?'win':''}">${win?'¡Ganaste!':'Perdiste'}<span class="pot">🪙 ${ME.pts}</span></div></div>`;
+    $('#chat').scrollTop=1e9;
+    toast(win?`🏆 +${gain} 🪙 en ${type}`:`💀 -${amt} 🪙 en ${type}`,!win);
+  },1400);}
 $('#qCara').onclick=()=>quickBet('cara');$('#qCruz').onclick=()=>quickBet('cruz');
 $('#qAlto').onclick=()=>quickBet('alto');$('#qBajo').onclick=()=>quickBet('bajo');
 $('#qRuleta').onclick=()=>quickBet('ruleta');
@@ -1276,32 +1263,39 @@ function applyBet(d){
     renderBet(d.id);return;}
   const b=bets.get(d.id);if(!b)return;
   if(d.t==='betPlace'){
-    if(b.placed[d.name])return;
+    if(b.placed[d.name]||b.settled!=null)return;
     b.placed[d.name]={opt:d.opt,pts:d.pts};b.pots[d.opt]+=d.pts;
-    renderBet(d.id);return;}
+    renderBet(d.id,true);return;}
   if(d.t==='betSettle'){
     b.settled=d.win;
     const winPot=b.pots[d.win]||0,total=b.pots.reduce((a,c)=>a+c,0);
     const mine=b.placed[ME.name];
     if(mine&&mine.opt===d.win&&winPot>0){
       const gain=Math.floor(total*mine.pts/winPot);ME.pts+=gain;savePts();
+      pushHist(b.q,true,gain-mine.pts);burst(10);
       toast(`🏆 Ganaste ${gain} 🪙 en la apuesta`);}
-    else if(mine){toast('🎰 Apuesta perdida',true);}
+    else if(mine){pushHist(b.q,false,-mine.pts);toast('🎰 Apuesta perdida',true);}
     renderBet(d.id);}}
-function renderBet(id){
+function renderBet(id,pulse){
   const b=bets.get(id);if(!b)return;
-  const open=!b.settled&&Date.now()<b.end;
+  const open=b.settled==null&&Date.now()<b.end;
   const mine=b.placed[ME.name];
+  const total=b.pots.reduce((a,c)=>a+c,0);
   let el=document.getElementById('bet-'+id);
-  if(!el){el=document.createElement('div');el.id='bet-'+id;el.className='msg bet';$('#chat').appendChild(el);}
-  el.innerHTML=`<div class="bq">🎰 ${b.q} <span class="mono">${b.settled?'FINALIZADA':(open?Math.max(0,Math.round((b.end-Date.now())/1000))+'s':'CERRADA')}</span></div>
+  const isNew=!el;
+  if(isNew){el=document.createElement('div');el.id='bet-'+id;el.className='msg bet';$('#chat').appendChild(el);}
+  const remain=Math.max(0,b.end-Date.now());
+  el.innerHTML=`<div class="bq">🎰 ${b.q} <span class="mono">${b.settled!=null?'FINALIZADA':(open?Math.ceil(remain/1000)+'s':'CERRADA')}</span></div>
+    ${open?`<div class="bbar"><i style="width:${(remain/(b.dur*1000))*100}%"></i></div>`:''}
     <div class="bopts">${b.opts.map((o,i)=>{
       const cls=b.settled!=null?(i===b.settled?'win':''):(mine&&mine.opt===i?'mine':'');
       const btn=open&&!mine?`data-bo="${id}:${i}"`:'';
-      return `<button class="bopt ${cls}" ${btn}>${b.settled===i?'🏆 ':''}${o}<span class="pot">🪙 ${b.pots[i]}</span></button>`;}).join('')}</div>
-    ${(!b.settled&&b.by===ME.name)?`<div class="bsettle">${b.opts.map((o,i)=>`<button data-bs="${id}:${i}">🏆 ${o}</button>`).join('')}</div>`:''}`;
-  $('#chat').scrollTop=1e9;}
-setInterval(()=>{bets.forEach((b,id)=>{if(!b.settled)renderBet(id);});},5000);
+      const odds=b.pots[i]>0?`x${(total/b.pots[i]).toFixed(1)}`:'x—';
+      return `<button class="bopt ${cls} ${pulse?'pulse':''}" ${btn}>${b.settled===i?'🏆 ':''}${o}
+        <span class="odds">${odds}</span><span class="pot">🪙 ${b.pots[i]}</span></button>`;}).join('')}</div>
+    ${(b.settled==null&&b.by===ME.name)?`<div class="bsettle">${b.opts.map((o,i)=>`<button data-bs="${id}:${i}">🏆 ${o}</button>`).join('')}</div>`:''}`;
+  if(isNew||pulse)$('#chat').scrollTop=1e9;}
+setInterval(()=>{bets.forEach((b,id)=>{if(b.settled==null)renderBet(id);});},1000);
 $('#chat').addEventListener('click',e=>{
   const bo=e.target.closest('[data-bo]');
   if(bo){const[id,opt]=bo.dataset.bo.split(':');const b=bets.get(id);if(!b)return;
@@ -1315,15 +1309,20 @@ $('#chat').addEventListener('click',e=>{
     const d={t:'betSettle',id,win:+win};
     broadcast(d);applyBet(d);}});
 
-/* ═══════════ EMOJIS CHAT ═══════════ */
-const CHAT_EMO=['😀','😂','😍','😎','😭','😡','👍','','👏','','⚽','🏀','🎮','🎬','🍿','','🎉','❤️','💀','🤝','🙌','👀','⏰','🏆'];
+/* ═══════════ CHAT: EMOJIS + DM ═══════════ */
+const CHAT_EMO=['1F600','1F602','1F60D','1F60E','1F62D','1F621','1F44D','1F44E','1F44F','1F64C','26BD','1F3C0',
+ '1F3AE','1F3AC','1F37F','1F525','1F389','2764','1F480','1F91D','1F440','23F0','1F3C6','1FA99'].map(E);
 $('#emoPop').innerHTML=CHAT_EMO.map(e=>`<button data-e="${e}">${e}</button>`).join('');
 $('#emoBtn').onclick=()=>$('#emoPop').classList.toggle('on');
 $('#emoPop').onclick=e=>{const b=e.target.closest('[data-e]');if(!b)return;
   $('#msgInput').value+=b.dataset.e;$('#msgInput').focus();};
+function updateDmUI(){
+  $('#msgInput').placeholder=dmTo?`🔒 Mensaje privado → ${nameOf(dmTo)}`:'Escribe en la sala…';
+  document.querySelectorAll('.dmbtn').forEach(b=>b.classList.toggle('on',b.dataset.dm===dmTo));}
+function setDm(id){dmTo=(dmTo===id)?null:id;updateDmUI();}
 
 /* ═══════════ REACCIONES ═══════════ */
-const REACTS=['⚽','🔥','👏','😮','❤️','🎉'];
+const REACTS=[E('26BD'),E('1F525'),E('1F44F'),E('1F62E'),E('2764'),E('1F389')];
 $('#reactbar').innerHTML=REACTS.map(r=>`<button class="rbtn" data-r="${r}">${r}</button>`).join('');
 $('#reactbar').onclick=e=>{const b=e.target.closest('[data-r]');if(!b)return;
   const msg={t:'react',e:b.dataset.r};
@@ -1398,26 +1397,32 @@ function renderPeople(){
   const hosts=all.filter(m=>m.host||m.id===hostId());
   const guests=all.filter(m=>!m.host&&m.id!==hostId());
   $('#pCount').textContent=`(${all.length})`;
-  const camOf=id=>[...shares.keys()].some(k=>k===id+':cam'&&!shares.get(k).pending);
+  const camOf=id=>[...shares.entries()].some(([k,e])=>k===id+':cam'&&!e.pending);
+  const canDm=m=>!m.me&&((ROLE==='host'&&!m.host)||(ROLE!=='host'&&m.host));
   const row=m=>{
     const anyShare=[...shares.entries()].some(([k,e])=>k.startsWith(m.id+':')&&e.kind!=='mic'&&e.kind!=='cam'&&!e.pending);
     return `<div class="prow">
       <span class="ava" data-uid="${m.id}" style="background:${avaBg(m.color)};width:32px;height:32px;border-radius:9px;font-size:12px">${initials(m.name)}</span>
       <span class="nm">${m.me?m.name+' (tú)':m.name}${m.host||m.id===hostId()?'<span class="rolebadge host">👑</span>':''}</span>
-      <span class="tags"><span class="ptag ${m.mic?'on':''}" title="Micrófono">🎙</span><span class="ptag ${camOf(m.id)?'on':''}" title="Cámara">🎥</span><span class="ptag ${anyShare?'on':''}" title="Compartiendo">🖥</span></span></div>`;};
+      <span class="tags"><span class="ptag ${m.mic?'on':''}" title="Micrófono">🎙</span><span class="ptag ${camOf(m.id)?'on':''}" title="Cámara">🎥</span><span class="ptag ${anyShare?'on':''}" title="Compartiendo">🎬</span>${canDm(m)?`<button class="dmbtn" data-dm="${m.id}" title="Chat privado">🔒</button>`:''}</span></div>`;};
+  const wins=ME.hist.filter(h=>h.win).length;
   $('#people').innerHTML=`<div class="psec">ANFITRIÓN</div>${hosts.map(row).join('')||'<div class="prow" style="color:var(--dim)">— desconectado —</div>'}
     <div class="psec">ESPECTADORES — ${guests.length}</div>${guests.map(row).join('')||'<div class="prow" style="color:var(--dim)">nadie más por ahora</div>'}
+    <div class="psec">📜 TU HISTORIAL · ${wins}G / ${ME.hist.length-wins}P</div>
+    <div class="hist">${ME.hist.slice(0,8).map(h=>`<div class="${h.win?'w':'l'}">${h.win?'✓':'✗'} ${h.txt} (${h.delta>=0?'+':''}${h.delta}🪙)</div>`).join('')||'<div>sin apuestas aún</div>'}</div>
     <div class="psec">OTRAS SALAS (CONTEO EN VIVO)</div>
     ${ROOMS.filter(r=>r.slug!==CODE).map(r=>`<div class="prow"><span style="font-size:15px">${r.ic}</span><span class="nm">${r.name}</span><span class="tags"><span class="ptag on mono" style="opacity:1;font-size:11px;color:var(--acc2)">${roomCounts[r.slug]===undefined?'?':roomCounts[r.slug]} 👥</span></span></div>`).join('')}`;
   $('#meAva').textContent=initials(ME.name);$('#meAva').style.background=avaBg(ME.color);
-  $('#meAva').dataset.uid=myPeerId();$('#meName').textContent=ME.name;}
-function addChat({name,color,txt,ts}){
-  const d=document.createElement('div');d.className='msg';
+  $('#meAva').dataset.uid=myPeerId();$('#meName').textContent=ME.name;
+  updateDmUI();}
+$('#people').addEventListener('click',e=>{const b=e.target.closest('[data-dm]');if(b)setDm(b.dataset.dm);});
+function addChat(d,priv){
+  const el=document.createElement('div');el.className='msg'+(priv?' dm':'');
   const h=document.createElement('div');h.className='h';
-  const b=document.createElement('b');b.textContent=name;b.style.color=nameCol(color);
-  const t=document.createElement('time');t.textContent=ts||hhmm();h.append(b,t);
-  const p=document.createElement('p');p.textContent=txt;d.append(h,p);
-  $('#chat').appendChild(d);$('#chat').scrollTop=1e9;}
+  const b=document.createElement('b');b.textContent=(priv?'🔒 ':'')+d.name;b.style.color=nameCol(d.color);
+  const t=document.createElement('time');t.textContent=d.ts||hhmm();h.append(b,t);
+  const p=document.createElement('p');p.textContent=d.txt;el.append(h,p);
+  $('#chat').appendChild(el);$('#chat').scrollTop=1e9;}
 function sysMsg(t){const d=document.createElement('div');d.className='msg sys';d.textContent='— '+t+' —';
   $('#chat').appendChild(d);$('#chat').scrollTop=1e9;}
 $('#msgSend').onclick=sendChat;
@@ -1425,8 +1430,14 @@ $('#msgInput').addEventListener('keydown',e=>{if(e.key==='Enter')sendChat();});
 function sendChat(){
   const inp=$('#msgInput');const txt=inp.value.trim();if(!txt)return;
   const m={t:'chat',name:ME.name,color:ME.color,txt,ts:hhmm()};
-  if(ROLE==='host')broadcast(m);else send(m);
-  addChat(m);inp.value='';$('#emoPop').classList.remove('on');}
+  if(dmTo){
+    const dm={t:'dm',name:ME.name,color:ME.color,txt,ts:hhmm()};
+    if(ROLE==='host'){const c=conns.get(dmTo);if(c)c.send(dm);}else send(dm);
+    addChat(dm,true);
+  }else{
+    if(ROLE==='host')broadcast(m);else send(m);
+    addChat(m);}
+  inp.value='';$('#emoPop').classList.remove('on');}
 document.querySelectorAll('.rtab').forEach(t=>t.onclick=()=>{
   document.querySelectorAll('.rtab').forEach(x=>x.classList.toggle('on',x===t));
   $('#chat').style.display=t.dataset.t==='chat'?'flex':'none';
@@ -1437,13 +1448,11 @@ $('#hamb').onclick=()=>$('#right').classList.toggle('open');
 
 /* bindings */
 $('#cAddCh').onclick=openSignalModal;
-$('#cScreen').onclick=toggleScreen;
 $('#cVideo').onclick=pickVideo;
 $('#cCut').onclick=cutProjection;
 $('#cCam').onclick=toggleCam;
 $('#cStopAll').onclick=stopAllMine;
 $('#bCam').onclick=toggleCam;
-$('#bScreenH').onclick=toggleScreen;
 $('#bMic').onclick=toggleMic;
 $('#bDeaf').onclick=toggleDeaf;
 document.addEventListener('keydown',e=>{
