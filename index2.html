@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Cinema Wargames — Salas de cine sincronizadas P2P con chat en vivo." />
+  <title>Cinema Wargames - Modo Teatro</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { DEFAULT: '#e5484d', soft: '#ff6b6f', dark: '#c93a3f' },
+            ink: { 950: '#07080c', 900: '#0b0d13', 850: '#0e1017', 800: '#12141c', 700: '#1a1d27' },
+            line: 'rgba(255,255,255,0.06)'
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            display: ['"Space Grotesk"', 'Inter', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace']
+          },
+          boxShadow: {
+            card: 'inset 0 1px 0 rgba(255,255,255,0.04), 0 10px 30px -12px rgba(0,0,0,0.6)',
+            glow: '0 0 0 1px rgba(229,72,77,.25), 0 8px 24px -6px rgba(229,72,77,.35)'
+          }
+        }
+      }
+    };
+  </script>
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+  <style>
+    body {
+      background-color: #07080c;
+      background-image:
+        radial-gradient(1100px 550px at 85% -10%, rgba(229, 72, 77, 0.07), transparent 60%),
+        radial-gradient(900px 500px at -10% 110%, rgba(99, 102, 241, 0.06), transparent 60%);
+      background-attachment: fixed;
+      color: #e4e4e7;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+    ::selection { background: rgba(229, 72, 77, 0.35); }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #262b36; border-radius: 999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #343b4a; }
+
+    .panel { position: relative; }
+    .panel::before {
+      content: ''; position: absolute; inset: 0 0 auto 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.09), transparent);
+      pointer-events: none;
+    }
+
+    #connectionStatus::before {
+      content: ''; width: 6px; height: 6px; border-radius: 999px;
+      background: currentColor; animation: pulseDot 2s ease-in-out infinite;
+    }
+    @keyframes pulseDot { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
+
+    #userDisplayBadge::before {
+      content: ''; width: 7px; height: 7px; border-radius: 999px;
+      background: linear-gradient(135deg, #ff6b6f, #c93a3f);
+    }
+
+    .eq { display: inline-flex; align-items: flex-end; gap: 2px; height: 12px; }
+    .eq i { width: 3px; background: currentColor; border-radius: 1px; animation: eq 1s ease-in-out infinite; }
+    .eq i:nth-child(2) { animation-delay: .2s; }
+    .eq i:nth-child(3) { animation-delay: .4s; }
+    @keyframes eq { 0%, 100% { height: 30%; } 50% { height: 100%; } }
+
+    .chat-enter { animation: chatIn .25s ease; }
+    @keyframes chatIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+    .dropzone:has(input:focus-visible) {
+      border-color: rgba(229, 72, 77, .6);
+      box-shadow: 0 0 0 3px rgba(229, 72, 77, .15);
+    }
+
+    /* Reacciones flotantes */
+    .reaction-float {
+      position: absolute; bottom: 70px; pointer-events: none;
+      animation: reactionFloat 2.8s ease-out forwards;
+      will-change: transform, opacity;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,.5));
+    }
+    @keyframes reactionFloat {
+      0%   { opacity: 0; transform: translate(0, 0) scale(.5); }
+      12%  { opacity: 1; transform: translate(0, -12px) scale(1); }
+      100% { opacity: 0; transform: translate(var(--dx, 0px), -52vh) scale(1.15); }
+    }
+
+    #shareQrBox svg { width: 160px; height: 160px; display: block; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body id="appBody" class="min-h-screen w-full flex flex-col p-4 md:p-6 gap-4 md:gap-5 max-w-[1400px] mx-auto">
+
+  <!-- ══════════ MODAL DE INGRESO ══════════ -->
+  <div id="entryModal" class="fixed inset-0 z-50 bg-ink-950/90 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="relative w-full max-w-md bg-ink-900 border border-line rounded-3xl p-7 shadow-card overflow-hidden">
+      <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-72 h-48 bg-brand/20 blur-3xl rounded-full pointer-events-none"></div>
+      <div class="relative">
+        <div class="flex flex-col items-center text-center mb-7">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand to-brand-dark shadow-glow flex items-center justify-center text-white">
+            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"/><path d="m6.2 5.3 3.1 3.9"/><path d="m12.4 3.4 3.1 4"/><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>
+          </div>
+          <h2 class="font-display text-2xl font-bold text-white mt-4 tracking-tight">Cinema Wargames</h2>
+          <p class="text-sm text-zinc-500 mt-1">Transmite y ve películas en sincronía, directo entre navegadores.</p>
+        </div>
+
+        <div class="space-y-5">
+          <div>
+            <label for="userNameInput" class="block text-[11px] font-semibold uppercase tracking-wider text-zinc-500 mb-1.5">Tu nombre / apodo</label>
+            <div class="relative">
+              <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-600 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <input id="userNameInput" type="text" placeholder="Ej: Jaiden" maxlength="20"
+                class="w-full bg-ink-950 border border-line rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-zinc-600 outline-none focus:border-brand/60 focus:ring-2 focus:ring-brand/20 transition" />
+            </div>
+          </div>
+
+          <div id="modalRoomField" class="hidden">
+            <label for="modalRoomInput" class="block text-[11px] font-semibold uppercase tracking-wider text-zinc-500 mb-1.5">Código de sala (detectado)</label>
+            <div class="relative">
+              <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-600 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="9" y2="9"/><line x1="4" x2="20" y1="15" y2="15"/><line x1="10" x2="8" y1="3" y2="21"/><line x1="16" x2="14" y1="3" y2="21"/></svg>
+              <input id="modalRoomInput" type="text"
+                class="w-full bg-ink-950 border border-line rounded-xl pl-10 pr-4 py-2.5 text-sm font-mono text-zinc-300 outline-none focus:border-brand/60 focus:ring-2 focus:ring-brand/20 transition" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 pt-1">
+            <button type="button" onclick="enterApp('host')"
+              class="group flex flex-col items-center gap-2 rounded-2xl border border-brand/30 bg-brand/10 hover:bg-brand/15 hover:border-brand/50 px-4 py-4 transition cursor-pointer focus-visible:ring-2 focus-visible:ring-brand/40 outline-none">
+              <span class="w-10 h-10 rounded-xl bg-brand text-white flex items-center justify-center shadow-glow">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
+              </span>
+              <span class="text-sm font-semibold text-white">Ser anfitrión</span>
+              <span class="text-[10px] text-zinc-500 leading-tight">Crea la sala y transmite</span>
+            </button>
+            <button type="button" onclick="enterApp('guest')"
+              class="group flex flex-col items-center gap-2 rounded-2xl border border-line bg-white/[0.03] hover:bg-white/[0.06] hover:border-zinc-600 px-4 py-4 transition cursor-pointer focus-visible:ring-2 focus-visible:ring-zinc-500/40 outline-none">
+              <span class="w-10 h-10 rounded-xl bg-white/10 text-zinc-200 flex items-center justify-center">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              </span>
+              <span class="text-sm font-semibold text-white">Espectador</span>
+              <span class="text-[10px] text-zinc-500 leading-tight">Únete con un código</span>
+            </button>
+          </div>
+          <p class="text-center text-[10px] text-zinc-600 pt-1">Sin registros · Cifrado extremo a extremo · WebRTC</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ MODAL COMPARTIR SALA (HOST) ══════════ -->
+  <div id="shareModal" class="hidden fixed inset-0 z-50 bg-ink-950/90 backdrop-blur-md flex items-center justify-center p-4" onclick="if(event.target===this)closeShareModal()">
+    <div class="relative w-full max-w-md max-h-[92vh] overflow-y-auto bg-ink-900 border border-line rounded-3xl p-6 shadow-card">
+      <div class="flex items-center justify-between pb-4 border-b border-line mb-5">
+        <div class="flex items-center gap-2.5">
+          <span class="w-8 h-8 rounded-lg bg-brand/10 text-brand border border-brand/20 flex items-center justify-center">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          </span>
+          <h3 class="font-display font-semibold text-white">Invitar a la sala</h3>
+        </div>
+        <button onclick="closeShareModal()" aria-label="Cerrar" class="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-200 hover:bg-white/5 transition cursor-pointer">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+
+      <p class="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 mb-2">Código de sala</p>
+      <div class="flex items-center gap-2 mb-5">
+        <span id="shareCodeText" class="flex-1 bg-ink-950 border border-line rounded-xl px-4 py-3 font-mono text-lg text-brand-soft tracking-widest text-center">cine-xxxxx</span>
+        <button onclick="copyRoomCode()" class="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-3 bg-white/5 hover:bg-white/10 border border-line text-zinc-200 text-xs font-semibold rounded-xl transition cursor-pointer">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          Código
+        </button>
+      </div>
+
+      <div id="shareQrWrap" class="flex flex-col items-center gap-2 mb-5">
+        <div id="shareQrBox" class="bg-white rounded-xl p-3"></div>
+        <span class="text-[10px] text-zinc-600">Escanea para entrar desde el móvil</span>
+      </div>
+
+      <p class="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 mb-2">Enlace directo</p>
+      <div class="flex gap-2">
+        <input id="shareLinkInput" type="text" readonly
+          class="flex-1 min-w-0 bg-ink-950 border border-line rounded-xl px-3.5 py-2.5 text-xs font-mono text-zinc-400 outline-none" />
+        <button onclick="copyInviteLink()" class="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-brand hover:bg-brand-dark text-white text-xs font-semibold rounded-xl transition cursor-pointer">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          Copiar link
+        </button>
+      </div>
+
+      <p class="text-[11px] leading-relaxed text-zinc-600 mt-4">
+        Quienes abran el enlace entrarán como espectadores y verán la película en el punto exacto de reproducción, con la programación de la sala.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════ CABECERA ══════════ -->
+  <header id="appHeader" class="panel flex flex-wrap items-center justify-between gap-3 bg-ink-900/80 backdrop-blur border border-line rounded-2xl px-5 py-3.5 shadow-card">
+    <div class="flex items-center gap-3 min-w-0">
+      <div class="w-10 h-10 shrink-0 rounded-xl bg-gradient-to-br from-brand to-brand-dark shadow-glow flex items-center justify-center text-white">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"/><path d="m6.2 5.3 3.1 3.9"/><path d="m12.4 3.4 3.1 4"/><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>
+      </div>
+      <div class="min-w-0">
+        <h1 class="font-display font-semibold text-white text-[17px] leading-tight tracking-tight">Cinema Wargames</h1>
+        <p id="nowPlayingTitle" class="text-xs text-zinc-500 truncate max-w-[280px]">Sin reproducción activa</p>
+      </div>
+    </div>
+
+    <!-- Invitación rápida (Host) -->
+    <div id="hostInviteCluster" class="hidden items-center gap-2">
+      <input id="myRoomId" type="text" readonly value="Generando..." title="Código de sala"
+        class="w-28 bg-ink-950 border border-line rounded-lg px-2.5 py-1.5 text-[11px] font-mono text-zinc-300 outline-none text-center" />
+      <button onclick="openShareModal()"
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand hover:bg-brand-dark active:scale-[.98] text-white text-xs font-semibold rounded-lg transition cursor-pointer">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        Invitar
+      </button>
+    </div>
+
+    <!-- Conexión rápida (Espectador, sin conectar) -->
+    <div id="guestQuickConnect" class="hidden items-center gap-2">
+      <input id="roomCodeInput" type="text" placeholder="cine-xxxx"
+        class="bg-ink-950 border border-line rounded-lg px-3 py-2 text-xs font-mono text-white placeholder-zinc-600 outline-none focus:border-brand/60 focus:ring-2 focus:ring-brand/20 transition w-44" />
+      <button onclick="connectToHost()"
+        class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-brand hover:bg-brand-dark active:scale-[.98] text-white text-xs font-semibold rounded-lg transition cursor-pointer">
+        Conectar
+      </button>
+    </div>
+
+    <!-- Sala conectada (Espectador) -->
+    <div id="guestRoomCluster" class="hidden items-center gap-1.5">
+      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-line rounded-lg text-[11px] font-mono text-zinc-300">
+        <svg class="w-3 h-3 text-zinc-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="9" y2="9"/><line x1="4" x2="20" y1="15" y2="15"/><line x1="10" x2="8" y1="3" y2="21"/><line x1="16" x2="14" y1="3" y2="21"/></svg>
+        <span id="guestRoomCode">—</span>
+      </span>
+      <button onclick="leaveRoom()" class="text-[11px] font-semibold text-zinc-500 hover:text-red-400 transition px-2 py-1.5 cursor-pointer">Salir</button>
+    </div>
+
+    <div class="flex items-center gap-2.5">
+      <span id="userDisplayBadge" class="inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold rounded-full bg-white/5 text-zinc-200 border border-white/10">Usuario</span>
+      <span id="connectionStatus" class="inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold rounded-full border bg-yellow-500/10 text-yellow-400 border-yellow-500/20">Desconectado</span>
+    </div>
+  </header>
+
+  <!-- ══════════ REPRODUCTOR + SIDEBAR ══════════ -->
+  <main id="mainContainer" class="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 min-h-0">
+
+    <section id="playerSection" class="panel lg:col-span-2 min-w-0 flex flex-col bg-ink-900 border border-line rounded-2xl overflow-hidden shadow-card">
+      <div class="relative w-full flex-1 bg-black flex items-center justify-center min-h-[320px] lg:min-h-[440px]">
+        <video id="videoPlayer" class="w-full h-full object-contain max-h-[78vh]" controls playsinline></video>
+
+        <!-- Capa de reacciones flotantes -->
+        <div id="reactionsLayer" class="absolute inset-0 z-20 pointer-events-none overflow-hidden"></div>
+
+        <!-- Barra de reacciones -->
+        <div id="reactionBar" class="hidden absolute bottom-16 right-3 z-30 items-center gap-0.5 bg-black/50 backdrop-blur border border-white/10 rounded-full px-1.5 py-1">
+          <button type="button" onclick="sendReaction('❤️')" title="Me encanta" class="w-8 h-8 rounded-full hover:bg-white/10 hover:scale-110 transition cursor-pointer text-base">❤️</button>
+          <button type="button" onclick="sendReaction('😂')" title="Risa" class="w-8 h-8 rounded-full hover:bg-white/10 hover:scale-110 transition cursor-pointer text-base">😂</button>
+          <button type="button" onclick="sendReaction('🔥')" title="Fuego" class="w-8 h-8 rounded-full hover:bg-white/10 hover:scale-110 transition cursor-pointer text-base">🔥</button>
+          <button type="button" onclick="sendReaction('👏')" title="Aplausos" class="w-8 h-8 rounded-full hover:bg-white/10 hover:scale-110 transition cursor-pointer text-base">👏</button>
+          <button type="button" onclick="sendReaction('😮')" title="Sorpresa" class="w-8 h-8 rounded-full hover:bg-white/10 hover:scale-110 transition cursor-pointer text-base">😮</button>
+          <button type="button" onclick="sendReaction('🍿')" title="Palomitas" class="w-8 h-8 rounded-full hover:bg-white/10 hover:scale-110 transition cursor-pointer text-base">🍿</button>
+        </div>
+
+        <!-- Aviso de pausa del anfitrión (espectador) -->
+        <div id="guestPauseBadge" class="hidden absolute top-3 left-3 z-20 items-center gap-2 bg-black/70 backdrop-blur border border-white/10 rounded-full px-3.5 py-1.5 text-xs font-semibold text-zinc-200">
+          <svg class="w-3.5 h-3.5 text-brand-soft" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+          El anfitrión pausó la transmisión
+        </div>
+
+        <!-- Overlay de estado para Espectador -->
+        <div id="guestOverlay" onclick="tryResumeGuest()"
+          class="hidden absolute inset-0 z-10 bg-ink-950/90 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center pointer-events-none">
+          <div id="guestSpinner" class="w-12 h-12 rounded-full border-2 border-brand/25 border-t-brand animate-spin"></div>
+          <div id="guestPlayIcon" class="hidden w-14 h-14 rounded-full bg-brand text-white flex items-center justify-center shadow-glow">
+            <svg class="w-6 h-6 ml-0.5" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+          </div>
+          <p id="guestOverlayText" class="text-sm text-zinc-400 font-medium max-w-xs mt-4 leading-relaxed">Ingresa el código de sala arriba para ver la transmisión en vivo.</p>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between gap-3 px-4 py-2.5 bg-ink-850 border-t border-line text-[11px] text-zinc-500">
+        <span class="inline-flex items-center gap-1.5 shrink-0">
+          <svg class="w-3.5 h-3.5 text-zinc-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+          WebRTC directo
+        </span>
+        <span id="upNextBar" class="hidden items-center gap-1.5 min-w-0 truncate text-zinc-500">
+          <svg class="w-3 h-3 shrink-0 text-zinc-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" x2="19" y1="5" y2="19"/></svg>
+          <span id="upNextText" class="truncate"></span>
+        </span>
+        <span class="flex items-center gap-3 shrink-0 ml-auto">
+          <span id="subtitleChip" class="hidden items-center gap-1 px-2 py-0.5 rounded bg-white/5 border border-line text-[10px] text-zinc-400 max-w-[160px] truncate"></span>
+          <span id="liveIndicator" class="text-zinc-600 font-semibold text-[10px] tracking-widest uppercase">● En espera</span>
+        </span>
+      </div>
+    </section>
+
+    <!-- Sidebar: Chat (host) / Chat + Programación (espectador) -->
+    <aside id="chatSection" class="panel flex flex-col bg-ink-900 border border-line rounded-2xl overflow-hidden shadow-card h-[440px] lg:h-auto min-h-0">
+      <div class="flex items-center justify-between gap-2 px-3 py-2.5 border-b border-line bg-ink-850">
+        <div class="flex items-center gap-2 min-w-0">
+          <span id="chatTitleHost" class="flex items-center gap-2">
+            <span class="w-7 h-7 rounded-lg bg-brand/10 text-brand border border-brand/20 flex items-center justify-center">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </span>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-300">Chat en vivo</h3>
+          </span>
+          <div id="sidebarTabs" class="hidden items-center gap-1">
+            <button id="tabChatBtn" onclick="switchGuestTab('chat')"
+              class="px-3 py-1.5 rounded-lg text-[11px] font-semibold border transition cursor-pointer inline-flex items-center gap-1.5 bg-brand/15 text-brand-soft border-brand/30">Chat</button>
+            <button id="tabQueueBtn" onclick="switchGuestTab('queue')"
+              class="px-3 py-1.5 rounded-lg text-[11px] font-semibold border transition cursor-pointer inline-flex items-center gap-1.5 text-zinc-400 border-transparent hover:bg-white/5">
+              Programación
+              <span id="queueTabCount" class="min-w-[18px] px-1 py-0.5 rounded bg-white/10 text-[9px] text-center">0</span>
+            </button>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <span id="peerCountBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-zinc-400 border border-line">0 conectados</span>
+          <button id="chatToggleBtn" onclick="toggleGuestChat()" title="Ocultar panel (C)"
+            class="hidden p-1.5 rounded-lg text-zinc-500 hover:text-zinc-200 hover:bg-white/5 transition cursor-pointer">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 17 5-5-5-5"/><path d="m13 17 5-5-5-5"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Pestaña Chat -->
+      <div id="chatPane" class="flex flex-col flex-1 min-h-0">
+        <div id="chatMessages" role="log" aria-live="polite" class="flex-1 p-4 overflow-y-auto space-y-3 text-sm min-h-0">
+          <div class="flex items-start gap-2 rounded-lg border border-line bg-white/[0.02] px-3 py-2 text-xs text-zinc-500">
+            <svg class="w-3.5 h-3.5 mt-0.5 shrink-0 text-zinc-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            <span>Bienvenido al chat de la sala.</span>
+          </div>
+        </div>
+        <form onsubmit="sendChat(event)" class="p-3 border-t border-line bg-ink-850 flex gap-2">
+          <input id="chatInput" type="text" placeholder="Enviar un mensaje..." autocomplete="off"
+            class="flex-1 min-w-0 bg-ink-950 border border-line rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-zinc-600 outline-none focus:border-brand/60 focus:ring-2 focus:ring-brand/20 transition" />
+          <button type="submit" aria-label="Enviar mensaje"
+            class="inline-flex items-center gap-2 px-4 py-2.5 bg-brand hover:bg-brand-dark active:scale-[.98] text-white text-sm font-semibold rounded-xl transition cursor-pointer">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+            <span class="hidden sm:inline">Enviar</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Pestaña Programación (espectador, solo lectura) -->
+      <div id="queuePane" class="hidden flex-col flex-1 min-h-0">
+        <div id="guestQueueList" class="flex-1 overflow-y-auto p-3 space-y-1.5 text-xs">
+          <p class="text-zinc-600 italic px-2 py-3 text-center">El anfitrión aún no ha agregado videos.</p>
+        </div>
+        <p class="px-4 py-2.5 border-t border-line text-[10px] text-zinc-600 bg-ink-850">Solo lectura · El anfitrión controla la reproducción.</p>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Botón flotante para restaurar el chat (espectador) -->
+  <button id="chatRestoreBtn" onclick="toggleGuestChat()" title="Mostrar chat (C)"
+    class="hidden fixed right-4 top-20 z-40 inline-flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-ink-800/95 backdrop-blur border border-line text-zinc-200 text-xs font-semibold shadow-card hover:border-brand/40 transition cursor-pointer">
+    <svg class="w-4 h-4 text-brand-soft" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    Chat
+    <span id="chatUnreadBadge" class="hidden min-w-[18px] px-1 py-0.5 rounded-full bg-brand text-white text-[9px] text-center">0</span>
+  </button>
+
+  <!-- ══════════ ESTUDIO DEL HOST ══════════ -->
+  <footer id="hostFooter" class="hidden grid-cols-1 lg:grid-cols-3 gap-4">
+
+    <!-- Cola de reproducción -->
+    <div class="panel lg:col-span-2 bg-ink-900 border border-line rounded-2xl p-5 shadow-card flex flex-col gap-3 min-h-0">
+      <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-line">
+        <div class="flex items-center gap-2">
+          <span class="w-7 h-7 rounded-lg bg-brand/10 text-brand border border-brand/20 flex items-center justify-center">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg>
+          </span>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-300">Estudio · Cola de reproducción</h3>
+          <span id="playlistCountBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-zinc-400 border border-line">0 videos</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="playNextInQueue()" class="inline-flex items-center gap-1 text-[11px] font-semibold text-brand hover:text-brand-soft transition cursor-pointer px-2 py-1.5">
+            Siguiente
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" x2="19" y1="5" y2="19"/></svg>
+          </button>
+          <label class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand hover:bg-brand-dark text-white text-xs font-semibold rounded-lg transition cursor-pointer">
+            <input id="videoFilesInput" type="file" accept="video/*,.mkv,.avi,.mov,.m4v,.mp4,.webm,.ts,.m2ts,.mpg,.mpeg,.3gp,.3g2,.flv,.wmv,.ogv" multiple onchange="addVideosToPlaylist(event)" class="sr-only" />
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+            Añadir videos
+          </label>
+        </div>
+      </div>
+
+      <div class="relative">
+        <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-600 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="playlistSearch" type="text" placeholder="Buscar en la cola…" oninput="renderPlaylist()"
+          class="w-full bg-ink-950 border border-line rounded-lg pl-9 pr-3 py-2 text-xs text-white placeholder-zinc-600 outline-none focus:border-brand/60 focus:ring-2 focus:ring-brand/20 transition" />
+      </div>
+
+      <ul id="playlistContainer" class="flex-1 min-h-[240px] max-h-[420px] overflow-y-auto space-y-1 text-xs bg-ink-950/70 p-2 rounded-xl border border-line transition">
+        <li class="text-zinc-600 italic px-2.5 py-3 text-center">No hay videos en la cola. Agrega el primero arriba o arrastra archivos aquí.</li>
+      </ul>
+
+      <p class="text-[10px] text-zinc-600">Arrastra filas para reordenar · Arrastra archivos para añadir · La programación se sincroniza con los espectadores.</p>
+    </div>
+
+    <!-- Columna derecha: subtítulos + monitor -->
+    <div class="flex flex-col gap-4">
+      <div class="panel bg-ink-900 border border-line rounded-2xl p-5 shadow-card flex flex-col gap-3">
+        <div class="flex items-center gap-2 pb-3 border-b border-line">
+          <span class="w-7 h-7 rounded-lg bg-brand/10 text-brand border border-brand/20 flex items-center justify-center">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="14" x="3" y="5" rx="2"/><path d="M7 15h4M15 15h2M7 11h2M13 11h4"/></svg>
+          </span>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-300">Subtítulos</h3>
+        </div>
+
+        <label class="dropzone group flex items-center gap-3 rounded-xl border border-dashed border-zinc-700/80 bg-ink-950/60 px-4 py-3 cursor-pointer hover:border-brand/50 hover:bg-brand/5 transition">
+          <input id="subtitleInput" type="file" accept=".srt,.vtt,.ass,.ssa" onchange="loadSubtitle(event)" class="sr-only" />
+          <svg class="w-5 h-5 shrink-0 text-zinc-500 group-hover:text-brand transition" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+          <span class="flex flex-col">
+            <span class="text-xs font-semibold text-zinc-300">Cargar subtítulos</span>
+            <span class="text-[10px] text-zinc-600">SRT · VTT · ASS/SSA</span>
+          </span>
+        </label>
+
+        <div id="subtitleStatus" class="hidden items-center gap-2 rounded-lg border border-line bg-ink-950/70 px-3 py-2">
+          <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-brand/15 text-brand-soft border border-brand/25 shrink-0">CC</span>
+          <span id="subtitleFileName" class="flex-1 truncate text-xs text-zinc-300"></span>
+          <button onclick="clearSubtitles()" aria-label="Quitar subtítulos" class="p-1 rounded text-zinc-500 hover:text-red-400 hover:bg-white/5 transition cursor-pointer shrink-0">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
+
+        <p class="text-[10px] leading-relaxed text-zinc-600">SRT y ASS se convierten a WebVTT automáticamente y se envían a todos los espectadores.</p>
+      </div>
+
+      <div class="panel bg-ink-900 border border-line rounded-2xl p-5 shadow-card flex flex-col gap-4 flex-1">
+        <div class="flex items-center gap-2 pb-3 border-b border-line">
+          <span class="w-7 h-7 rounded-lg bg-brand/10 text-brand border border-brand/20 flex items-center justify-center">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </span>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-300">Monitor WebRTC P2P</h3>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-ink-950/70 border border-line rounded-xl p-3.5">
+            <span class="block text-[10px] uppercase tracking-wider text-zinc-600 mb-1">Estado del stream</span>
+            <span id="streamStateText" class="text-sm font-display font-bold text-zinc-400">Inactivo</span>
+          </div>
+          <div class="bg-ink-950/70 border border-line rounded-xl p-3.5">
+            <span class="block text-[10px] uppercase tracking-wider text-zinc-600 mb-1">Espectadores</span>
+            <span id="connectedPeersCount" class="text-2xl font-display font-bold text-white leading-none">0</span>
+          </div>
+        </div>
+        <p class="text-[11px] leading-relaxed text-zinc-600">Conexión directa de navegador a navegador, sin servidores intermedios.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] px-4 py-2.5 rounded-xl border text-sm font-medium shadow-card transition-all duration-300 opacity-0 translate-y-3 pointer-events-none bg-ink-800 border-line text-zinc-100"></div>
+
+  <script>
+    let peer = null;
+    let role = null;
+    let userName = 'Anónimo';
+    let connections = [];
+    let mediaCalls = [];
+    let hostConnection = null;
+
+    let playlist = [];
+    let currentIndex = -1;
+    let activeStream = null;
+
+    let currentSubtitleVtt = null;
+    let currentSubtitleName = null;
+    let guestPlaylist = { items: [], current: -1 };
+    let guestPlaying = true;
+
+    let dragFrom = null;
+    let lastReactionAt = 0;
+    let chatUnread = 0;
+
+    const videoEl = document.getElementById('videoPlayer');
+
+    // Detectar si viene ?room= en la URL
+    window.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      const roomParam = params.get('room');
+      if (roomParam) {
+        document.getElementById('modalRoomField').classList.remove('hidden');
+        document.getElementById('modalRoomInput').value = roomParam;
+        document.getElementById('roomCodeInput').value = roomParam;
+      }
+      initPlaylistFileDrop();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeShareModal();
+      const typing = /(INPUT|TEXTAREA)/.test(document.activeElement.tagName);
+      if (!typing && role === 'guest' && e.key.toLowerCase() === 'c') toggleGuestChat();
+    });
+
+    function enterApp(selectedRole) {
+      const nameVal = document.getElementById('userNameInput').value.trim();
+      userName = nameVal || (selectedRole === 'host' ? 'Anfitrión' : 'Espectador');
+      role = selectedRole;
+
+      document.getElementById('entryModal').classList.add('hidden');
+      document.getElementById('userDisplayBadge').textContent = `${userName} (${role === 'host' ? 'Host' : 'Espectador'})`;
+
+      const rb = document.getElementById('reactionBar');
+      rb.classList.remove('hidden');
+      rb.classList.add('flex');
+
+      if (role === 'host') {
+        document.getElementById('hostFooter').classList.remove('hidden');
+        document.getElementById('hostFooter').classList.add('grid');
+        document.getElementById('hostInviteCluster').classList.remove('hidden');
+        document.getElementById('hostInviteCluster').classList.add('flex');
+        initHostPeer();
+      } else {
+        activateTwitchTheaterMode();
+        const modalRoom = document.getElementById('modalRoomInput').value.trim();
+        if (modalRoom) document.getElementById('roomCodeInput').value = modalRoom;
+        initGuestPeer();
+      }
+    }
+
+    function activateTwitchTheaterMode() {
+      const body = document.getElementById('appBody');
+      body.className = 'h-screen flex flex-col bg-black overflow-hidden';
+
+      const header = document.getElementById('appHeader');
+      header.className = 'flex flex-wrap items-center justify-between gap-3 bg-ink-900/90 backdrop-blur border-b border-line px-4 py-2.5 shrink-0';
+
+      document.getElementById('guestQuickConnect').classList.remove('hidden');
+      document.getElementById('guestQuickConnect').classList.add('flex');
+
+      const main = document.getElementById('mainContainer');
+      main.className = 'flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0';
+
+      const playerSection = document.getElementById('playerSection');
+      playerSection.className = 'relative flex-1 flex flex-col bg-black overflow-hidden min-w-0';
+
+      const chatSection = document.getElementById('chatSection');
+      chatSection.className = 'w-full lg:w-[360px] xl:w-[400px] flex flex-col bg-ink-900 border-t lg:border-t-0 lg:border-l border-line h-[38vh] lg:h-auto shrink-0 min-h-0';
+
+      document.getElementById('chatTitleHost').classList.add('hidden');
+      document.getElementById('sidebarTabs').classList.remove('hidden');
+      document.getElementById('sidebarTabs').classList.add('flex');
+      document.getElementById('chatToggleBtn').classList.remove('hidden');
+      document.getElementById('chatToggleBtn').classList.add('inline-flex');
+
+      document.getElementById('guestOverlay').classList.remove('hidden');
+    }
+
+    function switchGuestTab(tab) {
+      const chatActive = tab === 'chat';
+      const base = 'px-3 py-1.5 rounded-lg text-[11px] font-semibold border transition cursor-pointer inline-flex items-center gap-1.5 ';
+      const on = 'bg-brand/15 text-brand-soft border-brand/30';
+      const off = 'text-zinc-400 border-transparent hover:bg-white/5';
+      document.getElementById('tabChatBtn').className = base + (chatActive ? on : off);
+      document.getElementById('tabQueueBtn').className = base + (chatActive ? off : on);
+
+      const chatPane = document.getElementById('chatPane');
+      const queuePane = document.getElementById('queuePane');
+      chatPane.classList.toggle('hidden', !chatActive);
+      chatPane.classList.toggle('flex', chatActive);
+      queuePane.classList.toggle('hidden', chatActive);
+      queuePane.classList.toggle('flex', !chatActive);
+      if (!chatActive) renderGuestQueue();
+    }
+
+    // --- CHAT COLAPSABLE (ESPECTADOR) ---
+    function toggleGuestChat() {
+      const sec = document.getElementById('chatSection');
+      const collapsed = !sec.classList.contains('hidden');
+      sec.classList.toggle('hidden', collapsed);
+      sec.classList.toggle('flex', !collapsed);
+      document.getElementById('chatRestoreBtn').classList.toggle('hidden', !collapsed);
+      if (!collapsed) {
+        chatUnread = 0;
+        updateUnreadBadge();
+        const box = document.getElementById('chatMessages');
+        box.scrollTop = box.scrollHeight;
+      }
+    }
+
+    function updateUnreadBadge() {
+      const b = document.getElementById('chatUnreadBadge');
+      if (chatUnread > 0) {
+        b.textContent = chatUnread > 9 ? '9+' : chatUnread;
+        b.classList.remove('hidden');
+      } else {
+        b.classList.add('hidden');
+      }
+    }
+
+    // --- REACCIONES FLOTANTES ---
+    function sendReaction(emoji) {
+      const now = Date.now();
+      if (now - lastReactionAt < 300) return;
+      lastReactionAt = now;
+      floatReaction(emoji);
+      if (role === 'host') {
+        broadcastData({ type: 'reaction', emoji });
+      } else if (hostConnection && hostConnection.open) {
+        hostConnection.send({ type: 'reaction', emoji });
+      }
+    }
+
+    function floatReaction(emoji) {
+      const layer = document.getElementById('reactionsLayer');
+      if (layer.childElementCount > 40) layer.firstElementChild.remove();
+      const s = document.createElement('span');
+      s.className = 'reaction-float';
+      s.textContent = emoji;
+      s.style.left = (55 + Math.random() * 35) + '%';
+      s.style.fontSize = (22 + Math.random() * 12) + 'px';
+      s.style.setProperty('--dx', (Math.random() * 80 - 40) + 'px');
+      s.addEventListener('animationend', () => s.remove());
+      layer.appendChild(s);
+    }
+
+    // --- LÓGICA DEL ANFITRIÓN (HOST) ---
+    function initHostPeer() {
+      const randomId = 'cine-' + Math.random().toString(36).substring(2, 7);
+      peer = new Peer(randomId);
+
+      peer.on('open', (id) => {
+        document.getElementById('myRoomId').value = id;
+        updateStatus('Sala Activa', 'bg-green-500/10 text-green-400 border-green-500/20');
+        appendChat('Sistema', `Sala creada. Código: ${id}`);
+      });
+
+      peer.on('error', (err) => {
+        showToast('Error de conexión: ' + err.type, false);
+      });
+
+      peer.on('connection', (conn) => {
+        connections.push(conn);
+        updatePeerCounters();
+
+        conn.on('open', () => {
+          // Snapshot para el recién llegado
+          if (currentIndex >= 0 && playlist[currentIndex]) {
+            conn.send({ type: 'title', title: playlist[currentIndex].name });
+          }
+          if (playlist.length) {
+            conn.send({ type: 'playlist', items: playlist.map(f => f.name), current: currentIndex });
+          }
+          if (currentSubtitleVtt) {
+            conn.send({ type: 'subtitle', vtt: currentSubtitleVtt, name: currentSubtitleName });
+          }
+          conn.send({ type: 'playstate', playing: currentIndex >= 0 ? !videoEl.paused : true });
+          updatePeerCounters();
+          if (activeStream) {
+            const call = peer.call(conn.peer, activeStream);
+            mediaCalls.push(call);
+          }
+        });
+
+        conn.on('data', (data) => {
+          if (data.type === 'join') {
+            appendChat('Sistema', `${data.name} se unió a la sala.`);
+            broadcastData({ type: 'system', message: `${data.name} se unió a la sala.` }, conn.peer);
+          } else if (data.type === 'chat') {
+            appendChat(data.sender, data.message);
+            broadcastData(data, conn.peer);
+          } else if (data.type === 'reaction') {
+            floatReaction(data.emoji);
+            broadcastData(data, conn.peer);
+          }
+        });
+
+        conn.on('close', () => {
+          connections = connections.filter(c => c !== conn);
+          updatePeerCounters();
+        });
+      });
+    }
+
+    // Pausa / reanudación del host → aviso a espectadores
+    videoEl.addEventListener('pause', () => {
+      if (role === 'host' && currentIndex >= 0 && !videoEl.ended) {
+        broadcastData({ type: 'playstate', playing: false });
+      }
+    });
+    videoEl.addEventListener('play', () => {
+      if (role === 'host' && currentIndex >= 0) {
+        broadcastData({ type: 'playstate', playing: true });
+      }
+    });
+
+    // Si un archivo marcado como incompatible llega a reproducirse, limpiar la marca
+    videoEl.addEventListener('playing', () => {
+      if (role === 'host' && currentIndex >= 0 && playlist[currentIndex] && playlist[currentIndex]._unsupported) {
+        delete playlist[currentIndex]._unsupported;
+        renderPlaylist();
+      }
+    });
+
+    // Detección de códec no soportado → marcar y saltar al siguiente
+    videoEl.addEventListener('error', () => {
+      if (role !== 'host' || currentIndex < 0) return;
+      const err = videoEl.error;
+      if (!err || (err.code !== 3 && err.code !== 4)) return;
+      const file = playlist[currentIndex];
+      if (!file) return;
+      file._unsupported = true;
+      renderPlaylist();
+      document.getElementById('streamStateText').textContent = 'Códec no soportado';
+      document.getElementById('streamStateText').className = 'text-sm font-display font-bold text-red-400';
+      showToast('Códec no compatible: ' + file.name, false);
+      appendChat('Sistema', `«${file.name}» usa un códec que este navegador no puede decodificar (ej: H.265/HEVC, AC3). Saltando al siguiente…`);
+      setTimeout(() => {
+        if (role === 'host' && playlist[currentIndex] === file) playNextInQueue();
+      }, 1500);
+    });
+
+    function addVideosToPlaylist(event) {
+      const files = Array.from(event.target.files);
+      if (!files.length) return;
+      playlist.push(...files);
+      event.target.value = '';
+      renderPlaylist();
+      broadcastPlaylist();
+      if (currentIndex === -1) playVideoAtIndex(0);
+    }
+
+    function isVideoFile(f) {
+      return (f.type && f.type.startsWith('video/')) ||
+        /\.(mp4|webm|mkv|mov|m4v|avi|ts|m2ts|mpg|mpeg|3gp|3g2|flv|wmv|ogv|ogg)$/i.test(f.name);
+    }
+
+    // Soltar archivos del sistema sobre la cola
+    function initPlaylistFileDrop() {
+      const ul = document.getElementById('playlistContainer');
+      ul.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (dragFrom === null) ul.classList.add('ring-1', 'ring-brand/40');
+      });
+      ul.addEventListener('dragleave', () => ul.classList.remove('ring-1', 'ring-brand/40'));
+      ul.addEventListener('drop', (e) => {
+        e.preventDefault();
+        ul.classList.remove('ring-1', 'ring-brand/40');
+        if (dragFrom !== null) {
+          if (dragFrom !== playlist.length - 1) moveItemTo(dragFrom, playlist.length - 1);
+          dragFrom = null;
+          return;
+        }
+        const files = Array.from(e.dataTransfer.files).filter(isVideoFile);
+        if (!files.length) return showToast('No se detectaron archivos de video.', false);
+        playlist.push(...files);
+        renderPlaylist();
+        broadcastPlaylist();
+        showToast(`${files.length} video${files.length === 1 ? '' : 's'} añadido${files.length === 1 ? '' : 's'} a la cola`);
+        if (currentIndex === -1) playVideoAtIndex(0);
+      });
+    }
+
+    function formatSize(bytes) {
+      return bytes >= 1e9 ? (bytes / 1e9).toFixed(2) + ' GB' : (bytes / 1e6).toFixed(1) + ' MB';
+    }
+
+    function makeRowBtn(svg, label, onClick, danger = false) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.title = label;
+      b.setAttribute('aria-label', label);
+      b.className = `p-1 rounded transition cursor-pointer text-zinc-500 ${danger ? 'hover:text-red-400' : 'hover:text-zinc-200'} hover:bg-white/10`;
+      b.innerHTML = `<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${svg}</svg>`;
+      b.onclick = (e) => { e.stopPropagation(); onClick(); };
+      return b;
+    }
+
+    function renderPlaylist() {
+      const container = document.getElementById('playlistContainer');
+      const q = (document.getElementById('playlistSearch').value || '').trim().toLowerCase();
+      container.innerHTML = '';
+      document.getElementById('playlistCountBadge').textContent = `${playlist.length} video${playlist.length === 1 ? '' : 's'}`;
+
+      if (!playlist.length) {
+        container.innerHTML = '<li class="text-zinc-600 italic px-2.5 py-3 text-center">No hay videos en la cola. Agrega el primero arriba o arrastra archivos aquí.</li>';
+        updateUpNext();
+        return;
+      }
+
+      let visible = 0;
+      playlist.forEach((file, idx) => {
+        if (q && !file.name.toLowerCase().includes(q)) return;
+        visible++;
+        const active = idx === currentIndex;
+        const isNext = idx === currentIndex + 1;
+
+        const li = document.createElement('li');
+        li.draggable = true;
+        li.className = `group flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer border transition ${
+          active ? 'bg-brand/10 border-brand/25' : isNext ? 'bg-white/[0.03] border-line' : 'border-transparent hover:bg-white/5'
+        }`;
+        li.title = file.name;
+        li.onclick = () => playVideoAtIndex(idx);
+
+        li.ondragstart = (e) => {
+          dragFrom = idx;
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', String(idx));
+          li.classList.add('opacity-50');
+        };
+        li.ondragend = () => { dragFrom = null; renderPlaylist(); };
+        li.ondragover = (e) => {
+          if (dragFrom === null) return;
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          li.classList.add('ring-1', 'ring-brand/50');
+        };
+        li.ondragleave = () => li.classList.remove('ring-1', 'ring-brand/50');
+        li.ondrop = (e) => {
+          if (dragFrom === null) return;
+          e.preventDefault();
+          e.stopPropagation();
+          if (dragFrom !== idx) moveItemTo(dragFrom, idx);
+          dragFrom = null;
+        };
+
+        const grip = document.createElement('span');
+        grip.className = 'shrink-0 text-zinc-700 group-hover:text-zinc-500 cursor-grab opacity-0 group-hover:opacity-100 transition';
+        grip.innerHTML = '<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg>';
+
+        const num = document.createElement('span');
+        num.className = `w-5 h-5 shrink-0 rounded-md border text-[10px] font-mono flex items-center justify-center ${
+          active ? 'bg-brand/15 border-brand/30 text-brand-soft' : 'bg-white/5 border-line text-zinc-500'
+        }`;
+        num.textContent = idx + 1;
+
+        const info = document.createElement('div');
+        info.className = 'flex-1 min-w-0';
+        const name = document.createElement('span');
+        name.className = `block truncate text-xs ${active ? 'text-brand-soft font-semibold' : file._unsupported ? 'text-zinc-600' : 'text-zinc-300 font-medium'}`;
+        name.textContent = file.name;
+        const meta = document.createElement('span');
+        meta.className = 'block text-[10px] text-zinc-600';
+        meta.textContent = formatSize(file.size);
+        info.appendChild(name);
+        info.appendChild(meta);
+
+        li.appendChild(grip);
+        li.appendChild(num);
+        li.appendChild(info);
+
+        if (file._unsupported) {
+          const bad = document.createElement('span');
+          bad.className = 'shrink-0 text-[9px] font-bold tracking-wider text-red-400 border border-red-500/30 rounded px-1.5 py-0.5 bg-red-500/10';
+          bad.textContent = 'NO COMPATIBLE';
+          bad.title = 'El navegador no puede decodificar este códec (ej: H.265/HEVC, AC3/DTS). Convértelo a H.264 + AAC.';
+          li.appendChild(bad);
+        } else if (active) {
+          const badge = document.createElement('span');
+          badge.className = 'flex items-center gap-1.5 shrink-0 text-brand';
+          badge.innerHTML = '<span class="eq"><i></i><i></i><i></i></span><span class="text-[9px] font-bold tracking-wider">EN VIVO</span>';
+          li.appendChild(badge);
+        } else if (isNext) {
+          const badge = document.createElement('span');
+          badge.className = 'shrink-0 text-[9px] font-bold tracking-wider text-zinc-400 border border-line rounded px-1.5 py-0.5 bg-white/5';
+          badge.textContent = 'SIGUE';
+          li.appendChild(badge);
+        }
+
+        const actions = document.createElement('div');
+        actions.className = 'flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition';
+        if (idx > 0) actions.appendChild(makeRowBtn('<path d="m18 15-6-6-6 6"/>', 'Subir', () => moveItem(idx, -1)));
+        if (idx < playlist.length - 1) actions.appendChild(makeRowBtn('<path d="m6 9 6 6 6-6"/>', 'Bajar', () => moveItem(idx, 1)));
+        actions.appendChild(makeRowBtn('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>', 'Eliminar', () => removeItem(idx), true));
+        li.appendChild(actions);
+
+        container.appendChild(li);
+      });
+
+      if (!visible) {
+        container.innerHTML = '<li class="text-zinc-600 italic px-2.5 py-3 text-center">Sin resultados para la búsqueda.</li>';
+      }
+      updateUpNext();
+    }
+
+    function moveItemTo(from, to) {
+      if (from < 0 || from >= playlist.length || to < 0 || to >= playlist.length) return;
+      const currentFile = currentIndex >= 0 ? playlist[currentIndex] : null;
+      const [item] = playlist.splice(from, 1);
+      playlist.splice(to, 0, item);
+      if (currentFile) currentIndex = playlist.indexOf(currentFile);
+      renderPlaylist();
+      broadcastPlaylist();
+    }
+
+    function moveItem(idx, dir) {
+      moveItemTo(idx, idx + dir);
+    }
+
+    function removeItem(idx) {
+      if (idx === currentIndex) return showToast('No puedes eliminar el video en reproducción.', false);
+      playlist.splice(idx, 1);
+      if (idx < currentIndex) currentIndex--;
+      renderPlaylist();
+      broadcastPlaylist();
+    }
+
+    function broadcastPlaylist() {
+      updateUpNext();
+      if (role === 'host' && peer) {
+        broadcastData({ type: 'playlist', items: playlist.map(f => f.name), current: currentIndex });
+      }
+    }
+
+    function updateUpNext() {
+      const bar = document.getElementById('upNextBar');
+      const txt = document.getElementById('upNextText');
+      let nextName = null;
+      if (role === 'host') {
+        if (currentIndex >= 0 && playlist[currentIndex + 1]) nextName = playlist[currentIndex + 1].name;
+      } else {
+        if (guestPlaylist.current >= 0 && guestPlaylist.items[guestPlaylist.current + 1]) nextName = guestPlaylist.items[guestPlaylist.current + 1];
+      }
+      if (nextName) {
+        txt.textContent = 'Sigue: ' + nextName;
+        bar.classList.remove('hidden');
+        bar.classList.add('inline-flex');
+      } else {
+        bar.classList.add('hidden');
+        bar.classList.remove('inline-flex');
+      }
+    }
+
+    function renderGuestQueue() {
+      const list = document.getElementById('guestQueueList');
+      const { items, current } = guestPlaylist;
+      document.getElementById('queueTabCount').textContent = items.length;
+      list.innerHTML = '';
+
+      if (!items.length) {
+        list.innerHTML = '<p class="text-zinc-600 italic px-2 py-3 text-center">El anfitrión aún no ha agregado videos.</p>';
+        updateUpNext();
+        return;
+      }
+
+      let activeEl = null;
+      items.forEach((name, idx) => {
+        const active = idx === current;
+        const isNext = idx === current + 1;
+        const row = document.createElement('div');
+        row.className = `flex items-center gap-2 px-2.5 py-2 rounded-lg border ${
+          active ? 'bg-brand/10 border-brand/25' : isNext ? 'bg-white/[0.03] border-line' : 'border-transparent'
+        }`;
+
+        const num = document.createElement('span');
+        num.className = `w-5 h-5 shrink-0 rounded-md border text-[10px] font-mono flex items-center justify-center ${
+          active ? 'bg-brand/15 border-brand/30 text-brand-soft' : 'bg-white/5 border-line text-zinc-500'
+        }`;
+        num.textContent = idx + 1;
+
+        const label = document.createElement('span');
+        label.className = `flex-1 min-w-0 truncate text-xs ${active ? 'text-brand-soft font-semibold' : 'text-zinc-400'}`;
+        label.textContent = name;
+        label.title = name;
+
+        row.appendChild(num);
+        row.appendChild(label);
+
+        if (active) {
+          const badge = document.createElement('span');
+          badge.className = 'flex items-center gap-1.5 shrink-0 text-brand';
+          badge.innerHTML = '<span class="eq"><i></i><i></i><i></i></span><span class="text-[9px] font-bold tracking-wider">EN VIVO</span>';
+          row.appendChild(badge);
+          activeEl = row;
+        } else if (isNext) {
+          const badge = document.createElement('span');
+          badge.className = 'shrink-0 text-[9px] font-bold tracking-wider text-zinc-400 border border-line rounded px-1.5 py-0.5 bg-white/5';
+          badge.textContent = 'SIGUE';
+          row.appendChild(badge);
+        }
+        list.appendChild(row);
+      });
+
+      if (activeEl) activeEl.scrollIntoView({ block: 'nearest' });
+      updateUpNext();
+    }
+
+    function playVideoAtIndex(index) {
+      if (index < 0 || index >= playlist.length) return;
+      currentIndex = index;
+      const file = playlist[index];
+      videoEl.src = URL.createObjectURL(file);
+
+      videoEl.play().then(() => {
+        captureAndStream();
+      }).catch(err => console.warn('Haz clic en Play para iniciar:', err));
+
+      document.getElementById('nowPlayingTitle').textContent = `Reproduciendo: ${file.name}`;
+      document.getElementById('liveIndicator').textContent = '● EN VIVO';
+      document.getElementById('liveIndicator').className = 'text-red-500 font-bold text-[10px] tracking-widest uppercase';
+      document.getElementById('streamStateText').textContent = 'Transmitiendo';
+      document.getElementById('streamStateText').className = 'text-sm font-display font-bold text-green-400';
+
+      broadcastData({ type: 'title', title: file.name });
+      renderPlaylist();
+      broadcastPlaylist();
+    }
+
+    videoEl.addEventListener('ended', () => {
+      if (role === 'host') playNextInQueue();
+    });
+
+    function playNextInQueue() {
+      if (currentIndex + 1 < playlist.length) {
+        playVideoAtIndex(currentIndex + 1);
+      } else {
+        appendChat('Sistema', 'Fin de la lista de reproducción.');
+      }
+    }
+
+    function captureAndStream() {
+      const stream = videoEl.captureStream ? videoEl.captureStream() : videoEl.mozCaptureStream();
+      activeStream = stream;
+      connections.forEach(conn => {
+        if (conn.open) {
+          const call = peer.call(conn.peer, activeStream);
+          mediaCalls.push(call);
+        }
+      });
+    }
+
+    // --- SUBTÍTULOS: SRT / VTT / ASS-SSA → WebVTT ---
+    function loadSubtitle(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const raw = e.target.result;
+        const ext = file.name.split('.').pop().toLowerCase();
+        let vtt;
+        try {
+          if (ext === 'srt') vtt = srtToVtt(raw);
+          else if (ext === 'ass' || ext === 'ssa') vtt = assToVtt(raw);
+          else vtt = ensureVtt(raw);
+        } catch (err) {
+          showToast('No se pudo leer el archivo de subtítulos.', false);
+          return;
+        }
+        currentSubtitleVtt = vtt;
+        currentSubtitleName = file.name;
+        applySubtitleTrack(vtt);
+        updateSubtitleUI(file.name);
+        broadcastData({ type: 'subtitle', vtt, name: file.name });
+        appendChat('Sistema', `Subtítulos cargados: ${file.name}`);
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    function ensureVtt(raw) {
+      const t = raw.replace(/^\uFEFF/, '');
+      return /^\s*WEBVTT/.test(t) ? t : 'WEBVTT\n\n' + t;
+    }
+
+    function srtToVtt(raw) {
+      const body = raw.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n')
+        .replace(/(\d{1,2}:\d{2}:\d{2}),(\d{3})/g, '$1.$2');
+      return 'WEBVTT\n\n' + body.trim() + '\n';
+    }
+
+    function assToVtt(raw) {
+      const lines = raw.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').split('\n');
+      let inEvents = false, fmt = null;
+      const cues = [];
+      for (const line of lines) {
+        const t = line.trim();
+        if (/^\[/.test(t)) { inEvents = /^\[events\]/i.test(t); continue; }
+        if (!inEvents) continue;
+        if (/^format:/i.test(t)) { fmt = t.slice(7).split(',').map(s => s.trim().toLowerCase()); continue; }
+        if (/^dialogue:/i.test(t) && fmt) {
+          const parts = t.slice(9).split(',');
+          const si = fmt.indexOf('start'), ei = fmt.indexOf('end'), ti = fmt.indexOf('text');
+          if (si < 0 || ei < 0 || ti < 0 || parts.length <= ti) continue;
+          const text = parts.slice(ti).join(',')
+            .replace(/\{[^}]*\}/g, '')
+            .replace(/\\N/g, '\n').replace(/\\n/g, '\n').replace(/\\h/g, ' ')
+            .trim();
+          if (!text) continue;
+          cues.push(`${assTimeToVtt(parts[si].trim())} --> ${assTimeToVtt(parts[ei].trim())}\n${text}`);
+        }
+      }
+      if (!cues.length) throw new Error('Sin diálogos');
+      return 'WEBVTT\n\n' + cues.join('\n\n') + '\n';
+    }
+
+    function assTimeToVtt(s) {
+      const m = s.match(/(\d+):(\d{2}):(\d{2})[.:](\d{2,3})/);
+      if (!m) return '00:00:00.000';
+      const ms = m[4].length === 2 ? parseInt(m[4], 10) * 10 : parseInt(m[4], 10);
+      return `${String(m[1]).padStart(2, '0')}:${m[2]}:${m[3]}.${String(ms).padStart(3, '0')}`;
+    }
+
+    function clearSubtitles() {
+      videoEl.querySelectorAll('track').forEach(t => t.remove());
+      currentSubtitleVtt = null;
+      currentSubtitleName = null;
+      updateSubtitleUI(null);
+      broadcastData({ type: 'subtitle', vtt: null });
+      appendChat('Sistema', 'Subtítulos eliminados.');
+    }
+
+    function updateSubtitleUI(name) {
+      const status = document.getElementById('subtitleStatus');
+      const chip = document.getElementById('subtitleChip');
+      if (name) {
+        document.getElementById('subtitleFileName').textContent = name;
+        status.classList.remove('hidden'); status.classList.add('flex');
+        chip.textContent = 'CC · ' + name;
+        chip.classList.remove('hidden'); chip.classList.add('inline-flex');
+      } else {
+        status.classList.add('hidden'); status.classList.remove('flex');
+        chip.classList.add('hidden'); chip.classList.remove('inline-flex');
+      }
+    }
+
+    function applySubtitleTrack(vttText) {
+      videoEl.querySelectorAll('track').forEach(t => t.remove());
+      const blob = new Blob([vttText], { type: 'text/vtt' });
+      const track = document.createElement('track');
+      track.kind = 'subtitles';
+      track.label = 'Español';
+      track.srclang = 'es';
+      track.src = URL.createObjectURL(blob);
+      track.default = true;
+      track.addEventListener('load', () => { track.track.mode = 'showing'; });
+      videoEl.appendChild(track);
+      if (videoEl.textTracks.length) videoEl.textTracks[0].mode = 'showing';
+    }
+
+    // --- LÓGICA DEL ESPECTADOR (GUEST) ---
+    function initGuestPeer() {
+      peer = new Peer();
+      peer.on('open', () => {
+        updateStatus('Listo', 'bg-blue-500/10 text-blue-400 border-blue-500/20');
+        const code = document.getElementById('roomCodeInput').value.trim();
+        if (code) connectToHost();
+      });
+
+      peer.on('error', (err) => {
+        if (err.type === 'peer-unavailable') {
+          setGuestWaiting('No se encontró la sala. Verifica el código e inténtalo de nuevo.');
+          updateStatus('Sala no encontrada', 'bg-red-500/10 text-red-400 border-red-500/20');
+          showQuickConnect(true);
+        }
+      });
+
+      peer.on('call', (call) => {
+        call.answer();
+        call.on('stream', (remoteStream) => {
+          videoEl.srcObject = remoteStream;
+          togglePauseBadge();
+          videoEl.play().then(() => {
+            hideGuestOverlay();
+          }).catch(() => {
+            const overlay = document.getElementById('guestOverlay');
+            overlay.classList.remove('hidden', 'pointer-events-none');
+            overlay.classList.add('pointer-events-auto', 'cursor-pointer');
+            document.getElementById('guestSpinner').classList.add('hidden');
+            document.getElementById('guestPlayIcon').classList.remove('hidden');
+            document.getElementById('guestOverlayText').textContent = 'Transmisión lista. Haz clic para reproducir.';
+          });
+          document.getElementById('liveIndicator').textContent = '● EN VIVO';
+          document.getElementById('liveIndicator').className = 'text-red-500 font-bold text-[10px] tracking-widest uppercase';
+        });
+      });
+    }
+
+    function togglePauseBadge() {
+      const b = document.getElementById('guestPauseBadge');
+      const show = !!videoEl.srcObject && !guestPlaying;
+      b.classList.toggle('hidden', !show);
+      b.classList.toggle('flex', show);
+    }
+
+    function setGuestWaiting(text) {
+      const overlay = document.getElementById('guestOverlay');
+      overlay.classList.remove('hidden', 'pointer-events-auto', 'cursor-pointer');
+      overlay.classList.add('pointer-events-none');
+      document.getElementById('guestSpinner').classList.remove('hidden');
+      document.getElementById('guestPlayIcon').classList.add('hidden');
+      document.getElementById('guestOverlayText').textContent = text;
+    }
+
+    function hideGuestOverlay() {
+      const overlay = document.getElementById('guestOverlay');
+      overlay.classList.add('hidden');
+      overlay.classList.remove('pointer-events-auto', 'cursor-pointer');
+      overlay.classList.add('pointer-events-none');
+    }
+
+    function tryResumeGuest() {
+      if (!videoEl.srcObject) return;
+      videoEl.play().then(() => hideGuestOverlay()).catch(() => {});
+    }
+
+    function showQuickConnect(show) {
+      const qc = document.getElementById('guestQuickConnect');
+      const rc = document.getElementById('guestRoomCluster');
+      qc.classList.toggle('hidden', !show);
+      qc.classList.toggle('flex', show);
+      rc.classList.toggle('hidden', show);
+      rc.classList.toggle('flex', !show);
+    }
+
+    function connectToHost() {
+      const hostId = document.getElementById('roomCodeInput').value.trim();
+      if (!hostId) return showToast('Ingresa el código de la sala.', false);
+      if (!peer || peer.disconnected) return showToast('Aún inicializando la conexión…', false);
+      if (hostConnection) { try { hostConnection.close(); } catch (e) {} }
+
+      updateStatus('Conectando', 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20');
+      setGuestWaiting(`Conectando a ${hostId}...`);
+      hostConnection = peer.connect(hostId);
+
+      hostConnection.on('open', () => {
+        updateStatus('En Vivo', 'bg-green-500/10 text-green-400 border-green-500/20');
+        document.getElementById('peerCountBadge').textContent = 'Conectado';
+        document.getElementById('guestRoomCode').textContent = hostId;
+        showQuickConnect(false);
+        setGuestWaiting('Conectado. Esperando que el anfitrión inicie la película...');
+        hostConnection.send({ type: 'join', name: userName });
+        appendChat('Sistema', `Te uniste a la sala ${hostId}.`);
+      });
+
+      hostConnection.on('data', (data) => {
+        if (data.type === 'chat') {
+          appendChat(data.sender, data.message);
+        } else if (data.type === 'system') {
+          appendChat('Sistema', data.message);
+        } else if (data.type === 'title') {
+          document.getElementById('nowPlayingTitle').textContent = `Viendo en vivo: ${data.title}`;
+        } else if (data.type === 'playlist') {
+          guestPlaylist = { items: data.items || [], current: typeof data.current === 'number' ? data.current : -1 };
+          renderGuestQueue();
+        } else if (data.type === 'viewers') {
+          document.getElementById('peerCountBadge').textContent = `${data.count} viendo`;
+        } else if (data.type === 'reaction') {
+          floatReaction(data.emoji);
+        } else if (data.type === 'playstate') {
+          guestPlaying = !!data.playing;
+          togglePauseBadge();
+        } else if (data.type === 'subtitle') {
+          if (data.vtt) {
+            applySubtitleTrack(data.vtt);
+            updateSubtitleUI(data.name || 'Subtítulos');
+          } else {
+            videoEl.querySelectorAll('track').forEach(t => t.remove());
+            updateSubtitleUI(null);
+          }
+        }
+      });
+
+      hostConnection.on('close', () => handleGuestDisconnect('La conexión con la sala se cerró. Puedes volver a conectarte.'));
+      hostConnection.on('error', () => handleGuestDisconnect('Error de conexión con la sala. Inténtalo de nuevo.'));
+    }
+
+    function handleGuestDisconnect(message) {
+      hostConnection = null;
+      videoEl.srcObject = null;
+      guestPlaying = true;
+      togglePauseBadge();
+      updateStatus('Desconectado', 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20');
+      document.getElementById('peerCountBadge').textContent = '0 conectados';
+      document.getElementById('liveIndicator').textContent = '● En espera';
+      document.getElementById('liveIndicator').className = 'text-zinc-600 font-semibold text-[10px] tracking-widest uppercase';
+      guestPlaylist = { items: [], current: -1 };
+      renderGuestQueue();
+      showQuickConnect(true);
+      setGuestWaiting(message);
+    }
+
+    function leaveRoom() {
+      if (hostConnection) { try { hostConnection.close(); } catch (e) {} }
+      handleGuestDisconnect('Saliste de la sala. Puedes volver a conectarte cuando quieras.');
+    }
+
+    // --- COMPARTIR SALA ---
+    function openShareModal() {
+      const code = document.getElementById('myRoomId').value;
+      if (!code || code === 'Generando...') return showToast('La sala aún se está creando…', false);
+      const url = `${window.location.origin}${window.location.pathname}?room=${code}`;
+      document.getElementById('shareCodeText').textContent = code;
+      document.getElementById('shareLinkInput').value = url;
+
+      const qrWrap = document.getElementById('shareQrWrap');
+      try {
+        if (typeof qrcode !== 'undefined') {
+          const qr = qrcode(0, 'M');
+          qr.addData(url);
+          qr.make();
+          document.getElementById('shareQrBox').innerHTML = qr.createSvgTag({ cellSize: 4, margin: 0 });
+          qrWrap.classList.remove('hidden');
+          qrWrap.classList.add('flex');
+        } else {
+          qrWrap.classList.add('hidden');
+        }
+      } catch (e) {
+        qrWrap.classList.add('hidden');
+      }
+
+      document.getElementById('shareModal').classList.remove('hidden');
+    }
+
+    function closeShareModal() {
+      document.getElementById('shareModal').classList.add('hidden');
+    }
+
+    function copyRoomCode() {
+      navigator.clipboard.writeText(document.getElementById('myRoomId').value)
+        .then(() => showToast('Código de sala copiado'))
+        .catch(() => showToast('No se pudo copiar el código', false));
+    }
+
+    function copyInviteLink() {
+      const roomId = document.getElementById('myRoomId').value;
+      const url = `${window.location.origin}${window.location.pathname}?room=${roomId}`;
+      navigator.clipboard.writeText(url)
+        .then(() => showToast('Enlace de invitación copiado'))
+        .catch(() => showToast('No se pudo copiar el enlace', false));
+    }
+
+    // --- UTILIDADES ---
+    function broadcastData(data, excludePeerId = null) {
+      connections.forEach(conn => {
+        if (conn.open && conn.peer !== excludePeerId) conn.send(data);
+      });
+    }
+
+    function sendChat(event) {
+      event.preventDefault();
+      const input = document.getElementById('chatInput');
+      const msg = input.value.trim();
+      if (!msg) return;
+      appendChat(userName, msg);
+      if (role === 'host') {
+        broadcastData({ type: 'chat', sender: userName, message: msg });
+      } else if (hostConnection && hostConnection.open) {
+        hostConnection.send({ type: 'chat', sender: userName, message: msg });
+      }
+      input.value = '';
+    }
+
+    function appendChat(sender, text) {
+      const box = document.getElementById('chatMessages');
+      const wrap = document.createElement('div');
+
+      if (sender === 'Sistema') {
+        wrap.className = 'chat-enter flex items-start gap-2 rounded-lg border border-line bg-white/[0.02] px-3 py-2 text-xs text-zinc-500';
+        const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        icon.setAttribute('viewBox', '0 0 24 24');
+        icon.setAttribute('fill', 'none');
+        icon.setAttribute('stroke', 'currentColor');
+        icon.setAttribute('stroke-width', '2');
+        icon.setAttribute('stroke-linecap', 'round');
+        icon.setAttribute('class', 'w-3.5 h-3.5 mt-0.5 shrink-0 text-zinc-600');
+        icon.innerHTML = '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>';
+        const span = document.createElement('span');
+        span.textContent = text;
+        wrap.appendChild(icon);
+        wrap.appendChild(span);
+      } else {
+        const palette = ['#f43f5e', '#f59e0b', '#22c55e', '#3b82f6', '#a78bfa', '#ec4899', '#2dd4bf'];
+        let h = 0;
+        for (const ch of sender) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+        const color = palette[h % palette.length];
+
+        wrap.className = 'chat-enter flex items-start gap-2.5';
+        const avatar = document.createElement('div');
+        avatar.className = 'w-7 h-7 shrink-0 rounded-lg border text-[11px] font-bold flex items-center justify-center';
+        avatar.style.background = color + '1f';
+        avatar.style.color = color;
+        avatar.style.borderColor = color + '40';
+        avatar.textContent = sender.charAt(0).toUpperCase();
+
+        const content = document.createElement('div');
+        content.className = 'flex-1 min-w-0';
+        const head = document.createElement('div');
+        head.className = 'flex items-baseline gap-2';
+        const name = document.createElement('span');
+        name.className = 'text-[13px] font-semibold truncate';
+        name.style.color = color;
+        name.textContent = sender;
+        const time = document.createElement('span');
+        time.className = 'text-[10px] text-zinc-600 ml-auto shrink-0';
+        time.textContent = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        head.appendChild(name);
+        head.appendChild(time);
+
+        const body = document.createElement('p');
+        body.className = 'text-[13px] text-zinc-300 leading-relaxed break-words';
+        body.textContent = text;
+
+        content.appendChild(head);
+        content.appendChild(body);
+        wrap.appendChild(avatar);
+        wrap.appendChild(content);
+      }
+
+      box.appendChild(wrap);
+      box.scrollTop = box.scrollHeight;
+
+      // No leídos si el espectador tiene el chat oculto
+      if (role === 'guest' && sender !== 'Sistema' &&
+          document.getElementById('chatSection').classList.contains('hidden')) {
+        chatUnread++;
+        updateUnreadBadge();
+      }
+    }
+
+    function updatePeerCounters() {
+      const count = connections.length;
+      document.getElementById('connectedPeersCount').textContent = count;
+      document.getElementById('peerCountBadge').textContent = `${count} conectados`;
+      if (role === 'host') broadcastData({ type: 'viewers', count });
+    }
+
+    function updateStatus(text, classes) {
+      const el = document.getElementById('connectionStatus');
+      el.textContent = text;
+      el.className = `inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold rounded-full border ${classes}`;
+    }
+
+    let toastTimer = null;
+    function showToast(message, ok = true) {
+      const t = document.getElementById('toast');
+      t.textContent = message;
+      t.className = `fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] px-4 py-2.5 rounded-xl border text-sm font-medium shadow-card transition-all duration-300 pointer-events-none opacity-100 translate-y-0 ${
+        ok ? 'bg-ink-800 border-brand/30 text-zinc-100' : 'bg-ink-800 border-yellow-500/30 text-yellow-300'
+      }`;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        t.classList.remove('opacity-100', 'translate-y-0');
+        t.classList.add('opacity-0', 'translate-y-3');
+      }, 2400);
+    }
+  </script>
+</body>
+</html>
